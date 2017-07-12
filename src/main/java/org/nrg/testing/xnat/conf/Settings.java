@@ -58,6 +58,7 @@ public class Settings {
     public static final String MAIN_ADMIN_PASS = properties.getMainAdminPassword();
     public static final String ADMIN_USERNAME = properties.getAdminUser();
     public static final String ADMIN_PASS = properties.getAdminPassword();
+    public static final boolean ADMIN_AVAILABLE = ADMIN_USERNAME != null && ADMIN_PASS != null;
     public static final String XNAT_VERSION = properties.getXNATVersion();
     public static final String BASEURL = CommonUtils.formatUrl(properties.getBaseURL());
     public static final String HOSTURL = getHost();

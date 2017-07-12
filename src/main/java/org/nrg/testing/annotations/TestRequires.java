@@ -17,5 +17,6 @@ public @interface TestRequires {
     boolean db() default false;
     boolean dicomScp() default false;
     boolean user() default false;
+    boolean admin() default false;
     TestData[] data() default TestData.NONE;
 }

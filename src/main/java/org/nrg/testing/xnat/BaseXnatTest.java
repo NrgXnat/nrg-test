@@ -80,6 +80,9 @@ public abstract class BaseXnatTest extends BaseTestCase {
             if (classRequires.ssh()) {
                 TestNgUtils.assumeTrue(Settings.SSH_FUNCTIONS, "SSH connection information is required for all tests in class: " + testClass.getSimpleName());
             }
+            if (classRequires.admin()) {
+                TestNgUtils.assumeTrue(Settings.ADMIN_AVAILABLE, "XNAT admin account is required for all tests in class: " + testClass.getSimpleName());
+            }
         }
 
         if (requiredUsers > 0) {
@@ -142,6 +145,9 @@ public abstract class BaseXnatTest extends BaseTestCase {
             }
             if (testRequires.ssh()) {
                 TestNgUtils.assumeTrue(Settings.SSH_FUNCTIONS, "SSH connection information is required for test: " + method.getName());
+            }
+            if (testRequires.admin()) {
+                TestNgUtils.assumeTrue(Settings.ADMIN_AVAILABLE, "XNAT admin account is required for test: " + method.getName());
             }
         }
     }
