@@ -13,7 +13,6 @@ package org.nrg.testing.util;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
-import org.nrg.xnat.enums.Month;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -160,8 +159,8 @@ public class RandomHelper {
         return enumClass.getEnumConstants()[generator.nextInt(enumClass.getEnumConstants().length)];
     }
 
-    public static Month randomMonth() {
-        return randomEnum(Month.class);
+    public static int randomMonth() {
+        return randomInteger(1, 12);
     }
 
     public static int randomDay() {

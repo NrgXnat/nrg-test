@@ -1,6 +1,12 @@
 package org.nrg.testing.xnat.rest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.config.RestAssuredConfig;
 import com.jayway.restassured.internal.RestAssuredResponseImpl;
+import com.jayway.restassured.mapper.factory.Jackson2ObjectMapperFactory;
+import com.jayway.restassured.path.json.JsonPath;
+import com.jayway.restassured.path.json.config.JsonPathConfig;
 import com.jayway.restassured.path.json.exception.JsonPathException;
 import com.jayway.restassured.response.Response;
 import com.jayway.restassured.specification.RequestSender;
@@ -17,18 +23,27 @@ import org.nrg.testing.util.RandomHelper;
 import org.nrg.testing.xnat.XnatAliasToken;
 import org.nrg.testing.xnat.conf.Settings;
 import org.nrg.testing.xnat.conf.XnatConfig;
+import org.nrg.testing.xnat.extensions.ResourceFileExtension;
 import org.nrg.testing.xnat.versions.XnatVersion;
 import org.nrg.testing.xnat.versions.XnatVersionList;
+import org.nrg.xnat.jackson.mappers.XnatRestReadObjectMapper;
+import org.nrg.xnat.jackson.mappers.XnatRestReadWriteObjectMapper;
+import org.nrg.xnat.pojo.Investigator;
 import org.nrg.xnat.pojo.Project;
 import org.nrg.xnat.pojo.Subject;
-import org.nrg.xnat.pojo.User;
 import org.nrg.xnat.pojo.experiments.ImagingSession;
+import org.nrg.xnat.pojo.experiments.NonimagingAssessor;
+import org.nrg.xnat.pojo.experiments.SubjectAssessor;
+import org.nrg.xnat.pojo.resources.Resource;
+import org.nrg.xnat.pojo.resources.ResourceFile;
+import org.nrg.xnat.pojo.users.User;
+import org.nrg.xnat.pojo.users.UserGroup;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import static com.jayway.restassured.config.ObjectMapperConfig.objectMapperConfig;
+import static com.jayway.restassured.http.ContentType.*;
 import static org.testng.AssertJUnit.fail;
 
 public abstract class XnatRestDriver {
@@ -36,6 +51,7 @@ public abstract class XnatRestDriver {
     protected XnatConfig xnatConfig;
     protected TestController testController;
     protected static final Logger LOGGER = Logger.getLogger(XnatRestDriver.class);
+    public static final ObjectMapper XNAT_REST_MAPPER = new XnatRestReadWriteObjectMapper();
 
     public abstract List<Class<? extends XnatVersion>> getHandledVersions();
 
@@ -122,6 +138,21 @@ public abstract class XnatRestDriver {
         return xnatConfig.getAdminCredentials();
     }
 
+    public RequestSpecification invalidCredentials() {
+        return Credentials.build(RandomHelper.randomLetters(12), RandomHelper.randomLetters(12)); // randomly generating this is fine. Probability of collision is astronomically small with 12 letters
+    }
+
+    public User mainUser() {
+        return xnatConfig.getMainUser();
+    }
+
+    public User mainAdminUser() {
+        return xnatConfig.getMainAdminUser();
+    }
+
+    public User adminUser() {
+        return xnatConfig.getAdminUser();
+    }
 
     public String permuteSeleniumEmail() {
         List<String> emailList = adminCredentials().when().get(formatRestUrl("users")).then().extract().path("ResultSet.Result.email");
@@ -148,8 +179,8 @@ public abstract class XnatRestDriver {
         return formatRestUrl("services", "tokens", "issue");
     }
 
-    public XnatAliasToken generateAliasToken(RequestSpecification authRequest) {
-        Response response = getJson(authRequest.expect().statusCode(200), aliasTokenUrl());
+    public XnatAliasToken generateAliasToken(User user) {
+        Response response = getJson(Credentials.build(user).expect().statusCode(200), aliasTokenUrl());
         return new XnatAliasToken(response.jsonPath().getString("alias"), response.jsonPath().getString("secret"));
     }
     
@@ -157,24 +188,24 @@ public abstract class XnatRestDriver {
         return formatRestUrl("projects", project.getId(), "experiments");
     }
 
-    public String getAccessionNumber(ImagingSession session, RequestSpecification credentials) {
+    public String getAccessionNumber(User authUser, ImagingSession session) {
         if (session.getPrimaryProject() == null) throw new IllegalArgumentException("Session object must have project specified.");
 
-        return credentials.get(projectExperimentsUrl(session.getPrimaryProject())).then().extract().jsonPath().param("session", session.getLabel()).getString("ResultSet.Result.find {it.label == session }.ID");
+        return Credentials.build(authUser).get(projectExperimentsUrl(session.getPrimaryProject())).then().extract().jsonPath().param("session", session.getLabel()).getString("ResultSet.Result.find {it.label == session }.ID");
     }
 
     public String getAccessionNumber(ImagingSession session) {
-        return getAccessionNumber(session, mainCredentials());
+        return getAccessionNumber(mainUser(), session);
     }
 
-    public void waitForAutoRun(int maximumTime, ImagingSession session, RequestSpecification credentials) {
-        final String accessionNumber = getAccessionNumber(session, credentials);
+    public void waitForAutoRun(User authUser, int maximumTime, ImagingSession session) {
+        final String accessionNumber = getAccessionNumber(authUser, session);
 
         final StopWatch stopWatch = CommonUtils.launchStopWatch();
         while (true) {
             CommonUtils.checkStopWatch(stopWatch, maximumTime, "AutoRun did not complete in allotted number of seconds: " + maximumTime);
 
-            final String status = credentials.given().queryParam("experiment", accessionNumber).queryParam("format", "json").
+            final String status = Credentials.build(authUser).given().queryParam("experiment", accessionNumber).queryParam("format", "json").
                     get(formatRestUrl("services/workflows/AutoRun")).then().extract().jsonPath().getString("items.get(0).data_fields.status");
 
             if (status.equals("Complete")) {
@@ -187,7 +218,7 @@ public abstract class XnatRestDriver {
     }
 
     public void waitForAutoRun(ImagingSession session) {
-        waitForAutoRun(60, session, mainCredentials());
+        waitForAutoRun(mainUser(), 60, session);
     }
 
     public String getBuildInfo() {
@@ -225,7 +256,7 @@ public abstract class XnatRestDriver {
     }
 
     public void uploadToSessionZipImporter(File sessionZip, Project project) {
-        uploadToSessionZipImporter(null, sessionZip, project, null, null);
+        uploadToSessionZipImporter(mainUser(), sessionZip, project, null, null);
     }
 
     public void uploadToSessionZipImporter(TestData testData, Project project) {
@@ -247,6 +278,207 @@ public abstract class XnatRestDriver {
 
     public int getNumberActiveSessions(User user) {
         return (int) Credentials.build(user).expect().statusCode(200).when().get(getUserSessionsRestUrl(user)).then().extract().path(user.getUsername());
+    }
+
+    public void initializeXnat() {
+        final Response initResponse = adminCredentials().get(formatXapiUrl("siteConfig/initialized"));
+        if (initResponse.statusCode() == 200 && initResponse.then().extract().as(Boolean.class)) {
+            LOGGER.info("XNAT already initialized");
+        } else {
+            adminCredentials().expect().statusCode(200).given().contentType(JSON).body(Collections.singletonMap("initialized", true)).post(formatXapiUrl("siteConfig"));
+        }
+    }
+
+    public void setupTestUsers() {
+        final List<String> allUsers = adminCredentials().get(formatXapiUrl("users")).path("");
+
+        if (allUsers.contains(mainUser().getUsername())) {
+            verifyUser(adminUser(), mainUser());
+            enableUser(adminUser(), mainUser());
+        } else {
+            createUser(xnatConfig.getMainUser());
+        }
+
+        if (allUsers.contains(mainAdminUser().getUsername())) {
+            verifyUser(adminUser(), mainAdminUser());
+            enableUser(adminUser(), mainAdminUser());
+            makeUserAdmin(adminUser(), mainAdminUser());
+        } else {
+            createUser(xnatConfig.getMainAdminUser());
+        }
+    }
+
+    public void createUser(User user) {
+        adminCredentials().expect().statusCode(201).given().contentType(JSON).body(user).post(formatXapiUrl("users"));
+        if (user.isAdmin()) {
+            makeUserAdmin(xnatConfig.getAdminUser(), user);
+        }
+    }
+
+    public void assignUserToRoles(User authUser, User targetUser, String... roles) {
+        Credentials.build(authUser).expect().statusCode(200).given().contentType(JSON).body(roles).put(formatXapiUrl("users", targetUser.getUsername(), "roles"));
+    }
+
+    public void addUserToGroups(User authUser, User targetUser, String... groups) {
+        Credentials.build(authUser).expect().statusCode(200).given().contentType(JSON).body(groups).put(formatXapiUrl("users", targetUser.getUsername(), "groups"));
+    }
+
+    public void verifyUser(User authUser, User targetUser) {
+        Credentials.build(authUser).expect().statusCode(200).put(formatXapiUrl("users", targetUser.getUsername(), "verified/true"));
+        targetUser.verified(true);
+    }
+
+    public void enableUser(User authUser, User targetUser) {
+        Credentials.build(authUser).expect().statusCode(200).put(formatXapiUrl("users", targetUser.getUsername(), "enabled/true"));
+        targetUser.enabled(true);
+    }
+
+    public void makeUserAdmin(User authUser, User targetUser) {
+        assignUserToRoles(authUser, targetUser, "Administrator");
+        addUserToGroups(authUser, targetUser, "ALL_DATA_ADMIN");
+        targetUser.admin(true);
+    }
+
+    public void createInvestigators(User authUser, List<Investigator> investigators) {
+        final Investigator[] knownInvestigators = Credentials.build(authUser).get(formatXapiUrl("investigators")).as(Investigator[].class);
+
+        for (Investigator investigator : investigators) {
+            boolean createRequired = true;
+
+            for (Investigator possibleMatch : knownInvestigators) {
+                if (possibleMatch.equals(investigator)) {
+                    investigator.id(possibleMatch.getXnatInvestigatordataId());
+                    createRequired = false;
+                    break;
+                }
+            }
+
+            if (createRequired) {
+                createInvestigator(authUser, investigator);
+            }
+        }
+    }
+
+    public void createInvestigator(User authUser, Investigator investigator) {
+        investigator.setXnatInvestigatordataId(
+                Credentials.build(authUser).given().contentType(JSON).body(investigator).post(formatXapiUrl("investigators")).jsonPath().getInt("xnatInvestigatordataId")
+        );
+    }
+
+    public String getProjectCreateUrl(Project project) {
+        return formatRestUrl("projects", project.getId());
+    }
+
+    public void addUsersToProject(User authUser, Project project) {
+        for (Map.Entry<UserGroup, List<User>> userGroupEntry : project.getUsers().entrySet()) {
+            final UserGroup group = userGroupEntry.getKey();
+            for (User user : userGroupEntry.getValue()) {
+                addUserToGroups(authUser, user, String.format("%s_%s", project, group.singularName().toLowerCase())); // TODO: does this work for Custom User groups?
+            }
+        }
+    }
+
+    public void uploadResources(User authUser, List<Resource> resources) {
+        for (Resource resource : resources) {
+            Credentials.build(authUser).expect().statusCode(200).when().put(formatXnatUrl(resource.resourceUrl(), "resources", resource.getFolder()));
+            for (ResourceFile file : resource.getResourceFiles()) {
+                if (file.getExtension() == null || !(file.getExtension() instanceof ResourceFileExtension)) {
+                    throw new UnsupportedOperationException("ResourceFile must have extension set of type ResourceFileExtension in order to locate file for upload.");
+                } else {
+                    Credentials.build(authUser).expect().statusCode(200).given().
+                            queryParams(SerializationUtils.serializeToMap(file)).multiPart(((ResourceFileExtension) file.getExtension()).getFile()).
+                            put(formatXnatUrl(resource.resourceUrl(), "resources", resource.getFolder(), "files"));
+                }
+            }
+        }
+    }
+
+    public void createProject(User authUser, Project project) {
+        final List<Investigator> investigators = new ArrayList<>();
+        investigators.addAll(project.getInvestigators());
+        if (project.getPi() != null) investigators.add(project.getPi());
+        createInvestigators(authUser, investigators);
+
+        Credentials.build(authUser).expect().statusCode(200).given().queryParameters(SerializationUtils.serializeToMap(project)).put(getProjectCreateUrl(project));
+        addUsersToProject(authUser, project);
+        for (Resource resource : project.getProjectResources()) {
+            resource.setProject(project);
+        }
+        uploadResources(authUser, project.getProjectResources());
+
+        for (Subject subject : project.getSubjects()) {
+            createSubject(authUser, subject.project(project));
+        }
+    }
+
+    public void createSubject(User authUser, Project project, Subject subject) {
+        Credentials.build(authUser).expect().statusCode(201).given().queryParams(SerializationUtils.serializeToMap(subject)).
+                put(formatRestUrl("projects", project.getId(), "subjects", subject.getLabel()));
+        for (Resource resource : subject.getResources()) {
+            resource.project(project).subject(subject);
+        }
+        uploadResources(authUser, subject.getResources());
+
+        if (!subject.getExperiments().isEmpty()) {
+            final Collection<ImagingSession> sessions = CommonUtils.ofType(subject.getExperiments(), ImagingSession.class);
+            final Collection<NonimagingAssessor> nonimagingAssessors = CommonUtils.ofType(subject.getExperiments(), NonimagingAssessor.class);
+
+            for (ImagingSession session : sessions) {
+                createSession(authUser, project, subject, session);
+            }
+
+            for (NonimagingAssessor assessor : nonimagingAssessors) {
+                createNonimagingAssessor(authUser, project, subject, assessor);
+            }
+        }
+    }
+
+    public void createSubject(User authUser, Subject subject) {
+        if (subject.getProject() == null) {
+            throw new UnsupportedOperationException("Subject object must have Project object populated to use this shortcut method");
+        }
+
+        createSubject(authUser, subject.getProject(), subject);
+    }
+
+    public void createSession(User authUser, Project project, Subject subject, ImagingSession session) {
+        if (session.getDataType() == null) {
+            throw new UnsupportedOperationException("SubjectAssessor must have xsiType to pass to XNAT for this method");
+        }
+
+        session.accessionNumber(
+                Credentials.build(authUser).expect().statusCode(201).given().queryParams(SerializationUtils.serializeToMap(session)).
+                put(formatRestUrl("projects", project.getId(), "subjects", subject.getLabel(), "experiments", session.getLabel())).asString()
+        );
+        for (Resource resource : session.getResources()) {
+            resource.project(project).subject(subject).subjectAssessor(session);
+        }
+        uploadResources(authUser, session.getResources());
+        // TODO: scans, session assessors ?
+    }
+
+    public void createSession(User authUser, ImagingSession session) {
+        if (session.getPrimaryProject() == null || session.getSubject() == null) {
+            throw new UnsupportedOperationException("SubjectAssessor object must have both Project and Subject to use shortcut method");
+        }
+
+        createSession(authUser, session.getPrimaryProject(), session.getSubject(), session);
+    }
+
+    public void createNonimagingAssessor(User authUser, Project project, Subject subject, NonimagingAssessor subjectAssessor) {
+        // TODO
+    }
+
+    public void createNonimagingAssessor(User authUser, NonimagingAssessor subjectAssessor) {
+        // TODO
+    }
+
+    public String projectDeleteUrl(Project project) {
+        return formatRestUrl("projects", project.getId());
+    }
+
+    public void deleteProject(User authUser, Project project) {
+        Credentials.build(authUser).expect().statusCode(200).given().queryParam("removeFiles", true).delete(projectDeleteUrl(project));
     }
 
 }

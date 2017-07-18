@@ -22,7 +22,7 @@ import org.nrg.testing.xnat.versions.XnatVersion;
 import org.nrg.testing.xnat.versions.XnatVersionList;
 import org.nrg.xnat.pojo.Project;
 import org.nrg.xnat.pojo.Subject;
-import org.nrg.xnat.pojo.User;
+import org.nrg.xnat.pojo.users.User;
 import org.testng.ITestContext;
 import org.testng.ITestNGMethod;
 import org.testng.annotations.BeforeClass;
@@ -40,12 +40,15 @@ public abstract class BaseXnatTest extends BaseTestCase {
     protected XnatRestDriver restDriver;
     protected List<User> userPool = new ArrayList<>();
 
+    protected User mainUser = Settings.DEFAULT_XNAT_CONFIG.getMainUser();
+    protected User mainAdminUser = Settings.DEFAULT_XNAT_CONFIG.getMainAdminUser();
+
     @BeforeSuite
     public void setupXnatTests(ITestContext testContext) {
         XnatVersionList.readXnatVersions();
         checkSettings();
         constructRestDriver();
-        setupXnat();
+        if (Settings.INIT_SETTING) setupXnat();
         if (Settings.JIRA_SETTING) JIRATestNGListener.updateBuildInfo(restDriver.getBuildInfo());
         if (Settings.GITLOGS_SETTING) GitLogListener.init(Settings.MAIN_ADMIN_USERNAME, Settings.MAIN_ADMIN_PASS, Settings.BASEURL);
         handleSetupAnnotationRequirements();

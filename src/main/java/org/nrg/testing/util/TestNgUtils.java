@@ -1,5 +1,6 @@
 package org.nrg.testing.util;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.nrg.testing.BaseTestCase;
 import org.testng.ITestNGMethod;
@@ -8,6 +9,8 @@ import org.testng.SkipException;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+
+import static org.testng.AssertJUnit.assertTrue;
 
 public class TestNgUtils {
 
@@ -66,6 +69,10 @@ public class TestNgUtils {
 
     public static void assumeFalse(boolean condition, String message) {
         assumeTrue(!condition, message);
+    }
+
+    public static void assertNonempty(CharSequence string) {
+        assertTrue(StringUtils.isNotEmpty(string));
     }
 
 }

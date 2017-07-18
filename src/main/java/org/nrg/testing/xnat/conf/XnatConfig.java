@@ -3,7 +3,7 @@ package org.nrg.testing.xnat.conf;
 import com.jayway.restassured.specification.RequestSpecification;
 import org.nrg.testing.auth.Credentials;
 import org.nrg.testing.xnat.Users;
-import org.nrg.xnat.pojo.User;
+import org.nrg.xnat.pojo.users.User;
 
 public class XnatConfig {
 
@@ -67,7 +67,7 @@ public class XnatConfig {
 
     public XnatConfig build() {
         mainUser = Users.constructMainAccount(mainUsername, mainPassword);
-        mainAdminUser = Users.constructSeleniumMainAccount(mainAdminUsername, mainAdminPassword);
+        mainAdminUser = Users.constructMainAdminAccount(mainAdminUsername, mainAdminPassword);
         adminUser = new User(adminUsername).password(adminPassword).admin(true);
         return this;
     }
