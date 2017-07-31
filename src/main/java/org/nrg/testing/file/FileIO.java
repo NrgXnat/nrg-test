@@ -107,6 +107,15 @@ public class FileIO {
         return null;
     }
 
+    public static File getDataFile(String filename) {
+        final File possibleFile = Paths.get(Settings.DATA_LOCATION, filename).toFile();
+        if (possibleFile.exists()) {
+            return possibleFile;
+        } else {
+            return null;
+        }
+    }
+
     public static File findDownload(String path) {
         return findDownload(new File(path));
     }
@@ -123,17 +132,21 @@ public class FileIO {
         previousFiles = new File(Settings.TEMP_SUBDIR).listFiles();
     }
 
-    public static void unzip(String directoryPath, String zipName) {
-        String unzippedFolder = directoryPath + File.separator + zipName.substring(0, zipName.length() - 4); // we know zip is a .zip
-        if (!new File(unzippedFolder).isDirectory()) { // refuse to overwrite
+    public static void unzip(Path unzipFolder, File zip) {
+        if (!unzipFolder.toFile().isDirectory()) { // refuse to overwrite
             try {
-                ZipFile zipFile = new ZipFile(directoryPath + File.separator + zipName);
-                zipFile.extractAll(unzippedFolder);
+                ZipFile zipFile = new ZipFile(zip);
+                zipFile.extractAll(unzipFolder.toFile().toString());
             } catch (ZipException e) {
                 e.printStackTrace();
                 fail("Failed to unzip test data.");
             }
         }
+    }
+
+    public static void unzip(String directoryPath, String zipName) {
+        final String unzippedFolder = directoryPath + File.separator + zipName.substring(0, zipName.length() - 4); // we know zip is a .zip
+        unzip(Paths.get(unzippedFolder), new File(zipName));
     }
 
     public static File recursiveFind(File parentDir, final String fileName) {
@@ -303,10 +316,19 @@ public class FileIO {
     }
 
     public static String readFile(Path path) {
+        return readFile(path.toFile());
+    }
+
+    public static String readFile(File file) {
         try {
-            return FileUtils.readFileToString(path.toFile(), "utf-8");
+            return FileUtils.readFileToString(file, "utf-8");
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read in file:" + path.getFileName());
+            throw new RuntimeException("Failed to read in file:" + file);
         }
     }
+
+    public static String readDataFile(String filename) {
+        return readFile(getDataFile(filename));
+    }
+
 }

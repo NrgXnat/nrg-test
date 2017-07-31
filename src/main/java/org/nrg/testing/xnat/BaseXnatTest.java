@@ -37,7 +37,7 @@ public abstract class BaseXnatTest extends BaseTestCase {
 
     protected Project testSpecificProject;
     protected Subject testSpecificSubject;
-    protected XnatRestDriver restDriver;
+    protected XnatRestDriver restDriver = initRestDriver();
     protected List<User> userPool = new ArrayList<>();
 
     protected User mainUser = Settings.DEFAULT_XNAT_CONFIG.getMainUser();
@@ -251,6 +251,11 @@ public abstract class BaseXnatTest extends BaseTestCase {
 
     protected void constructRestDriver() {
         constructRestDriver(null);
+    }
+
+    private XnatRestDriver initRestDriver() { // Just to guarantee restDriver object is properly initialized if subclasses want to use it via instance variables
+        constructRestDriver();
+        return restDriver;
     }
 
     public XnatRestDriver getRestDriver() {

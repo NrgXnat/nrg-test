@@ -30,7 +30,7 @@ public class Settings {
     public static final String TEMP = properties.getTempFolder();
     public static final Calendar calendar = Calendar.getInstance();
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
-    public static final String directoryName = "seleniumDownloads_" + sdf.format(calendar.getTime());
+    public static final String directoryName = "nrg_test_downloads_" + sdf.format(calendar.getTime());
     public static final String TEMP_SUBDIR = generateTempSubdir();
     public static final String FAILED_SCREENSHOT_PATH = TARGET_LOCATION + File.separator + "failed_test_screenshots";
     public static final String SCREENSHOT_PATH = TARGET_LOCATION + File.separator + "test_step_screenshots";

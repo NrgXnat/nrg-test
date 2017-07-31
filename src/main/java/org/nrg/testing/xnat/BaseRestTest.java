@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.RestAssuredConfig;
 import com.jayway.restassured.mapper.factory.Jackson2ObjectMapperFactory;
+import com.jayway.restassured.specification.RequestSpecification;
+import org.nrg.testing.auth.Credentials;
 import org.nrg.testing.xnat.rest.XnatRestDriver;
 import org.nrg.xnat.pojo.users.User;
 import org.testng.annotations.BeforeSuite;
@@ -43,6 +45,18 @@ public class BaseRestTest extends BaseXnatTest {
             users.add(user);
         }
         return users;
+    }
+
+    protected RequestSpecification mainCredentials() {
+        return Credentials.build(mainUser);
+    }
+
+    protected RequestSpecification mainAdminCredentials() {
+        return Credentials.build(mainAdminUser);
+    }
+
+    protected String formatRestUrl(String... objects) {
+        return restDriver.formatRestUrl(objects);
     }
 
 }

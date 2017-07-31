@@ -3,14 +3,19 @@ package org.nrg.testing.util;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.nrg.testing.BaseTestCase;
+import org.nrg.testing.file.FileIO;
 import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
 import org.testng.SkipException;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
 
 public class TestNgUtils {
 
@@ -73,6 +78,14 @@ public class TestNgUtils {
 
     public static void assertNonempty(CharSequence string) {
         assertTrue(StringUtils.isNotEmpty(string));
+    }
+
+    public static void assertBinaryFilesEqual(File file1, File file2) {
+        try {
+            assertEquals("Binary files not equal", FileIO.calculateMD5(file1), FileIO.calculateMD5(file2));
+        } catch (IOException ioe) {
+            fail("Could not assert files equal due to: " + ioe);
+        }
     }
 
 }
