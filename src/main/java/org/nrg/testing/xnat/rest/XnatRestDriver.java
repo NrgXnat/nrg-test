@@ -292,6 +292,24 @@ public abstract class XnatRestDriver {
         }
     }
 
+    public void clearProject(User authUser, Project project) {
+        final List<Map<String, String>> experiments = Credentials.build(authUser).queryParam("format", "json").queryParam("columns", "ID,subject_ID").
+                get(formatRestUrl("projects", project.getId(), "experiments")).jsonPath().getList("ResultSet.Result");
+
+        for (Map<String, String> experiment : experiments) {
+            Credentials.build(authUser).queryParam("removeFiles", true).
+                    delete(formatRestUrl("projects", project.getId(), "subjects", experiment.get("subject_ID"), "experiments", experiment.get("ID"))).
+                    then().assertThat().statusCode(200);
+        }
+
+        List<String> subjects = Credentials.build(authUser).queryParam("format", "json").queryParam("columns", "ID").
+                get(formatRestUrl("projects", project.getId(), "subjects")).jsonPath().getList("ResultSet.Result.ID");
+
+        for (String subject : subjects) {
+            Credentials.build(authUser).queryParam("removeFiles", true).delete(formatRestUrl("projects", project.getId(), "subjects", subject)).then().assertThat().statusCode(200);
+        }
+    }
+
     public void uploadToSessionZipImporter(User authUser, File sessionZip, Project project, Subject subject, ImagingSession session) {
         if (project == null) {
             throw new RuntimeException("Project cannot be null when uploading to zip importer.");
@@ -350,7 +368,7 @@ public abstract class XnatRestDriver {
             verifyUser(adminUser(), mainUser());
             enableUser(adminUser(), mainUser());
         } else {
-            createUser(xnatConfig.getMainUser());
+            createUser(xnatConfig.getMainUser().email(Settings.EMAIL));
         }
 
         if (allUsers.contains(mainAdminUser().getUsername())) {
@@ -358,7 +376,7 @@ public abstract class XnatRestDriver {
             enableUser(adminUser(), mainAdminUser());
             makeUserAdmin(adminUser(), mainAdminUser());
         } else {
-            createUser(xnatConfig.getMainAdminUser());
+            createUser(xnatConfig.getMainAdminUser().email(Settings.EMAIL));
         }
     }
 
@@ -393,6 +411,19 @@ public abstract class XnatRestDriver {
         targetUser.admin(true);
     }
 
+    private AnonScript readAnonScript(Response response) {
+        return new AnonScript().contents(response.then().assertThat().statusCode(200).and().extract().jsonPath().getString("ResultSet.Result.get(0).script"));
+    }
+
+    public String siteAnonScriptUrl() {
+        return formatRestUrl("config/edit/image/dicom/script");
+    }
+
+    public AnonScript getSiteAnonScript(User authUser) {
+        return readAnonScript(Credentials.build(authUser).queryParam("format", "json").get(siteAnonScriptUrl()));
+    }
+
+
     public void setSiteAnonScriptStatus(User authUser, boolean status) {
         Credentials.build(authUser).queryParam("activate", status).put(formatRestUrl("/config/edit/image/dicom/status")).then().assertThat().statusCode(200);
     }
@@ -403,6 +434,30 @@ public abstract class XnatRestDriver {
 
     public void enableSiteAnonScript(User authUser) {
         setSiteAnonScriptStatus(authUser, true);
+    }
+
+    public String projectAnonScriptUrl(Project project) {
+        return formatRestUrl("config/edit/projects/", project.getId(), "/image/dicom/script");
+    }
+
+    public AnonScript getProjectAnonScript(User authUser, Project project) {
+        return readAnonScript(Credentials.build(authUser).queryParam("format", "json").get(projectAnonScriptUrl(project)));
+    }
+
+    public void setProjectAnonScript(User authUser, Project project, AnonScript script) {
+        Credentials.build(authUser).body(script.getContents()).put(projectAnonScriptUrl(project)).then().assertThat().statusCode(200);
+    }
+
+    public void setProjectAnonScriptStatus(User authUser, Project project, boolean status) {
+        Credentials.build(authUser).queryParam("activate", status).put(formatRestUrl("config/edit/projects", project.getId(), "image/dicom/status")).then().assertThat().statusCode(200);
+    }
+
+    public void disableProjectAnonScript(User authUser, Project project) {
+        setProjectAnonScriptStatus(authUser, project, false);
+    }
+
+    public void enableProjectAnonScript(User authUser, Project project) {
+        setProjectAnonScriptStatus(authUser, project, true);
     }
 
     public void createInvestigators(User authUser, List<Investigator> investigators) {
@@ -683,7 +738,7 @@ public abstract class XnatRestDriver {
             throw new UnsupportedOperationException("subjectAssessor cannot be null");
         }
 
-        Credentials.build(authUser).delete(subjectAssessorUrl(project, subject, subjectAssessor)).then().assertThat().statusCode(200);
+        Credentials.build(authUser).queryParam("removeFiles", true).delete(subjectAssessorUrl(project, subject, subjectAssessor)).then().assertThat().statusCode(200);
     }
 
     public void deleteSubjectAssessor(User authUser, SubjectAssessor subjectAssessor) {
@@ -707,6 +762,9 @@ public abstract class XnatRestDriver {
     }
 
     public void createScan(User authUser, Project project, Subject subject, ImagingSession session, Scan scan) {
+        if (scan.getXsiType() == null) {
+            throw new UnsupportedOperationException("scan must have an xsiType");
+        }
         Credentials.build(authUser).given().expect().statusCode(200).given().queryParams(SerializationUtils.serializeToMap(scan)).
                 put(formatRestUrl("projects", project.getId(), "subjects", subject.getLabel(), "experiments", session.getLabel(), "scans", scan.getId()));
 
