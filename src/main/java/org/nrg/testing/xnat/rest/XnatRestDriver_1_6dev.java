@@ -2,7 +2,7 @@ package org.nrg.testing.xnat.rest;
 
 import org.nrg.testing.xnat.versions.XnatVersion;
 import org.nrg.testing.xnat.versions.Xnat_1_6dev;
-import org.nrg.xnat.pojo.users.User;
+import org.nrg.xnat.pogo.users.User;
 
 import java.util.ArrayList;
 import java.util.Collections;

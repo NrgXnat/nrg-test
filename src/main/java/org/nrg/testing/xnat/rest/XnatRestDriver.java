@@ -8,7 +8,6 @@ import com.jayway.restassured.response.Response;
 import com.jayway.restassured.specification.RequestSender;
 import com.jayway.restassured.specification.RequestSpecification;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.time.StopWatch;
 import org.apache.http.entity.ContentType;
 import org.apache.log4j.Logger;
 import org.nrg.jira.testing_components.TestStatus;
@@ -16,24 +15,25 @@ import org.nrg.testing.CommonUtils;
 import org.nrg.testing.TestController;
 import org.nrg.testing.auth.Credentials;
 import org.nrg.testing.enums.TestData;
-import org.nrg.testing.file.FileIO;
 import org.nrg.testing.util.RandomHelper;
 import org.nrg.testing.util.TestNgUtils;
-import org.nrg.testing.xnat.XnatAliasToken;
 import org.nrg.testing.xnat.conf.Settings;
 import org.nrg.testing.xnat.conf.XnatConfig;
-import org.nrg.testing.xnat.extensions.*;
 import org.nrg.testing.xnat.versions.XnatVersion;
 import org.nrg.testing.xnat.versions.XnatVersionList;
 import org.nrg.xnat.enums.Accessibility;
 import org.nrg.xnat.enums.PrearchiveCode;
-import org.nrg.xnat.jackson.mappers.XnatRestReadWriteObjectMapper;
-import org.nrg.xnat.pojo.*;
-import org.nrg.xnat.pojo.experiments.*;
-import org.nrg.xnat.pojo.resources.Resource;
-import org.nrg.xnat.pojo.resources.ResourceFile;
-import org.nrg.xnat.pojo.users.User;
-import org.nrg.xnat.pojo.users.UserGroup;
+import org.nrg.xnat.interfaces.XnatInterface;
+import org.nrg.xnat.pogo.*;
+import org.nrg.xnat.pogo.experiments.*;
+import org.nrg.xnat.pogo.extensions.project.ProjectXMLPutExtension;
+import org.nrg.xnat.pogo.extensions.subject.SubjectExtension;
+import org.nrg.xnat.pogo.extensions.subject.SubjectXMLPutExtension;
+import org.nrg.xnat.pogo.resources.Resource;
+import org.nrg.xnat.pogo.resources.ResourceFile;
+import org.nrg.xnat.pogo.users.User;
+import org.nrg.xnat.pogo.users.UserGroup;
+import org.nrg.xnat.rest.XnatAliasToken;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,14 +43,14 @@ import java.util.*;
 
 import static com.jayway.restassured.http.ContentType.*;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.testng.AssertJUnit.fail;
 
 public abstract class XnatRestDriver {
 
     protected XnatConfig xnatConfig;
     protected TestController testController;
     protected static final Logger LOGGER = Logger.getLogger(XnatRestDriver.class);
-    public static final ObjectMapper XNAT_REST_MAPPER = new XnatRestReadWriteObjectMapper();
+    protected static final Map<User, XnatInterface> xnatInterfaceMap = new HashMap<>();
+    public static final ObjectMapper XNAT_REST_MAPPER = XnatInterface.XNAT_REST_MAPPER;
 
     public abstract List<Class<? extends XnatVersion>> getHandledVersions();
 
@@ -85,6 +85,21 @@ public abstract class XnatRestDriver {
 
     public XnatConfig getXnatConfig() {
         return xnatConfig;
+    }
+
+    public XnatInterface interfaceFor(User user) {
+        final XnatInterface interf = xnatInterfaceMap.get(user);
+        if (interf != null) {
+            return interf;
+        } else {
+            final XnatInterface newInterface = XnatInterface.authenticate(xnatConfig.getXnatUrl(), user, true);
+            xnatInterfaceMap.put(user, newInterface);
+            return newInterface;
+        }
+    }
+
+    public XnatInterface mainInterface() {
+        return interfaceFor(mainUser());
     }
 
     public void captureStep(TestStatus status, String comment) {
@@ -195,22 +210,19 @@ public abstract class XnatRestDriver {
     }
 
     public String aliasTokenUrl() {
-        return formatRestUrl("services", "tokens", "issue");
+        return mainInterface().issueAliasTokenUrl();
     }
 
     public XnatAliasToken generateAliasToken(User user) {
-        Response response = getJson(Credentials.build(user).expect().statusCode(200), aliasTokenUrl());
-        return new XnatAliasToken(response.jsonPath().getString("alias"), response.jsonPath().getString("secret"));
+        return interfaceFor(user).generateAliasToken();
     }
     
     public String projectExperimentsUrl(Project project) {
-        return formatRestUrl("projects", project.getId(), "experiments");
+        return mainInterface().projectExperimentsUrl(project);
     }
 
-    public String getAccessionNumber(User authUser, ImagingSession session) {
-        if (session.getPrimaryProject() == null) throw new IllegalArgumentException("Session object must have project specified.");
-
-        return Credentials.build(authUser).get(projectExperimentsUrl(session.getPrimaryProject())).then().extract().jsonPath().param("session", session.getLabel()).getString("ResultSet.Result.find {it.label == session }.ID");
+    public String getAccessionNumber(User authUser, SubjectAssessor subjectAssessor) {
+        return interfaceFor(authUser).getAccessionNumber(subjectAssessor);
     }
 
     public String getAccessionNumber(ImagingSession session) {
@@ -218,36 +230,15 @@ public abstract class XnatRestDriver {
     }
 
     public Subject readSubject(User authUser, String accessionNumber) {
-        final Response response = Credentials.build(authUser).given().queryParam("format", "json").get(formatRestUrl("subjects", accessionNumber));
-        final Subject subject = response.jsonPath().getObject("items.get(0).children.find { it.field == 'demographics' }.items.get(0).data_fields", Subject.class);
-        subject.setLabel(response.jsonPath().getString("items.get(0).data_fields.label"));
-        return subject;
+        return interfaceFor(authUser).readSubject(accessionNumber);
     }
 
     public <T extends Experiment> T readExperiment(User authUser, String accessionNumber, Class<T> tClass) {
-        final Response response = Credentials.build(authUser).given().queryParam("format", "json").get(formatRestUrl("experiments", accessionNumber));
-        final T experiment = response.jsonPath().getObject("items.get(0).data_fields", tClass);
-        experiment.setDataType(DataType.lookup(response.jsonPath().getString("items.get(0).meta.'xsi:type'")));
-        return experiment;
+        return interfaceFor(authUser).readExperiment(accessionNumber, tClass);
     }
 
     public void waitForAutoRun(User authUser, int maximumTime, ImagingSession session) {
-        final String accessionNumber = (session.getAccessionNumber() != null) ? session.getAccessionNumber() : getAccessionNumber(authUser, session);
-
-        final StopWatch stopWatch = CommonUtils.launchStopWatch();
-        while (true) {
-            CommonUtils.checkStopWatch(stopWatch, maximumTime, "AutoRun did not complete in allotted number of seconds: " + maximumTime);
-
-            final String status = Credentials.build(authUser).given().queryParam("experiment", accessionNumber).queryParam("format", "json").
-                    get(formatRestUrl("services/workflows/AutoRun")).then().extract().jsonPath().getString("items.get(0).data_fields.status");
-
-            if (status.equals("Complete")) {
-                return;
-            } else if (status.equals("Failed")) {
-                fail("AutoRun failed.");
-            }
-            CommonUtils.sleep(1000);
-        }
+        interfaceFor(authUser).waitForAutoRun(session, maximumTime);
     }
 
     public void waitForAutoRun(ImagingSession session) {
@@ -256,12 +247,7 @@ public abstract class XnatRestDriver {
 
     public String getBuildInfo() {
         try {
-            Response buildResponse = getJson(mainCredentials(), formatXapiUrl("siteConfig", "buildInfo"));
-            if (buildResponse.statusCode() != 200) {
-                LOGGER.info("Couldn't get build information. Status code: " + buildResponse.statusCode());
-                return null;
-            }
-            return String.format("Version %s (commit %s)", buildResponse.then().extract().path("version"), buildResponse.then().extract().path("commit"));
+            return mainInterface().getBuildInfo();
         } catch (JsonPathException jpe) {
             LOGGER.info("Couldn't get build information because of JsonPathException (likely means site has not been initialized).");
         } catch (Exception e) {
@@ -293,38 +279,11 @@ public abstract class XnatRestDriver {
     }
 
     public void clearProject(User authUser, Project project) {
-        final List<Map<String, String>> experiments = Credentials.build(authUser).queryParam("format", "json").queryParam("columns", "ID,subject_ID").
-                get(formatRestUrl("projects", project.getId(), "experiments")).jsonPath().getList("ResultSet.Result");
-
-        for (Map<String, String> experiment : experiments) {
-            Credentials.build(authUser).queryParam("removeFiles", true).
-                    delete(formatRestUrl("projects", project.getId(), "subjects", experiment.get("subject_ID"), "experiments", experiment.get("ID"))).
-                    then().assertThat().statusCode(200);
-        }
-
-        List<String> subjects = Credentials.build(authUser).queryParam("format", "json").queryParam("columns", "ID").
-                get(formatRestUrl("projects", project.getId(), "subjects")).jsonPath().getList("ResultSet.Result.ID");
-
-        for (String subject : subjects) {
-            Credentials.build(authUser).queryParam("removeFiles", true).delete(formatRestUrl("projects", project.getId(), "subjects", subject)).then().assertThat().statusCode(200);
-        }
+        interfaceFor(authUser).deleteAllProjectData(project);
     }
 
     public void uploadToSessionZipImporter(User authUser, File sessionZip, Project project, Subject subject, ImagingSession session) {
-        if (project == null) {
-            throw new RuntimeException("Project cannot be null when uploading to zip importer.");
-        }
-
-        final Map<String, String> queryPararms = new HashMap<>();
-        queryPararms.put("dest", "/archive");
-        queryPararms.put("PROJECT_ID", project.getId());
-
-        if (subject != null) queryPararms.put("SUBJECT_ID", subject.getLabel());
-        if (session != null) queryPararms.put("EXPT_LABEL", session.getLabel());
-
-        final RequestSpecification effectiveCredentials = (authUser == null) ? Credentials.build(xnatConfig.getMainUser()) : Credentials.build(authUser);
-
-        effectiveCredentials.given().multiPart(sessionZip).queryParameters(queryPararms).when().post(formatRestUrl("/services/import")).then().statusCode(200);
+        interfaceFor(authUser).uploadToSessionZipImporter(sessionZip, project, subject, session);
     }
 
     public void uploadToSessionZipImporter(File sessionZip, Project project) {
@@ -341,15 +300,15 @@ public abstract class XnatRestDriver {
     }
 
     public String getUserSessionsRestUrl(User user) {
-        return formatRestUrl("user", user.getUsername(), "sessions");
+        return mainInterface().userSessionsRestUrl(user);
     }
 
     public void expireAllActiveSessions(User authUser, User targetUser) {
-        Credentials.build(authUser).expect().statusCode(200).when().delete(getUserSessionsRestUrl(targetUser));
+        interfaceFor(authUser).expireAllActiveSessions(targetUser);
     }
 
     public int getNumberActiveSessions(User user) {
-        return (int) Credentials.build(user).expect().statusCode(200).when().get(getUserSessionsRestUrl(user)).then().extract().path(user.getUsername());
+        return interfaceFor(user).getNumberActiveSessions();
     }
 
     public void initializeXnat() {
@@ -381,51 +340,39 @@ public abstract class XnatRestDriver {
     }
 
     public void createUser(User user) {
-        adminCredentials().expect().statusCode(201).given().contentType(JSON).body(user).post(formatXapiUrl("users"));
-        if (user.isAdmin()) {
-            makeUserAdmin(xnatConfig.getAdminUser(), user);
-        }
+        interfaceFor(adminUser()).createUser(user);
     }
 
     public void assignUserToRoles(User authUser, User targetUser, String... roles) {
-        Credentials.build(authUser).expect().statusCode(200).given().contentType(JSON).body(roles).put(formatXapiUrl("users", targetUser.getUsername(), "roles"));
+        interfaceFor(authUser).assignUserToRoles(targetUser, roles);
     }
 
     public void addUserToGroups(User authUser, User targetUser, String... groups) {
-        Credentials.build(authUser).expect().statusCode(200).given().contentType(JSON).body(groups).put(formatXapiUrl("users", targetUser.getUsername(), "groups"));
+        interfaceFor(authUser).addUserToGroups(targetUser, groups);
     }
 
     public void verifyUser(User authUser, User targetUser) {
-        Credentials.build(authUser).expect().statusCode(200).put(formatXapiUrl("users", targetUser.getUsername(), "verified/true"));
-        targetUser.verified(true);
+        interfaceFor(authUser).verifyUser(targetUser);
     }
 
     public void enableUser(User authUser, User targetUser) {
-        Credentials.build(authUser).expect().statusCode(200).put(formatXapiUrl("users", targetUser.getUsername(), "enabled/true"));
-        targetUser.enabled(true);
+        interfaceFor(authUser).enableUser(targetUser);
     }
 
     public void makeUserAdmin(User authUser, User targetUser) {
-        assignUserToRoles(authUser, targetUser, "Administrator");
-        addUserToGroups(authUser, targetUser, "ALL_DATA_ADMIN");
-        targetUser.admin(true);
-    }
-
-    private AnonScript readAnonScript(Response response) {
-        return new AnonScript().contents(response.then().assertThat().statusCode(200).and().extract().jsonPath().getString("ResultSet.Result.get(0).script"));
+        interfaceFor(authUser).makeUserAdmin(targetUser);
     }
 
     public String siteAnonScriptUrl() {
-        return formatRestUrl("config/edit/image/dicom/script");
+        return mainInterface().siteAnonScriptUrl();
     }
 
     public AnonScript getSiteAnonScript(User authUser) {
-        return readAnonScript(Credentials.build(authUser).queryParam("format", "json").get(siteAnonScriptUrl()));
+        return interfaceFor(authUser).readSiteAnonScript();
     }
 
-
     public void setSiteAnonScriptStatus(User authUser, boolean status) {
-        Credentials.build(authUser).queryParam("activate", status).put(formatRestUrl("/config/edit/image/dicom/status")).then().assertThat().statusCode(200);
+        interfaceFor(authUser).setSiteAnonScriptStatus(status);
     }
 
     public void disableSiteAnonScript(User authUser) {
@@ -437,19 +384,19 @@ public abstract class XnatRestDriver {
     }
 
     public String projectAnonScriptUrl(Project project) {
-        return formatRestUrl("config/edit/projects/", project.getId(), "/image/dicom/script");
+        return mainInterface().projectAnonScriptUrl(project);
     }
 
     public AnonScript getProjectAnonScript(User authUser, Project project) {
-        return readAnonScript(Credentials.build(authUser).queryParam("format", "json").get(projectAnonScriptUrl(project)));
+        return interfaceFor(authUser).readProjectAnonScript(project);
     }
 
     public void setProjectAnonScript(User authUser, Project project, AnonScript script) {
-        Credentials.build(authUser).body(script.getContents()).put(projectAnonScriptUrl(project)).then().assertThat().statusCode(200);
+        interfaceFor(authUser).setProjectAnonScript(project, script);
     }
 
     public void setProjectAnonScriptStatus(User authUser, Project project, boolean status) {
-        Credentials.build(authUser).queryParam("activate", status).put(formatRestUrl("config/edit/projects", project.getId(), "image/dicom/status")).then().assertThat().statusCode(200);
+        interfaceFor(authUser).setProjectAnonScriptStatus(project, status);
     }
 
     public void disableProjectAnonScript(User authUser, Project project) {
@@ -461,41 +408,15 @@ public abstract class XnatRestDriver {
     }
 
     public void createInvestigators(User authUser, List<Investigator> investigators) {
-        final Investigator[] knownInvestigators = Credentials.build(authUser).get(formatXapiUrl("investigators")).as(Investigator[].class);
-
-        for (Investigator investigator : investigators) {
-            boolean createRequired = true;
-
-            for (Investigator possibleMatch : knownInvestigators) {
-                if (possibleMatch.equals(investigator)) {
-                    investigator.id(possibleMatch.getXnatInvestigatordataId());
-                    createRequired = false;
-                    break;
-                }
-            }
-
-            if (createRequired) {
-                createInvestigator(authUser, investigator);
-            }
-        }
+        interfaceFor(authUser).createInvestigators(investigators);
     }
 
     public void createInvestigator(User authUser, Investigator investigator) {
-        investigator.setXnatInvestigatordataId(
-                Credentials.build(authUser).given().contentType(JSON).body(investigator).post(formatXapiUrl("investigators")).jsonPath().getInt("xnatInvestigatordataId")
-        );
+        interfaceFor(authUser).createInvestigator(investigator);
     }
 
-    public void addUsersToProject(User authUser, Project project) {
-        for (Map.Entry<UserGroup, List<User>> userGroupEntry : project.getUsers().entrySet()) {
-            for (User user : userGroupEntry.getValue()) {
-                addUserToProject(authUser, user, project, userGroupEntry.getKey());
-            }
-        }
-    }
-
-    public void addUserToProject(User authUser, User addedUser, Project project, UserGroup userGroup) { // TODO: does this work for Custom User groups?
-        addUserToGroups(authUser, addedUser, String.format("%s_%s", project, userGroup.singularName().toLowerCase()));
+    public void addUserToProject(User authUser, User addedUser, Project project, UserGroup userGroup) {
+        interfaceFor(authUser).addUserToProject(addedUser, project, userGroup);
     }
 
     public void uploadResources(User authUser, List<Resource> resources) {
@@ -505,31 +426,19 @@ public abstract class XnatRestDriver {
     }
 
     public void uploadResource(User authUser, Resource resource) {
-        Credentials.build(authUser).given().queryParams(SerializationUtils.serializeToMap(resource)).
-                put(formatXnatUrl(resource.resourceUrl(), "resources", resource.getFolder())).then().assertThat().statusCode(200);
+        interfaceFor(authUser).uploadResource(resource);
+    }
 
-        for (ResourceFile file : resource.getResourceFiles()) {
-            if (file.getExtension() == null) {
-                final File possibleFile = FileIO.getDataFile(file.getName());
-                if (possibleFile != null) {
-                    file.extension(new SimpleResourceFileExtension(file, possibleFile));
-                } else {
-                    throw new UnsupportedOperationException("ResourceFile must have extension set in order to locate file for upload.");
-                }
-            }
-
-            Credentials.build(authUser).expect().statusCode(200).given().
-                    queryParams(SerializationUtils.serializeToMap(file)).multiPart(file.getExtension().getJavaFile()).
-                    put(resourceFileUrl(resource, file));
-        }
+    public void deleteResource(User authUser, Resource resource) {
+        interfaceFor(authUser).deleteResource(resource);
     }
 
     public String resourceFilesUrl(Resource resource) {
-        return formatXnatUrl(resource.resourceUrl(), "resources", resource.getFolder(), "files");
+        return mainInterface().resourceFilesUrl(resource);
     }
 
     public String resourceFileUrl(Resource resource, ResourceFile file) {
-        return CommonUtils.formatUrl(resourceFilesUrl(resource), file.getName());
+        return mainInterface().resourceFileUrl(resource, file);
     }
 
     public void validateUpload(User authUser, String fileUrl, File localFile) {
@@ -544,17 +453,64 @@ public abstract class XnatRestDriver {
         }
     }
 
+    public Project readProject(User authUser, String projectId) {
+        return interfaceFor(authUser).readProject(projectId);
+    }
+
+    public List<Subject> readSubjects(User authUser, Project project) {
+        return interfaceFor(authUser).readSubjects(project);
+    }
+
+    public List<SubjectAssessor> readSubjectAssesssors(User authUser, Project project, Subject subject) {
+        return interfaceFor(authUser).readSubjectAssessors(project, subject);
+    }
+
+    public List<Scan> readScans(User authUser, Project project, Subject subject, ImagingSession session) {
+        return interfaceFor(authUser).readScans(project, subject, session);
+    }
+
+    public List<SessionAssessor> readSessionAssessors(User authUser, Project project, Subject subject, ImagingSession session) {
+        return interfaceFor(authUser).readSessionAssessors(project, subject, session);
+    }
+
+    public Subject findSubject(Project project, String label) {
+        return mainInterface().findSubject(project, label);
+    }
+
+    public SubjectAssessor findSubjectAssessor(Subject subject, String label) {
+        return mainInterface().findSubjectAssessor(subject, label);
+    }
+
+    public SessionAssessor findSessionAssessor(ImagingSession session, String label) {
+        return mainInterface().findSessionAssessor(session, label);
+    }
+
+    public Resource findResource(List<Resource> resources, String label) {
+        return mainInterface().findResource(resources, label);
+    }
+
+    public List<Scan> filterScansByType(List<Scan> scans, String type) {
+        return mainInterface().filterScansByType(scans, type);
+    }
+
+    public List<Scan> filterScansByType(List<Scan> scans, List<String> acceptableTypes) {
+        return mainInterface().filterScansByType(scans, acceptableTypes);
+    }
+
+    public Scan findScan(ImagingSession session, String scanId) {
+        return mainInterface().findScan(session, scanId);
+    }
+
     public String accessibilityRestUrl(Project project) {
-        return formatRestUrl("projects", project.getId(), "accessibility");
+        return mainInterface().accessibilityRestUrl(project);
     }
 
     public String accessibilityRestUrl(Project project, Accessibility accessibility) {
-        return formatRestUrl("projects", project.getId(), "accessibility", accessibility.toString());
+        return mainInterface().accessibilityRestUrl(project, accessibility);
     }
 
     public void updateAccessibility(User authUser, Project project, Accessibility accessibility) {
-        Credentials.build(authUser).expect().statusCode(200).put(accessibilityRestUrl(project, accessibility));
-        project.accessibility(accessibility);
+        interfaceFor(authUser).updateAccessibility(project, accessibility);
     }
 
     public void assertProjectAccessibility(User authUser, Project project, Accessibility accessibility) {
@@ -562,291 +518,149 @@ public abstract class XnatRestDriver {
     }
 
     public String projectUrl(Project project) {
-        return formatRestUrl("projects", project.getId());
+        return mainInterface().projectUrl(project);
     }
 
     public void createProject(User authUser, Project project, File projectXmlFile) {
-        Credentials.build(authUser).expect().statusCode(200).
-                given().queryParam("format", "xml").contentType(XML).content(FileIO.readFile(projectXmlFile)).put(projectUrl(project));
+        new ProjectXMLPutExtension(interfaceFor(authUser), project, projectXmlFile).create();
     }
 
     public void createProject(User authUser, Project project) {
-        if (project == null) {
-            throw new UnsupportedOperationException("project cannot be null");
-        }
-
-        if (project.getExtension() == null) {
-            project.extension(new ProjectQueryPutExtension(this, project));
-        }
-
-        project.getExtension().create(authUser);
-        if (project.getPrearchiveCode() != null) setPrearchiveSetting(authUser, project, project.getPrearchiveCode());
-
-        final List<Investigator> investigators = new ArrayList<>();
-        investigators.addAll(project.getInvestigators());
-        if (project.getPi() != null) investigators.add(project.getPi());
-        createInvestigators(authUser, investigators);
-
-        addUsersToProject(authUser, project);
-        for (Resource resource : project.getProjectResources()) {
-            resource.setProject(project);
-        }
-        uploadResources(authUser, project.getProjectResources());
-
-        for (Subject subject : project.getSubjects()) {
-            createSubject(authUser, subject.project(project));
-        }
+        interfaceFor(authUser).createProject(project);
     }
 
     public void setPrearchiveSetting(User authUser, Project project, PrearchiveCode code) {
-        Credentials.build(authUser).put(formatRestUrl("projects", project.getId(), "prearchive_code", Integer.toString(code.getCode()))).then().assertThat().statusCode(200);
+        interfaceFor(authUser).setPrearchiveSetting(project, code);
     }
 
     public void createSubject(User authUser, Project project, Subject subject) {
-        if (project == null) {
-            throw new UnsupportedOperationException("project cannot be null");
-        }
-        if (subject == null) {
-            throw new UnsupportedOperationException("subject cannot be null");
-        }
-
-        if (subject.getExtension() == null) {
-            subject.extension(new SubjectQueryPutExtension(this, subject));
-        }
-
-        subject.getExtension().create(authUser, project);
-
-        for (Resource resource : subject.getResources()) {
-            resource.project(project).subject(subject);
-        }
-        uploadResources(authUser, subject.getResources());
-
-        for (Share share : subject.getShares()) {
-            shareSubject(authUser, project, subject, share);
-        }
-
-        for (SubjectAssessor assessor : subject.getExperiments()) {
-            createSubjectAssessor(authUser, project, subject, assessor);
-        }
+        interfaceFor(authUser).createSubject(project, subject);
     }
 
     public void createSubject(User authUser, Subject subject) {
-        if (subject.getProject() == null) {
-            throw new UnsupportedOperationException("Subject object must have Project object populated to use this shortcut method");
-        }
-
-        createSubject(authUser, subject.getProject(), subject);
+        interfaceFor(authUser).createSubject(subject);
     }
 
     public Subject createSubject(User authUser, Project project, File subjectXML) {
-        final String subjectResponse = Credentials.build(authUser).expect().statusCode(200).
-                given().queryParam("format", "xml").contentType(XML).content(FileIO.readFile(subjectXML)).post(formatRestUrl("projects", project.getId(), "subjects")).asString();
-        return readSubject(authUser, CommonUtils.last(subjectResponse.split("/"))).project(project);
+        final SubjectExtension extension = new SubjectXMLPutExtension(interfaceFor(authUser), subjectXML);
+        extension.create(project);
+        return extension.getParentObject();
     }
 
     public void shareSubject(User authUser, Project sourceProject, Subject subject, Share share) {
-        if (share.getDestinationProject() == null) {
-            throw new UnsupportedOperationException("Destination project string cannot be null for subject sharing.");
-        }
-
-        Credentials.build(authUser).given().queryParam("label", (share.getDestinationLabel() != null) ? share.getDestinationLabel() : subject.getLabel()).
-                put(CommonUtils.formatUrl(subjectUrl(sourceProject, subject), "projects", share.getDestinationProject())).then().assertThat().statusCode(200);
+        interfaceFor(authUser).shareSubject(sourceProject, subject, share);
     }
 
     public void deleteSubject(User authUser, Project project, Subject subject) {
-        if (project == null) {
-            throw new UnsupportedOperationException("project cannot be null");
-        }
-        if (subject == null) {
-            throw new UnsupportedOperationException("subject cannot be null");
-        }
-
-        Credentials.build(authUser).delete(subjectUrl(project, subject)).then().assertThat().statusCode(200);
+        interfaceFor(authUser).deleteSubject(project, subject);
     }
 
     public void deleteSubject(User authUser, Subject subject) {
-        deleteSubject(authUser, subject.getProject(), subject);
+        interfaceFor(authUser).deleteSubject(subject);
     }
 
     public String subjectUrl(Project project, Subject subject) {
-        return formatRestUrl("projects", project.getId(), "subjects", subject.getLabel());
+        return mainInterface().subjectUrl(project, subject);
     }
 
     public String subjectUrl(Subject subject) {
-        return subjectUrl(subject.getProject(), subject);
+        return mainInterface().subjectUrl(subject);
     }
 
     public void createSubjectAssessor(User authUser, Project project, Subject subject, SubjectAssessor subjectAssessor) {
-        if (project == null) {
-            throw new UnsupportedOperationException("project cannot be null");
-        }
-        if (subject == null) {
-            throw new UnsupportedOperationException("subject cannot be null");
-        }
-        if (subjectAssessor == null) {
-            throw new UnsupportedOperationException("subjectAssessor cannot be null");
-        }
-
-        if (subjectAssessor.getExtension() == null) {
-            subjectAssessor.extension(new SubjectAssessorQueryPutExtension(this, subjectAssessor));
-        }
-        subjectAssessor.getExtension().create(authUser, project, subject);
-
-        for (Resource resource : subjectAssessor.getResources()) {
-            resource.project(project).subject(subject).subjectAssessor(subjectAssessor);
-        }
-        uploadResources(authUser, subjectAssessor.getResources());
-
-        for (Share share : subjectAssessor.getShares()) {
-            shareSubjectAssessor(authUser, project, subject, subjectAssessor, share);
-        }
-
-        if (subjectAssessor instanceof ImagingSession) {
-            final ImagingSession session = (ImagingSession)subjectAssessor;
-
-            for (Scan scan : session.getScans()) {
-                createScan(authUser, project, subject, session, scan);
-            }
-
-            for (SessionAssessor assessor : session.getAssessors()) {
-                createSessionAssessor(authUser, project, subject, session, assessor);
-            }
-        }
+        interfaceFor(authUser).createSubjectAssessor(project, subject, subjectAssessor);
     }
 
     public void createSubjectAssessor(User authUser, SubjectAssessor subjectAssessor) {
-        createSubjectAssessor(authUser, subjectAssessor.getPrimaryProject(), subjectAssessor.getSubject(), subjectAssessor);
+        interfaceFor(authUser).createSubjectAssessor(subjectAssessor);
     }
 
     public void shareSubjectAssessor(User authUser, Project project, Subject subject, SubjectAssessor subjectAssessor, Share share) {
-        if (share.getDestinationProject() == null) {
-            throw new UnsupportedOperationException("Destination project string cannot be null for experiment sharing.");
-        }
-
-        Credentials.build(authUser).given().queryParam("label", (share.getDestinationLabel() != null) ? share.getDestinationLabel() : subjectAssessor.getLabel()).
-                put(CommonUtils.formatUrl(subjectAssessorUrl(project, subject, subjectAssessor), "projects", share.getDestinationProject())).then().assertThat().statusCode(200);
+        interfaceFor(authUser).shareSubjectAssessor(project, subject, subjectAssessor, share);
     }
 
     public void deleteSubjectAssessor(User authUser, Project project, Subject subject, SubjectAssessor subjectAssessor) {
-        if (project == null) {
-            throw new UnsupportedOperationException("project cannot be null");
-        }
-        if (subject == null) {
-            throw new UnsupportedOperationException("subject cannot be null");
-        }
-        if (subjectAssessor == null) {
-            throw new UnsupportedOperationException("subjectAssessor cannot be null");
-        }
-
-        Credentials.build(authUser).queryParam("removeFiles", true).delete(subjectAssessorUrl(project, subject, subjectAssessor)).then().assertThat().statusCode(200);
+        interfaceFor(authUser).deleteSubjectAssessor(project, subject, subjectAssessor);
     }
 
     public void deleteSubjectAssessor(User authUser, SubjectAssessor subjectAssessor) {
-        deleteSubjectAssessor(authUser, subjectAssessor.getPrimaryProject(), subjectAssessor.getSubject(), subjectAssessor);
+        interfaceFor(authUser).deleteSubjectAssessor(subjectAssessor);
     }
 
     public String subjectAssessorUrl(Project project, Subject subject, SubjectAssessor assessor) {
-        return formatRestUrl("projects", project.getId(), "subjects", subject.getLabel(), "experiments", assessor.getLabel());
+        return mainInterface().subjectAssessorUrl(project, subject, assessor);
     }
 
     public String subjectAssessorUrl(SubjectAssessor assessor) {
-        return subjectAssessorUrl(assessor.getPrimaryProject() != null ? assessor.getPrimaryProject() : assessor.getSubject().getProject(), assessor.getSubject(), assessor);
+        return mainInterface().subjectAssessorUrl(assessor);
     }
 
     public String sessionScansUrl(Project project, Subject subject, ImagingSession session) {
-        return formatRestUrl("projects", project.getId(), "subjects", subject.getLabel(), "experiments", session.getLabel(), "scans");
+        return mainInterface().sessionScansUrl(project, subject, session);
     }
 
     public String sessionScansUrl(ImagingSession session) {
-        return sessionScansUrl(session.getPrimaryProject(), session.getSubject(), session);
+        return mainInterface().sessionScansUrl(session);
     }
 
     public void createScan(User authUser, Project project, Subject subject, ImagingSession session, Scan scan) {
-        if (scan.getXsiType() == null) {
-            throw new UnsupportedOperationException("scan must have an xsiType");
-        }
-        Credentials.build(authUser).given().expect().statusCode(200).given().queryParams(SerializationUtils.serializeToMap(scan)).
-                put(formatRestUrl("projects", project.getId(), "subjects", subject.getLabel(), "experiments", session.getLabel(), "scans", scan.getId()));
+        interfaceFor(authUser).createScan(project, subject, session, scan);
+    }
 
-        for (Resource resource : scan.getScanResources()) {
-            resource.project(project).subject(subject).subjectAssessor(session).scan(scan);
-        }
-        uploadResources(authUser, scan.getScanResources());
+    public void deleteScan(User authUser, Project project, Subject subject, ImagingSession session, Scan scan) {
+        interfaceFor(authUser).deleteScan(project, subject, session, scan);
+    }
+
+    public void deleteScan(User authUser, Scan scan) {
+        interfaceFor(authUser).deleteScan(scan);
+    }
+
+    public void updateScan(User authUser, Project project, Subject subject, ImagingSession session, Scan scan) {
+        interfaceFor(authUser).updateScan(project, subject, session, scan);
+    }
+
+    public void updateScan(User authUser, Scan scan) {
+        interfaceFor(authUser).updateScan(scan);
     }
 
     public String scanUrl(Project project, Subject subject, ImagingSession session, Scan scan) {
-        return CommonUtils.formatUrl(sessionScansUrl(project, subject, session), scan.getId());
+        return mainInterface().scanUrl(project, subject, session, scan);
     }
 
     public String scanUrl(Scan scan) {
-        return scanUrl(scan.getSession().getPrimaryProject(), scan.getSession().getSubject(), scan.getSession(), scan);
+        return mainInterface().scanUrl(scan);
     }
 
     public String assessorsUrl(Project project, Subject subject, ImagingSession session) {
-        return formatRestUrl("projects", project.getId(), "subjects", subject.getLabel(), "experiments", session.getLabel(), "assessors");
+        return mainInterface().assessorsUrl(project, subject, session);
     }
 
     public void createSessionAssessor(User authUser, Project project, Subject subject, ImagingSession session, SessionAssessor assessor) {
-        if (project == null) {
-            throw new UnsupportedOperationException("project cannot be null");
-        }
-        if (subject == null) {
-            throw new UnsupportedOperationException("subject cannot be null");
-        }
-        if (session == null) {
-            throw new UnsupportedOperationException("session cannot be null");
-        }
-        if (assessor == null) {
-            throw new UnsupportedOperationException("assessor cannot be null");
-        }
-
-        if (assessor.getExtension() == null) {
-            assessor.extension(new SessionAssessorQueryPutExtension(this, assessor));
-        }
-
-        assessor.getExtension().create(authUser, project, subject, session);
-
-        for (Resource resource : assessor.getResources()) {
-            resource.project(project).subject(subject).subjectAssessor(session).sessionAssessor(assessor);
-        }
-        uploadResources(authUser, assessor.getResources());
+        interfaceFor(authUser).createSessionAssessor(project, subject, session, assessor);
     }
 
     public void createSessionAssessor(User authUser, SessionAssessor assessor) {
-        createSessionAssessor(authUser, assessor.getPrimaryProject(), assessor.getSubject(), assessor.getParentSession(), assessor);
+        interfaceFor(authUser).createSessionAssessor(assessor);
     }
 
     public void deleteSessionAssessor(User authUser, Project project, Subject subject, ImagingSession session, SessionAssessor sessionAssessor) {
-        if (project == null) {
-            throw new UnsupportedOperationException("project cannot be null");
-        }
-        if (subject == null) {
-            throw new UnsupportedOperationException("subject cannot be null");
-        }
-        if (session == null) {
-            throw new UnsupportedOperationException("session cannot be null");
-        }
-        if (sessionAssessor == null) {
-            throw new UnsupportedOperationException("sessionAssessor cannot be null");
-        }
-
-        Credentials.build(authUser).delete(sessionAssessorUrl(project, subject, session, sessionAssessor)).then().assertThat().statusCode(200);
+        interfaceFor(authUser).deleteSessionAssessor(project, subject, session, sessionAssessor);
     }
 
     public void deleteSessionAssessor(User authUser, SessionAssessor sessionAssessor) {
-        deleteSessionAssessor(authUser, sessionAssessor.getPrimaryProject(), sessionAssessor.getSubject(), sessionAssessor.getParentSession(), sessionAssessor);
+        interfaceFor(authUser).deleteSessionAssessor(sessionAssessor);
     }
 
     public String sessionAssessorUrl(Project project, Subject subject, ImagingSession session, SessionAssessor sessionAssessor) {
-        return formatRestUrl("projects", project.getId(), "subjects", subject.getLabel(), "experiments", session.getLabel(), "assessors", sessionAssessor.getLabel());
+        return mainInterface().sessionAssessorUrl(project, subject, session, sessionAssessor);
     }
 
     public String sessionAssessorUrl(SessionAssessor assessor) {
-        return sessionAssessorUrl(assessor.getPrimaryProject(), assessor.getSubject(), assessor.getParentSession(), assessor);
+        return mainInterface().sessionAssessorUrl(assessor);
     }
 
     public void deleteProject(User authUser, Project project) {
-        Credentials.build(authUser).expect().statusCode(200).given().queryParam("removeFiles", true).delete(projectUrl(project));
+        interfaceFor(authUser).deleteProject(project);
     }
 
     public void deleteProjectSilently(User authUser, Project project) {
@@ -856,22 +670,11 @@ public abstract class XnatRestDriver {
     }
 
     public String assessorsByAccessionNumber(ImagingSession session) {
-        if (session.getAccessionNumber() == null) {
-            throw new UnsupportedOperationException("Method requires session object to have accessionNumber populated");
-        }
-
-        return formatRestUrl("experiments", session.getAccessionNumber(), "assessors");
+        return mainInterface().assessorsUrlByAccessionNumber(session);
     }
 
     public String assessorByAccessionNumber(ImagingSession session, SessionAssessor assessor) {
-        if (session.getAccessionNumber() == null) {
-            throw new UnsupportedOperationException("Method requires session object to have accessionNumber populated.");
-        }
-        if (assessor.getAccessionNumber() == null) {
-            throw new UnsupportedOperationException("Method requires assessor object to have accessionNumber populated.");
-        }
-
-        return formatRestUrl("experiments", session.getAccessionNumber(), "assessors", assessor.getAccessionNumber());
+        return mainInterface().assessorUrlByAccessionNumber(session, assessor);
     }
 
 }

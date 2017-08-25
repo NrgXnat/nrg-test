@@ -30,8 +30,8 @@ import org.nrg.testing.dicom.DicomElement;
 import org.nrg.testing.dicom.DicomLibrary;
 import org.nrg.testing.enums.TestData;
 import org.nrg.testing.xnat.conf.Settings;
-import org.nrg.xnat.pojo.Project;
-import org.nrg.xnat.pojo.dicom.DicomScpReceiver;
+import org.nrg.xnat.pogo.Project;
+import org.nrg.xnat.pogo.dicom.DicomScpReceiver;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -146,7 +146,7 @@ public class FileIO {
 
     public static void unzip(String directoryPath, String zipName) {
         final String unzippedFolder = directoryPath + File.separator + zipName.substring(0, zipName.length() - 4); // we know zip is a .zip
-        unzip(Paths.get(unzippedFolder), new File(zipName));
+        unzip(Paths.get(unzippedFolder), new File(directoryPath + File.separator + zipName));
     }
 
     public static File recursiveFind(File parentDir, final String fileName) {

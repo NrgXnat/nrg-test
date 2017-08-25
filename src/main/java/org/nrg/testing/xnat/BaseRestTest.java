@@ -7,7 +7,7 @@ import com.jayway.restassured.mapper.factory.Jackson2ObjectMapperFactory;
 import com.jayway.restassured.specification.RequestSpecification;
 import org.nrg.testing.auth.Credentials;
 import org.nrg.testing.xnat.rest.XnatRestDriver;
-import org.nrg.xnat.pojo.users.User;
+import org.nrg.xnat.pogo.users.User;
 import org.testng.annotations.BeforeSuite;
 
 import java.util.ArrayList;

@@ -3,8 +3,8 @@ package org.nrg.testing.auth;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.specification.AuthenticationSpecification;
 import com.jayway.restassured.specification.RequestSpecification;
-import org.nrg.testing.xnat.XnatAliasToken;
-import org.nrg.xnat.pojo.users.User;
+import org.nrg.xnat.pogo.users.User;
+import org.nrg.xnat.rest.XnatAliasToken;
 
 public class Credentials {
 
