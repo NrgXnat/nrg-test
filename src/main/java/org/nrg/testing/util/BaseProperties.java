@@ -29,12 +29,12 @@ public class BaseProperties {
     }
 
     /*
-     * On the first invocation of getProperties, the method will search for a
-     * property file on the classpath at /config/<xnat.config>, where
-     * xnat.config is a system property. The property file is then cached for
+     * On the first invocation, the method will search for a
+     * property file on the classpath at /config/${configProperty}, where
+     * ${configProperty} is a system property that defaults to ${defaultConfig}. The property file is then cached for
      * subsequent use.
      */
-    protected synchronized Properties getProperties() {
+    protected synchronized Properties getPropertiesFromFile() {
         if (properties == null) {
             String config = System.getProperty(configProperty);
             if (config == null || "${xnat.config}".equals(config)) {
@@ -60,49 +60,57 @@ public class BaseProperties {
         }
     }
 
+    protected String getSensitiveProperty(String[] propertyAliases) {
+        return getPropertyFromAnywhere(propertyAliases, true);
+    }
+
     protected String getSensitiveProperty(String property) {
-        if (getProperty(property) != null) {
-            LOGGER.warn(property + " is included in properties file!");
+        return getSensitiveProperty(new String[]{property});
+    }
+
+    protected String getPropertyFromAnywhere(String[] propertyAliases, boolean sensitive) {
+        for (String propertyAlias : propertyAliases) {
+            final String fromFile = getPropertyFromFile(propertyAlias);
+            final String fromCommandLine = getCommandLineArgument(propertyAlias);
+            if (fromFile != null && sensitive) LOGGER.warn(String.format("Property %s is included in properties file. Be careful.", propertyAlias));
+            if (fromCommandLine != null) return fromCommandLine;
+            if (fromFile != null) return fromFile;
         }
-        return getPropertyFromAnywhere(property);
+        return null;
+    }
+
+    protected String getPropertyFromAnywhere(String[] propertyAliases) {
+        return getPropertyFromAnywhere(propertyAliases, false);
     }
 
     protected String getPropertyFromAnywhere(String property) {
-        if (getCommandLineArgument(property) != null) {
-            return getCommandLineArgument(property);
-            // If command line argument is provided, return that.
-        }
-        // ... otherwise, return what's in the properties file.
-        return getProperty(property);
-    }
-
-    protected String getCommandLineArgument(String property) {
-        return System.getProperty(property);
-    }
-
-    protected String getProperty(String property) {
-        return getProperties().getProperty(property);
+        return getPropertyFromAnywhere(new String[]{property}, false);
     }
 
     protected String getStringProperty(boolean isSensitive, String property, String defaultValue) {
-        if (getPropertyFromAnywhere(property) == null) {
-            return defaultValue;
-        }
-        if (isSensitive) return getSensitiveProperty(property);
-        return getPropertyFromAnywhere(property);
+        final String providedValue = getPropertyFromAnywhere(new String[]{property}, isSensitive);
+
+        return (providedValue != null) ? providedValue : defaultValue;
     }
 
     protected boolean getBooleanProperty(String property, boolean defaultValue) {
-        if (getPropertyFromAnywhere(property) == null) {
-            return defaultValue;
-        }
-        return Boolean.parseBoolean(getPropertyFromAnywhere(property));
+        final String providedValue = getPropertyFromAnywhere(property);
+
+        return (providedValue != null) ? Boolean.parseBoolean(providedValue) : defaultValue;
     }
 
     protected int getIntProperty(String property, int defaultValue) {
-        if (getPropertyFromAnywhere(property) == null) {
-            return defaultValue;
-        }
-        return Integer.parseInt(getPropertyFromAnywhere(property));
+        final String providedValue = getPropertyFromAnywhere(property);
+
+        return (providedValue != null) ? Integer.parseInt(providedValue) : defaultValue;
     }
+
+    private String getCommandLineArgument(String property) {
+        return System.getProperty(property);
+    }
+
+    private String getPropertyFromFile(String property) {
+        return getPropertiesFromFile().getProperty(property);
+    }
+
 }

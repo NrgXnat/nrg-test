@@ -20,10 +20,10 @@ import java.util.List;
 public class XNATProperties extends BaseProperties {
 
     private static final Logger LOGGER = Logger.getLogger(XNATProperties.class);
-    public static final String MAIN_USER = "xnat.main.user";
-    public static final String MAIN_PASS = "xnat.main.password";
-    public static final String MAIN_ADMIN_USER = "xnat.mainAdmin.user";
-    public static final String MAIN_ADMIN_PASS = "xnat.mainAdmin.password";
+    public static final String[] MAIN_USER = seleniumAliasedProperty("xnat.main.user");
+    public static final String[] MAIN_PASS = seleniumAliasedProperty("xnat.main.password");
+    public static final String[] MAIN_ADMIN_USER = seleniumAliasedProperty("xnat.mainAdmin.user");
+    public static final String[] MAIN_ADMIN_PASS = seleniumAliasedProperty("xnat.mainAdmin.password");
     public static final String ADMIN_USER = "xnat.admin.user";
     public static final String ADMIN_PASS = "xnat.admin.password";
     public static final String XNAT_VERSION = "xnat.version";
@@ -61,11 +61,15 @@ public class XNATProperties extends BaseProperties {
 
     public XNATProperties() {
         super("xnat.config", "local.properties");
-        properties = getProperties();
+        properties = getPropertiesFromFile();
     }
 
     private String nthXnatProperty(String basePropertyName, int n) {
         return basePropertyName.replace("xnat.", String.format("xnat%d.", n));
+    }
+
+    private static String[] seleniumAliasedProperty(String normalProperty) {
+        return new String[]{normalProperty, normalProperty.replace("main", "selenium")};
     }
 
     public String getBaseURL() {
@@ -242,10 +246,10 @@ public class XNATProperties extends BaseProperties {
         while (true) {
             if (nthXnatRequired(configIndex)) {
                 bonusConfigs.add(new XnatConfig().
-                        mainUsername(getPropertyFromAnywhere(nthXnatProperty(MAIN_USER, configIndex))).
-                        mainPassword(getSensitiveProperty(nthXnatProperty(MAIN_PASS, configIndex))).
-                        mainAdminUsername(getPropertyFromAnywhere(nthXnatProperty(MAIN_ADMIN_USER, configIndex))).
-                        mainAdminPassword(getSensitiveProperty(nthXnatProperty(MAIN_ADMIN_PASS, configIndex))).
+                        mainUsername(getPropertyFromAnywhere(nthXnatProperty(MAIN_USER[0], configIndex))).
+                        mainPassword(getSensitiveProperty(nthXnatProperty(MAIN_PASS[0], configIndex))).
+                        mainAdminUsername(getPropertyFromAnywhere(nthXnatProperty(MAIN_ADMIN_USER[0], configIndex))).
+                        mainAdminPassword(getSensitiveProperty(nthXnatProperty(MAIN_ADMIN_PASS[0], configIndex))).
                         adminUsername(getPropertyFromAnywhere(nthXnatProperty(ADMIN_USER, configIndex))).
                         adminPassword(getSensitiveProperty(nthXnatProperty(ADMIN_PASS, configIndex))).
                         xnatVersion(getPropertyFromAnywhere(nthXnatProperty(XNAT_VERSION, configIndex))).

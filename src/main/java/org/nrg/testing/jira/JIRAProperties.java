@@ -1,14 +1,3 @@
-/*
- * org.nrg.xnat.selenium.util.XNATProperties
- * XNAT http://www.xnat.org
- * Copyright (c) 2014, Washington University School of Medicine
- * All Rights Reserved
- *
- * Released under the Simplified BSD.
- *
- * Last modified 2/4/14 11:19 AM
- */
-
 package org.nrg.testing.jira;
 
 import org.nrg.testing.util.BaseProperties;

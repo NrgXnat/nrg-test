@@ -339,8 +339,12 @@ public abstract class XnatRestDriver {
         }
     }
 
-    public void createUser(User user) {
-        interfaceFor(adminUser()).createUser(user);
+    public void createUser(User targetUser) {
+        createUser(adminUser(), targetUser);
+    }
+
+    public void createUser(User authUser, User user) {
+        interfaceFor(authUser).createUser(user);
     }
 
     public void assignUserToRoles(User authUser, User targetUser, String... roles) {

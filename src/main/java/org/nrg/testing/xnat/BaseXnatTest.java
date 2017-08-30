@@ -46,7 +46,7 @@ public abstract class BaseXnatTest extends BaseTestCase {
     @BeforeSuite
     public void setupXnatTests(ITestContext testContext) {
         XnatVersionList.readXnatVersions();
-        checkSettings();
+        validateSettings();
         constructRestDriver();
         if (Settings.INIT_SETTING) setupXnat();
         if (Settings.JIRA_SETTING) JIRATestNGListener.updateBuildInfo(restDriver.getBuildInfo());
@@ -98,38 +98,6 @@ public abstract class BaseXnatTest extends BaseTestCase {
     public void setupXnatTest(Method m, ITestContext testContext) {
         initializeTestRandomVariables();
         checkTestRequirements(m);
-    }
-
-    private void checkSettings() {
-        Settings.checkNull(Settings.MAIN_USERNAME, XNATProperties.MAIN_USER);
-        Settings.checkNull(Settings.MAIN_PASS, XNATProperties.MAIN_PASS);
-        if (Settings.ADMIN_SETTING) {
-            Settings.checkDependentNull(XNATProperties.ADMIN_SETTING, Settings.MAIN_ADMIN_USERNAME, XNATProperties.MAIN_ADMIN_USER);
-            Settings.checkDependentNull(XNATProperties.ADMIN_SETTING, Settings.MAIN_ADMIN_PASS, XNATProperties.MAIN_ADMIN_PASS);
-            Settings.checkDependentNull(XNATProperties.ADMIN_SETTING, Settings.ADMIN_USERNAME, XNATProperties.ADMIN_USER);
-            Settings.checkDependentNull(XNATProperties.ADMIN_SETTING, Settings.ADMIN_PASS, XNATProperties.ADMIN_PASS);
-        }
-        Settings.checkNull(Settings.BASEURL, XNATProperties.BASEURL);
-        if (Settings.INIT_SETTING) {
-            Settings.checkDependentBooleans(XNATProperties.INIT_SETTING, XNATProperties.ADMIN_SETTING, Settings.ADMIN_SETTING);
-        }
-        if (Settings.NOTIFICATION_EMAILS != null) {
-            Settings.checkDependentNull("Custom email notification", Settings.EMAIL, XNATProperties.EMAIL);
-            Settings.checkDependentNull("Custom email notification", Settings.EMAIL_PASS, XNATProperties.EMAIL_PASS);
-        }
-        if (Settings.DYNAMIC_ORDERING) {
-            if (Settings.QUEUE_SLOTS == 0) throw new RuntimeException(String.format("Dynamic ordering is being used, so %s must be set to a positive integer number of slots.", XNATProperties.QUEUE_SLOTS));
-        }
-        if (Settings.JIRA_SETTING) {
-            Settings.checkDependentNull(XNATProperties.JIRA_SETTING, JIRASettings.JIRA_USER, JIRAProperties.JIRA_USER);
-            Settings.checkDependentNull(XNATProperties.JIRA_SETTING, JIRASettings.JIRA_PASS, JIRAProperties.JIRA_PASS);
-            Settings.checkDependentNull(XNATProperties.JIRA_SETTING, JIRASettings.JIRA_URL, JIRAProperties.JIRA_URL);
-            Settings.checkDependentNull(XNATProperties.JIRA_SETTING, JIRASettings.PROJECT, JIRAProperties.JIRA_PROJECT);
-            Settings.checkDependentNull(XNATProperties.JIRA_SETTING, JIRASettings.VERSION, JIRAProperties.JIRA_PROJECT_VERSION);
-        }
-        if (Settings.PRODUCE_PDF) {
-            Settings.checkDependentBooleans(XNATProperties.PRODUCE_PDF, XNATProperties.JIRA_SETTING, Settings.JIRA_SETTING);
-        }
     }
 
     protected void initializeTestRandomVariables() {
@@ -233,6 +201,38 @@ public abstract class BaseXnatTest extends BaseTestCase {
     protected abstract void setupXnat();
 
     protected abstract List<User> createGenericUsers(int numUsers);
+
+    protected void validateSettings() {
+        Settings.checkNull(Settings.MAIN_USERNAME, XNATProperties.MAIN_USER[0]);
+        Settings.checkNull(Settings.MAIN_PASS, XNATProperties.MAIN_PASS[0]);
+        if (Settings.ADMIN_SETTING) {
+            Settings.checkDependentNull(XNATProperties.ADMIN_SETTING, Settings.MAIN_ADMIN_USERNAME, XNATProperties.MAIN_ADMIN_USER[0]);
+            Settings.checkDependentNull(XNATProperties.ADMIN_SETTING, Settings.MAIN_ADMIN_PASS, XNATProperties.MAIN_ADMIN_PASS[0]);
+            Settings.checkDependentNull(XNATProperties.ADMIN_SETTING, Settings.ADMIN_USERNAME, XNATProperties.ADMIN_USER);
+            Settings.checkDependentNull(XNATProperties.ADMIN_SETTING, Settings.ADMIN_PASS, XNATProperties.ADMIN_PASS);
+        }
+        Settings.checkNull(Settings.BASEURL, XNATProperties.BASEURL);
+        if (Settings.INIT_SETTING) {
+            Settings.checkDependentBooleans(XNATProperties.INIT_SETTING, XNATProperties.ADMIN_SETTING, Settings.ADMIN_SETTING);
+        }
+        if (Settings.NOTIFICATION_EMAILS != null) {
+            Settings.checkDependentNull("Custom email notification", Settings.EMAIL, XNATProperties.EMAIL);
+            Settings.checkDependentNull("Custom email notification", Settings.EMAIL_PASS, XNATProperties.EMAIL_PASS);
+        }
+        if (Settings.DYNAMIC_ORDERING) {
+            if (Settings.QUEUE_SLOTS == 0) throw new RuntimeException(String.format("Dynamic ordering is being used, so %s must be set to a positive integer number of slots.", XNATProperties.QUEUE_SLOTS));
+        }
+        if (Settings.JIRA_SETTING) {
+            Settings.checkDependentNull(XNATProperties.JIRA_SETTING, JIRASettings.JIRA_USER, JIRAProperties.JIRA_USER);
+            Settings.checkDependentNull(XNATProperties.JIRA_SETTING, JIRASettings.JIRA_PASS, JIRAProperties.JIRA_PASS);
+            Settings.checkDependentNull(XNATProperties.JIRA_SETTING, JIRASettings.JIRA_URL, JIRAProperties.JIRA_URL);
+            Settings.checkDependentNull(XNATProperties.JIRA_SETTING, JIRASettings.PROJECT, JIRAProperties.JIRA_PROJECT);
+            Settings.checkDependentNull(XNATProperties.JIRA_SETTING, JIRASettings.VERSION, JIRAProperties.JIRA_PROJECT_VERSION);
+        }
+        if (Settings.PRODUCE_PDF) {
+            Settings.checkDependentBooleans(XNATProperties.PRODUCE_PDF, XNATProperties.JIRA_SETTING, Settings.JIRA_SETTING);
+        }
+    }
 
     protected User getGenericUser() {
         if (userPool.size() > 0) {
