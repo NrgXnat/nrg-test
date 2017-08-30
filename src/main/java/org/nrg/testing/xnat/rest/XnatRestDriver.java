@@ -13,7 +13,6 @@ import org.apache.log4j.Logger;
 import org.nrg.jira.testing_components.TestStatus;
 import org.nrg.testing.CommonUtils;
 import org.nrg.testing.TestController;
-import org.nrg.testing.auth.Credentials;
 import org.nrg.testing.enums.TestData;
 import org.nrg.testing.util.RandomHelper;
 import org.nrg.testing.util.TestNgUtils;
@@ -33,6 +32,7 @@ import org.nrg.xnat.pogo.resources.Resource;
 import org.nrg.xnat.pogo.resources.ResourceFile;
 import org.nrg.xnat.pogo.users.User;
 import org.nrg.xnat.pogo.users.UserGroup;
+import org.nrg.xnat.rest.Credentials;
 import org.nrg.xnat.rest.XnatAliasToken;
 
 import java.io.File;

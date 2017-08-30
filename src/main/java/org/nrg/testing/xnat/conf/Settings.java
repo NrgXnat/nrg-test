@@ -2,11 +2,11 @@ package org.nrg.testing.xnat.conf;
 
 import com.jayway.restassured.specification.RequestSpecification;
 import org.nrg.testing.CommonUtils;
-import org.nrg.testing.auth.Credentials;
 import org.nrg.testing.file.FileIO;
 import org.nrg.testing.file.FileLocation;
 import org.nrg.testing.xnat.ssh.SSHConnection;
 import org.nrg.xnat.pogo.dicom.DicomScpReceiver;
+import org.nrg.xnat.rest.Credentials;
 
 import java.io.File;
 import java.net.URI;

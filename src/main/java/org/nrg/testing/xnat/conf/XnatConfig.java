@@ -1,9 +1,9 @@
 package org.nrg.testing.xnat.conf;
 
 import com.jayway.restassured.specification.RequestSpecification;
-import org.nrg.testing.auth.Credentials;
 import org.nrg.testing.xnat.Users;
 import org.nrg.xnat.pogo.users.User;
+import org.nrg.xnat.rest.Credentials;
 
 public class XnatConfig {
 
