@@ -38,7 +38,7 @@ Each specific configuration setting may be done as a command line argument, or f
 * xnat.pipeline.glpk: (Optional) - Controls the Multiprocessor scheduling algorithm used in xnat.pipeline.useDynamicOrdering. If this is set to true (GLPK is installed on the system), GLPK will be used to find an exact solution to minimize total pipeline test runtime by casting the problem as a mixed integer linear programming problem. Otherwise, the 1986 Hochbaum-Shmoys 1/5-approximation algorithm will be used. Defaults to false.
 * xnat.timelogs: (Optional) - Can be set to true to generate summary CSVs of tests with runtimes and simple statistics. Defaults to false.
 * xnat.gitLogs: (Optional) - Can be set to true to turn XNAT and tomcat logs into git repos (requires test_logger XNAT plugin). Defaults to false.
-* xnat.basic: (Optional) - Can be set to true to only run methods/classes annotated with @Basic (marking either the test or the class is sufficient). If false (or left out), all allowed tests will be run.
+* xnat.basic: (Optional) - Can be set to true to only run methods/classes annotated with \@Basic (marking either the test or the class is sufficient). If false (or left out), all allowed tests will be run.
 * xnat.db.url: (Optional) - URL for XNAT database if tests need DB access.
 * xnat.db.user: (Optional) - User for XNAT database if tests need DB access.
 * xnat.db.password: (Optional) - Password for XNAT database if tests need DB access.
