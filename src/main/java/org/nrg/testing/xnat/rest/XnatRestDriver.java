@@ -335,7 +335,8 @@ public abstract class XnatRestDriver {
             enableUser(adminUser(), mainAdminUser());
             makeUserAdmin(adminUser(), mainAdminUser());
         } else {
-            createUser(xnatConfig.getMainAdminUser().email(Settings.EMAIL));
+            createUser(mainAdminUser().email(Settings.EMAIL));
+            makeUserAdmin(xnatConfig.getAdminUser(), mainAdminUser());
         }
     }
 
