@@ -3,6 +3,7 @@ package org.nrg.testing.xnat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.config.RestAssuredConfig;
+import com.jayway.restassured.config.SSLConfig;
 import com.jayway.restassured.mapper.factory.Jackson2ObjectMapperFactory;
 import com.jayway.restassured.specification.RequestSpecification;
 import org.nrg.testing.xnat.rest.XnatRestDriver;
@@ -26,7 +27,7 @@ public class BaseRestTest extends BaseXnatTest {
                         return XnatRestDriver.XNAT_REST_MAPPER;
                     }
                 }
-        ));
+        )).sslConfig(SSLConfig.sslConfig().relaxedHTTPSValidation("SSL"));
     }
 
     @Override
