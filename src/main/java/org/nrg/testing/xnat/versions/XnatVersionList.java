@@ -16,7 +16,7 @@ public class XnatVersionList {
 
     public static final List<String> KNOWN_VERSION_KEYS = new ArrayList<>();
     public static final BiMap<String, Class<? extends XnatVersion>> KNOWN_KEY_VERSION_MAP = HashBiMap.create();
-    public static final Map<String, Class<? extends XnatRestDriver>> KNOWN_KEY_REST_DRIVER_MAP = new HashMap<>();
+    public static final Map<Class<? extends XnatVersion>, Class<? extends XnatRestDriver>> KNOWN_VERSION_CLASS_REST_DRIVER_MAP = new HashMap<>();
 
     private static <T> T instantiate(Class<T> tClass) {
         try {
@@ -38,7 +38,7 @@ public class XnatVersionList {
             }
             for (Class<? extends XnatRestDriver> restClass : new Reflections("org.nrg.testing.xnat.rest").getSubTypesOf(XnatRestDriver.class)) {
                 for (Class<? extends XnatVersion> versionClass : instantiate(restClass).getHandledVersions()) {
-                    KNOWN_KEY_REST_DRIVER_MAP.put(KNOWN_KEY_VERSION_MAP.inverse().get(versionClass), restClass);
+                    KNOWN_VERSION_CLASS_REST_DRIVER_MAP.put(versionClass, restClass);
                 }
             }
             KNOWN_VERSION_KEYS.addAll(KNOWN_KEY_VERSION_MAP.keySet());

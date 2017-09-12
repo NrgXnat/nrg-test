@@ -3,6 +3,8 @@ package org.nrg.testing.xnat.conf;
 import org.apache.log4j.Logger;
 import org.nrg.testing.CommonUtils;
 import org.nrg.testing.util.BaseProperties;
+import org.nrg.testing.xnat.versions.XnatVersion;
+import org.nrg.testing.xnat.versions.XnatVersionList;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -213,14 +215,8 @@ public class XNATProperties extends BaseProperties {
         return getBooleanProperty(DOM_SETTING, false);
     }
 
-    public String getXNATVersion() {
-        final String version = getPropertyFromAnywhere(XNAT_VERSION);
-        if (version == null) {
-            LOGGER.fatal(String.format("Required setting %s was not set.", XNAT_VERSION));
-            throw new RuntimeException(String.format("Required setting %s was not set.", XNAT_VERSION));
-        }
-
-        return version;
+    public Class<? extends XnatVersion> getXNATVersion() {
+        return parseVersion(XNAT_VERSION);
     }
 
     public String getTomcatVersion() {
@@ -243,7 +239,7 @@ public class XNATProperties extends BaseProperties {
                         mainAdminPassword(getSensitiveProperty(nthXnatProperty(MAIN_ADMIN_PASS[0], configIndex))).
                         adminUsername(getPropertyFromAnywhere(nthXnatProperty(ADMIN_USER, configIndex))).
                         adminPassword(getSensitiveProperty(nthXnatProperty(ADMIN_PASS, configIndex))).
-                        xnatVersion(getPropertyFromAnywhere(nthXnatProperty(XNAT_VERSION, configIndex))).
+                        xnatVersion(parseVersion(nthXnatProperty(XNAT_VERSION, configIndex))).
                         xnatUrl(CommonUtils.formatUrl(getPropertyFromAnywhere(nthXnatProperty(BASEURL, configIndex)))).
                         init(getBooleanProperty(nthXnatProperty(INIT_SETTING, configIndex), true)).
                         build()
@@ -254,6 +250,22 @@ public class XNATProperties extends BaseProperties {
             configIndex++;
         }
         return bonusConfigs;
+    }
+
+    private Class<? extends XnatVersion> parseVersion(String key) {
+        XnatVersionList.readXnatVersions();
+
+        final String version = getPropertyFromAnywhere(key);
+        if (version == null) {
+            LOGGER.fatal(String.format("Required setting %s was not set.", key));
+            throw new RuntimeException(String.format("Required setting %s was not set.", key));
+        }
+
+        final Class<? extends XnatVersion> versionClass = XnatVersionList.KNOWN_KEY_VERSION_MAP.get(key);
+        if (versionClass == null) {
+            throw new RuntimeException(String.format("Could not find requested version of XNAT (%s) in list of available versions.", key));
+        }
+        return versionClass;
     }
 
 }

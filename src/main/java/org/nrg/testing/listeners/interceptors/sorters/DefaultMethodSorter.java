@@ -1,20 +1,11 @@
-/*
- * org.nrg.selenium.listeners.MethodSortListener
- * XNAT http://www.xnat.org
- * Copyright (c) 2016, Washington University School of Medicine
- * All Rights Reserved
- *
- * Released under the Simplified BSD.
- */
-
 package org.nrg.testing.listeners.interceptors.sorters;
 
+import com.google.common.collect.Sets;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.NotFoundException;
 import org.apache.log4j.Logger;
-import org.nrg.testing.CommonUtils;
 import org.nrg.testing.annotations.HardDependency;
 import org.nrg.testing.annotations.SoftClassDependency;
 import org.nrg.testing.annotations.SoftDependency;
@@ -25,7 +16,6 @@ import org.testng.IMethodInterceptor;
 import org.testng.ITestContext;
 import org.testng.ITestNGMethod;
 
-import java.lang.reflect.Method;
 import java.util.*;
 
 public class DefaultMethodSorter implements IMethodInterceptor {
@@ -124,7 +114,7 @@ public class DefaultMethodSorter implements IMethodInterceptor {
             if (dependency == null) {
                 unsortedClasses.put(testClass, new HashSet<Class>());
             } else {
-                unsortedClasses.put(testClass, CommonUtils.newHashSet(dependency.value()));
+                unsortedClasses.put(testClass, Sets.newHashSet(dependency.value()));
             }
         }
         try {

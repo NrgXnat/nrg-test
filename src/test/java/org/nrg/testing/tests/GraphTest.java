@@ -1,6 +1,6 @@
 package org.nrg.testing.tests;
 
-import org.nrg.testing.CommonUtils;
+import com.google.common.collect.Sets;
 import org.nrg.testing.util.GraphUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -36,21 +36,21 @@ public class GraphTest {
         final String seven = "7";
 
         final Map<String, Collection<String>> graph = new HashMap<>();
-        graph.put(zero, CommonUtils.newHashSet(one, four));
-        graph.put(one, CommonUtils.newHashSet(zero, three, four));
-        graph.put(two, CommonUtils.newHashSet(four));
-        graph.put(three, CommonUtils.newHashSet(one));
-        graph.put(four, CommonUtils.newHashSet(zero, one, two));
-        graph.put(five, CommonUtils.newHashSet(six));
-        graph.put(six, CommonUtils.newHashSet(five));
+        graph.put(zero, Sets.newHashSet(one, four));
+        graph.put(one, Sets.newHashSet(zero, three, four));
+        graph.put(two, Sets.newHashSet(four));
+        graph.put(three, Sets.newHashSet(one));
+        graph.put(four, Sets.newHashSet(zero, one, two));
+        graph.put(five, Sets.newHashSet(six));
+        graph.put(six, Sets.newHashSet(five));
         graph.put(seven, new HashSet<String>());
 
-        final Set<String> cc1 = CommonUtils.newHashSet(zero, one, two, three, four);
-        final Set<String> cc2 = CommonUtils.newHashSet(five, six);
-        final Set<String> cc3 = CommonUtils.newHashSet(seven);
+        final Set<String> cc1 = Sets.newHashSet(zero, one, two, three, four);
+        final Set<String> cc2 = Sets.newHashSet(five, six);
+        final Set<String> cc3 = Sets.newHashSet(seven);
 
         final Set<Set<String>> ccs = GraphUtils.findConnectedComponents(graph);
-        Assert.assertEquals(ccs, CommonUtils.newHashSet(cc1, cc2, cc3));
+        Assert.assertEquals(ccs, Sets.newHashSet(cc1, cc2, cc3));
         Assert.assertEquals(GraphUtils.findMaximalConnectedComponent(graph), cc1.size());
     }
 
@@ -70,22 +70,22 @@ public class GraphTest {
 
         final Map<Integer, Collection<Integer>> graph = new HashMap<>();
         graph.put(seventeen, new HashSet<Integer>());
-        graph.put(twentyThree, CommonUtils.newHashSet(twentyFour));
-        graph.put(twentyFour, CommonUtils.newHashSet(twentyThree));
-        graph.put(nine, CommonUtils.newHashSet(twentySix, eighteen, nineteen));
-        graph.put(thirteen, CommonUtils.newHashSet(nineteen, five));
-        graph.put(twentySix, CommonUtils.newHashSet(nine, eleven, eighteen));
-        graph.put(nineteen, CommonUtils.newHashSet(nine, thirteen));
-        graph.put(five, CommonUtils.newHashSet(thirteen));
-        graph.put(eleven, CommonUtils.newHashSet(twentySix));
-        graph.put(eighteen, CommonUtils.newHashSet(twentySix, nine));
+        graph.put(twentyThree, Sets.newHashSet(twentyFour));
+        graph.put(twentyFour, Sets.newHashSet(twentyThree));
+        graph.put(nine, Sets.newHashSet(twentySix, eighteen, nineteen));
+        graph.put(thirteen, Sets.newHashSet(nineteen, five));
+        graph.put(twentySix, Sets.newHashSet(nine, eleven, eighteen));
+        graph.put(nineteen, Sets.newHashSet(nine, thirteen));
+        graph.put(five, Sets.newHashSet(thirteen));
+        graph.put(eleven, Sets.newHashSet(twentySix));
+        graph.put(eighteen, Sets.newHashSet(twentySix, nine));
 
-        final Set<Integer> cc1 = CommonUtils.newHashSet(seventeen);
-        final Set<Integer> cc2 = CommonUtils.newHashSet(twentyThree, twentyFour);
-        final Set<Integer> cc3 = CommonUtils.newHashSet(nine, thirteen, twentySix, nineteen, five, eleven, eighteen);
+        final Set<Integer> cc1 = Sets.newHashSet(seventeen);
+        final Set<Integer> cc2 = Sets.newHashSet(twentyThree, twentyFour);
+        final Set<Integer> cc3 = Sets.newHashSet(nine, thirteen, twentySix, nineteen, five, eleven, eighteen);
 
         final Set<Set<Integer>> ccs = GraphUtils.findConnectedComponents(graph);
-        Assert.assertEquals(ccs, CommonUtils.newHashSet(cc1, cc2, cc3));
+        Assert.assertEquals(ccs, Sets.newHashSet(cc1, cc2, cc3));
         Assert.assertEquals(GraphUtils.findMaximalConnectedComponent(graph), cc3.size());
     }
 

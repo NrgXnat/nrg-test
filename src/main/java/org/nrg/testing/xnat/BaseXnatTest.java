@@ -5,6 +5,7 @@ import org.nrg.listeners.git.GitLogListener;
 import org.nrg.listeners.jira.JIRATestNGListener;
 import org.nrg.testing.BaseTestCase;
 import org.nrg.testing.TestController;
+import org.nrg.testing.annotations.Follows;
 import org.nrg.testing.annotations.JiraKey;
 import org.nrg.testing.annotations.TestRequires;
 import org.nrg.testing.annotations.XnatVersionLink;
@@ -145,7 +146,7 @@ public abstract class BaseXnatTest extends BaseTestCase {
     private String getJiraId(XnatVersionLink[] links) {
         for (XnatVersionLink link : links) {
             for (Class<? extends XnatVersion> xnatVersion : link.xnatVersions()) {
-                if (XnatVersionList.getKey(xnatVersion).equals(Settings.XNAT_VERSION)) {
+                if (xnatVersion.equals(Settings.XNAT_VERSION)) {
                     link.mappedValue();
                 }
             }
@@ -156,7 +157,7 @@ public abstract class BaseXnatTest extends BaseTestCase {
     private boolean containsCurrentXnatVersion(XnatVersionLink[] links) {
         for (XnatVersionLink link : links) {
             for (Class<? extends XnatVersion> xnatVersion : link.xnatVersions()) {
-                if (XnatVersionList.getKey(xnatVersion).equals(Settings.XNAT_VERSION)) {
+                if (xnatVersion.equals(Settings.XNAT_VERSION)) {
                     return true;
                 }
             }
@@ -260,6 +261,19 @@ public abstract class BaseXnatTest extends BaseTestCase {
 
     public XnatRestDriver getRestDriver() {
         return restDriver;
+    }
+
+    private boolean recursiveVersionSearch(Class<? extends XnatVersion> current, Class<? extends XnatVersion> desired) {
+        if (current.getAnnotation(Follows.class) == null) return false;
+        for (Class<? extends XnatVersion> version : current.getAnnotation(Follows.class).value()) {
+            if (version.equals(desired)) return true;
+            if (recursiveVersionSearch(version, desired)) return true;
+        }
+        return false;
+    }
+
+    public boolean testedVersionFollows(Class<? extends XnatVersion> specifiedVersion) {
+        return recursiveVersionSearch(Settings.XNAT_VERSION, specifiedVersion);
     }
 
 }

@@ -58,9 +58,9 @@ public abstract class XnatRestDriver {
         XnatVersionList.readXnatVersions();
 
         final XnatConfig config = (xnatConfig != null) ? xnatConfig : Settings.DEFAULT_XNAT_CONFIG;
-        if (XnatVersionList.KNOWN_VERSION_KEYS.contains(config.getXnatVersion())) {
+        if (XnatVersionList.KNOWN_KEY_VERSION_MAP.values().contains(config.getXnatVersion())) {
             try {
-                final XnatRestDriver restDriver = XnatVersionList.KNOWN_KEY_REST_DRIVER_MAP.get(config.getXnatVersion()).newInstance();
+                final XnatRestDriver restDriver = XnatVersionList.KNOWN_VERSION_CLASS_REST_DRIVER_MAP.get(config.getXnatVersion()).newInstance();
                 restDriver.setXnatConfig(config);
                 return restDriver;
             } catch (Exception e) {

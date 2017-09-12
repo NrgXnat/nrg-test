@@ -1,6 +1,6 @@
 package org.nrg.testing.tests;
 
-import org.nrg.testing.CommonUtils;
+import com.google.common.collect.Sets;
 import org.nrg.testing.util.GraphUtils;
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -54,8 +54,8 @@ public class MethodSortTest {
         final Integer three = 3;
         final Map<Integer, Collection<Integer>> nonCycle = new HashMap<>();
         nonCycle.put(one, new HashSet<Integer>());
-        nonCycle.put(two, CommonUtils.newHashSet(one));
-        nonCycle.put(three, CommonUtils.newHashSet(one, two));
+        nonCycle.put(two, Sets.newHashSet(one));
+        nonCycle.put(three, Sets.newHashSet(one, two));
         GraphUtils.topologicalSort(nonCycle);
     }
 

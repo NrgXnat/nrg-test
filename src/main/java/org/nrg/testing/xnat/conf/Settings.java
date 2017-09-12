@@ -5,6 +5,7 @@ import org.nrg.testing.CommonUtils;
 import org.nrg.testing.file.FileIO;
 import org.nrg.testing.file.FileLocation;
 import org.nrg.testing.xnat.ssh.SSHConnection;
+import org.nrg.testing.xnat.versions.XnatVersion;
 import org.nrg.xnat.pogo.dicom.DicomScpReceiver;
 import org.nrg.xnat.rest.Credentials;
 
@@ -59,7 +60,7 @@ public class Settings {
     public static final String ADMIN_USERNAME = properties.getAdminUser();
     public static final String ADMIN_PASS = properties.getAdminPassword();
     public static final boolean ADMIN_AVAILABLE = ADMIN_USERNAME != null && ADMIN_PASS != null;
-    public static final String XNAT_VERSION = properties.getXNATVersion();
+    public static final Class<? extends XnatVersion> XNAT_VERSION = properties.getXNATVersion();
     public static final String BASEURL = CommonUtils.formatUrl(properties.getBaseURL());
     public static final String HOSTURL = getHost();
     public static final XnatConfig DEFAULT_XNAT_CONFIG = XnatConfig.buildDefaultConfig();

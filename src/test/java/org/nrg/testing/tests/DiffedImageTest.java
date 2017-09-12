@@ -1,5 +1,6 @@
 package org.nrg.testing.tests;
 
+import com.google.common.collect.Sets;
 import org.nrg.testing.CommonUtils;
 import org.nrg.testing.UnitTestUtils;
 import org.nrg.testing.xnat.processing.files.ImageProcessingException;
@@ -134,13 +135,13 @@ public class DiffedImageTest {
         final ComparisonPixel pixel29 = colorGraphImage.getPixel(4, 41);
 
         final Set<Set<ComparisonPixel>> connectedComponents = colorGraphImage.getConnectedComponents(0);
-        final Set<ComparisonPixel> expectedCC1 = CommonUtils.newHashSet(pixel1, pixel2, pixel3, pixel4, pixel5);
-        final Set<ComparisonPixel> expectedCC2 = CommonUtils.newHashSet(pixel6);
-        final Set<ComparisonPixel> expectedCC3 = CommonUtils.newHashSet(pixel7, pixel8, pixel9, pixel10, pixel11, pixel12, pixel13, pixel14, pixel15, pixel16, pixel17);
-        final Set<ComparisonPixel> expectedCC4 = CommonUtils.newHashSet(pixel18, pixel19, pixel20);
-        final Set<ComparisonPixel> expectedCC5 = CommonUtils.newHashSet(pixel21, pixel22, pixel23, pixel24, pixel25, pixel26, pixel27, pixel28, pixel29);
+        final Set<ComparisonPixel> expectedCC1 = Sets.newHashSet(pixel1, pixel2, pixel3, pixel4, pixel5);
+        final Set<ComparisonPixel> expectedCC2 = Sets.newHashSet(pixel6);
+        final Set<ComparisonPixel> expectedCC3 = Sets.newHashSet(pixel7, pixel8, pixel9, pixel10, pixel11, pixel12, pixel13, pixel14, pixel15, pixel16, pixel17);
+        final Set<ComparisonPixel> expectedCC4 = Sets.newHashSet(pixel18, pixel19, pixel20);
+        final Set<ComparisonPixel> expectedCC5 = Sets.newHashSet(pixel21, pixel22, pixel23, pixel24, pixel25, pixel26, pixel27, pixel28, pixel29);
 
-        Assert.assertEquals(connectedComponents, CommonUtils.newHashSet(expectedCC1, expectedCC2, expectedCC3, expectedCC4, expectedCC5));
+        Assert.assertEquals(connectedComponents, Sets.newHashSet(expectedCC1, expectedCC2, expectedCC3, expectedCC4, expectedCC5));
         Assert.assertEquals(colorGraphImage.getMaximalConnectedComponent(), expectedCC3.size());
     }
 

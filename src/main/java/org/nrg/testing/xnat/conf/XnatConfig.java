@@ -2,6 +2,7 @@ package org.nrg.testing.xnat.conf;
 
 import com.jayway.restassured.specification.RequestSpecification;
 import org.nrg.testing.xnat.Users;
+import org.nrg.testing.xnat.versions.XnatVersion;
 import org.nrg.xnat.pogo.users.User;
 import org.nrg.xnat.rest.Credentials;
 
@@ -13,7 +14,7 @@ public class XnatConfig {
     private String mainAdminPassword;
     private String adminUsername;
     private String adminPassword;
-    private String xnatVersion;
+    private Class<? extends XnatVersion> xnatVersion;
     private User mainUser;
     private User mainAdminUser;
     private User adminUser;
@@ -50,8 +51,8 @@ public class XnatConfig {
         return this;
     }
 
-    public XnatConfig xnatVersion(String xnatVersion) {
-        this.xnatVersion = xnatVersion;
+    public XnatConfig xnatVersion(Class<? extends XnatVersion> versionClass) {
+        this.xnatVersion = versionClass;
         return this;
     }
 
@@ -96,7 +97,7 @@ public class XnatConfig {
         return adminPassword;
     }
 
-    public String getXnatVersion() {
+    public Class<? extends XnatVersion> getXnatVersion() {
         return xnatVersion;
     }
 

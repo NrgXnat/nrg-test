@@ -26,7 +26,7 @@ public class ProhibitedTestFilter extends TestFilterInterceptor {
 
     @Override
     public boolean isTestAllowed(IMethodInstance testInstance) {
-        return isTestAllowed(testInstance, XnatVersionList.KNOWN_KEY_VERSION_MAP.get(Settings.XNAT_VERSION));
+        return isTestAllowed(testInstance, Settings.XNAT_VERSION);
     }
 
     public boolean isTestAllowed(IMethodInstance testInstance, Class<? extends XnatVersion> versionClass) {
