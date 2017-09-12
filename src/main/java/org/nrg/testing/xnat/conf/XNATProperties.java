@@ -261,7 +261,7 @@ public class XNATProperties extends BaseProperties {
             throw new RuntimeException(String.format("Required setting %s was not set.", key));
         }
 
-        final Class<? extends XnatVersion> versionClass = XnatVersionList.KNOWN_KEY_VERSION_MAP.get(key);
+        final Class<? extends XnatVersion> versionClass = XnatVersionList.KNOWN_KEY_VERSION_MAP.get(version);
         if (versionClass == null) {
             throw new RuntimeException(String.format("Could not find requested version of XNAT (%s) in list of available versions.", key));
         }
