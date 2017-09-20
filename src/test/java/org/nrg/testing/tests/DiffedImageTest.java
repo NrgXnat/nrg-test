@@ -1,7 +1,6 @@
 package org.nrg.testing.tests;
 
 import com.google.common.collect.Sets;
-import org.nrg.testing.CommonUtils;
 import org.nrg.testing.UnitTestUtils;
 import org.nrg.testing.xnat.processing.files.ImageProcessingException;
 import org.nrg.testing.xnat.processing.files.comparators.imaging.ComparisonPixel;
@@ -141,6 +140,7 @@ public class DiffedImageTest {
         final Set<ComparisonPixel> expectedCC4 = Sets.newHashSet(pixel18, pixel19, pixel20);
         final Set<ComparisonPixel> expectedCC5 = Sets.newHashSet(pixel21, pixel22, pixel23, pixel24, pixel25, pixel26, pixel27, pixel28, pixel29);
 
+        //noinspection unchecked
         Assert.assertEquals(connectedComponents, Sets.newHashSet(expectedCC1, expectedCC2, expectedCC3, expectedCC4, expectedCC5));
         Assert.assertEquals(colorGraphImage.getMaximalConnectedComponent(), expectedCC3.size());
     }
