@@ -2,20 +2,32 @@ package org.nrg.testing.dicom;
 
 import org.nrg.testing.dicom.values.DicomSequence;
 
-public interface DicomValidator {
+import java.io.File;
+import java.util.Map;
 
-    void checkTagPresent(DicomTag tag);
+public abstract class DicomValidator {
 
-    void checkTagNotPresent(DicomTag tag);
+    public void validate(Map<File, DicomObject> fileMap, InterfileDicomValidation... interFileChecks) {
+        for (Map.Entry<File, DicomObject> entry : fileMap.entrySet()) {
+            validate(entry.getKey(), entry.getValue());
+        }
+        for (InterfileDicomValidation interfileCheck : interFileChecks) {
+            interfileCheck.validate(fileMap);
+        }
+    }
 
-    void checkTagPresentSomewhere(DicomTag tag);
+    public abstract void validate(File actualFile, DicomObject expectedDicomObject);
 
-    void checkTagPresentNowhere(DicomTag tag);
+    public abstract void checkTagPresent(DicomTag tag);
 
-    void checkTagHasValue(DicomTag tag, String value);
+    public abstract void checkTagNotPresent(DicomTag tag);
 
-    void checkTagDoesntHaveValue(DicomTag tag, String value);
+    public abstract void checkTagHasValue(DicomTag tag, String value);
 
-    void validateSequence(DicomSequence sequence);
+    public abstract void checkTagDoesntHaveValue(DicomTag tag, String value);
+
+    public abstract void checkTagStartsWith(DicomTag tag, String value);
+
+    public abstract void validateSequence(DicomSequence sequence);
 
 }

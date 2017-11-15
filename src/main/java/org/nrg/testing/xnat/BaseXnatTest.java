@@ -263,17 +263,4 @@ public abstract class BaseXnatTest extends BaseTestCase {
         return restDriver;
     }
 
-    private boolean recursiveVersionSearch(Class<? extends XnatVersion> current, Class<? extends XnatVersion> desired) {
-        if (current.getAnnotation(Follows.class) == null) return false;
-        for (Class<? extends XnatVersion> version : current.getAnnotation(Follows.class).value()) {
-            if (version.equals(desired)) return true;
-            if (recursiveVersionSearch(version, desired)) return true;
-        }
-        return false;
-    }
-
-    public boolean testedVersionFollows(Class<? extends XnatVersion> specifiedVersion) {
-        return recursiveVersionSearch(Settings.XNAT_VERSION, specifiedVersion);
-    }
-
 }

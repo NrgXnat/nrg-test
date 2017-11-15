@@ -16,7 +16,7 @@ import java.util.List;
 
 import static com.jayway.restassured.config.ObjectMapperConfig.objectMapperConfig;
 
-public class BaseRestTest extends BaseXnatTest {
+public class BaseXnatRestTest extends BaseXnatTest {
 
     @BeforeSuite
     protected void addXnatSerializers() {

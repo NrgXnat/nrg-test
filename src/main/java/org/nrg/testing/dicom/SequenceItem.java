@@ -14,7 +14,7 @@ public class SequenceItem extends DicomObject {
 
     public SequenceItem(DicomObject dicomObject, int sequenceIndex) {
         super(dicomObject.dicomMap);
-        this.sequenceIndex = sequenceIndex;
+        setSequenceIndex(sequenceIndex);
     }
 
 }

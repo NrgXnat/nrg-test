@@ -21,19 +21,24 @@ import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 import org.apache.log4j.Logger;
 import org.dcm4che3.data.Attributes;
+import org.dcm4che3.data.DatasetWithFMI;
+import org.dcm4che3.data.ElementDictionary;
+import org.dcm4che3.data.Tag;
+import org.dcm4che3.io.DicomInputStream;
 import org.dcm4che3.net.ApplicationEntity;
 import org.dcm4che3.net.Connection;
 import org.dcm4che3.net.Device;
 import org.dcm4che3.tool.storescu.StoreSCU;
 import org.nrg.testing.CommonUtils;
-import org.nrg.testing.dicom.DicomElement;
-import org.nrg.testing.dicom.DicomLibrary;
+import org.nrg.testing.dicom.values.DicomValue;
 import org.nrg.testing.enums.TestData;
 import org.nrg.testing.xnat.conf.Settings;
+import org.nrg.xnat.dicom.CStore;
 import org.nrg.xnat.pogo.Project;
 import org.nrg.xnat.pogo.dicom.DicomScpReceiver;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -179,71 +184,34 @@ public class FileIO {
     /**
      * Sends a directory containing DICOM files to an XNAT server
      * @param aeTitle Remote AETitle to receive the DICOM
-     * @param host Remote host to receieve the DICOM
+     * @param host Remote host to receive the DICOM
      * @param port Port number for the remote DICOM Receiver
      * @param directory Directory of DICOM
-     * @param overwrittenDICOMHeaders A map of keys (DICOM tags, e.g. DicomLibrary.PATIENTS_NAME) to values (DICOM values, e.g. "MYSTUDY")
+     * @param overwrittenDICOMHeaders A map of keys (DICOM tags in decimal representation of the hex code, e.g. Tag.PatientName) to values (DICOM values, e.g. "MYSTUDY")
      */
-    public static void sendDICOM(String aeTitle, String host, Integer port, String directory, Map<DicomElement, String> overwrittenDICOMHeaders) {
-        final String actualAE = (aeTitle == null) ? Settings.DICOM_AETITLE : aeTitle;
-        final int actualPort = (port == null) ? Settings.DICOM_PORT : port;
-        final String actualHost = (host == null) ? Settings.DICOM_HOST : host;
-
-        try {
-            final Device localDevice = new Device("SEL_VM");
-            final Connection connection = new Connection();
-            final ApplicationEntity localAE = new ApplicationEntity("SEL_SCU");
-            localDevice.addApplicationEntity(localAE);
-            localDevice.addConnection(connection);
-            localAE.addConnection(connection);
-            final StoreSCU scuMain = new StoreSCU(localAE);
-
-            final Attributes attributes = new Attributes();
-            for (Map.Entry<DicomElement, String> dicomHeaderAssignment : overwrittenDICOMHeaders.entrySet()) {
-                DicomElement header = dicomHeaderAssignment.getKey();
-                attributes.setString(header.getDcm4cheTag(), header.getVr(), dicomHeaderAssignment.getValue());
-            }
-            scuMain.setAttributes(attributes);
-
-            scuMain.getAAssociateRQ().setCalledAET(actualAE);
-            final Connection remoteConnection = scuMain.getRemoteConnection();
-            remoteConnection.setHostname(actualHost);
-            remoteConnection.setPort(actualPort);
-
-            LOGGER.info("Scanning files to send to XNAT in: " + directory);
-            scuMain.scanFiles(Collections.singletonList(Paths.get(Settings.DATA_LOCATION, directory).toFile().getAbsolutePath()), false);
-
-            final ExecutorService executorService = Executors.newSingleThreadExecutor();
-            final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-            localDevice.setExecutor(executorService);
-            localDevice.setScheduledExecutor(scheduledExecutorService);
-
-            scuMain.open();
-            scuMain.sendFiles();
-            scuMain.close();
-        } catch (Exception e) {
-            fail("Could not send DICOM to XNAT due to: " + e);
-        }
+    public static void sendDICOM(String aeTitle, String host, Integer port, String directory, Map<Integer, String> overwrittenDICOMHeaders) {
+        CStore.to(new DicomScpReceiver().aeTitle((aeTitle == null) ? Settings.DICOM_AETITLE : aeTitle).port((port == null) ? Settings.DICOM_PORT : port).host((host == null) ? Settings.DICOM_HOST : host)).
+                directories(Collections.singletonList(Paths.get(Settings.DATA_LOCATION, directory).toFile())).headers(overwrittenDICOMHeaders).send();
     }
 
-    public static void sendDICOM(DicomScpReceiver dicomScpReceiver, String directory, Map<DicomElement, String> overwrittenDICOMHeaders) {
+    public static void sendDICOM(DicomScpReceiver dicomScpReceiver, String directory, Map<Integer, String> overwrittenDICOMHeaders) {
         sendDICOM(dicomScpReceiver.getAeTitle(), dicomScpReceiver.getHost(), dicomScpReceiver.getPort(), directory, overwrittenDICOMHeaders);
     }
 
-    public static void sendDICOM(DicomScpReceiver dicomScpReceiver, TestData testData, Map<DicomElement, String> overwrittenDICOMHeaders) {
+    public static void sendDICOM(DicomScpReceiver dicomScpReceiver, TestData testData, Map<Integer, String> overwrittenDICOMHeaders) {
         sendDICOM(dicomScpReceiver, testData.getName(), overwrittenDICOMHeaders);
     }
 
-    public static void sendDICOM(String directory, Map<DicomElement, String> overwrittenDICOMHeaders) {
+    public static void sendDICOM(String directory, Map<Integer, String> overwrittenDICOMHeaders) {
         sendDICOM(null, null, null, directory, overwrittenDICOMHeaders);
     }
 
-    public static void sendDICOM(TestData testData, Map<DicomElement, String> overwrittenDICOMHeaders) {
+    public static void sendDICOM(TestData testData, Map<Integer, String> overwrittenDICOMHeaders) {
         sendDICOM(testData.getName(), overwrittenDICOMHeaders);
     }
 
     public static void sendDICOMToProject(String directory, Project project) {
-        sendDICOM(directory, Collections.singletonMap(DicomLibrary.STUDY_DESCRIPTION, project.getId()));
+        sendDICOM(directory, Collections.singletonMap(Tag.StudyDescription, project.getId()));
     }
 
     public static void sendDICOMToProject(TestData testData, Project project) {
@@ -296,25 +264,6 @@ public class FileIO {
         }
     }
 
-    @Deprecated
-    public static String readScript(String script) {
-        return readScriptByFullPath(Settings.DATA_LOCATION + File.separator + script);
-    }
-
-    @Deprecated
-    public static String readScriptByFullPath(String scriptPath) {
-        try {
-            return FileUtils.readFileToString(new File(scriptPath), "utf-8");
-        } catch (IOException e) {
-            throw new RuntimeException(String.format("Failed to read %s script. ", scriptPath), e);
-        }
-    }
-
-    @Deprecated
-    public static String readScriptByFullPath(Path path) {
-        return readScriptByFullPath(path.toString());
-    }
-
     public static String readFile(Path path) {
         return readFile(path.toFile());
     }
@@ -329,6 +278,18 @@ public class FileIO {
 
     public static String readDataFile(String filename) {
         return readFile(getDataFile(filename));
+    }
+
+    public static DatasetWithFMI readDicomFile(File file) {
+        DatasetWithFMI dataset;
+        try {
+            final DicomInputStream dicomInputStream = new DicomInputStream(file);
+            dataset = dicomInputStream.readDatasetWithFMI();
+            dicomInputStream.close();
+        } catch (Exception e) {
+            throw new AssertionError("Failed to validate DICOM object.", e);
+        }
+        return dataset;
     }
 
 }

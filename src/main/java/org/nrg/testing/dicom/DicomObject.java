@@ -5,20 +5,16 @@ import org.nrg.testing.dicom.values.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.nrg.testing.dicom.DicomUtils.dicomTagTransform;
+
 public class DicomObject extends DicomScopable {
     protected Map<DicomTag, DicomValue> dicomMap = new HashMap<>();
 
     public DicomObject(Map<DicomTag, DicomValue> dicomMap) {
-        this.dicomMap.putAll(dicomMap);
+        this.dicomMap = dicomMap;
     }
 
     public DicomObject() {}
-
-    public void validate(DicomValidator validator) {
-        for (DicomValue value : dicomMap.values()) {
-            value.assertValuesSatisfied(validator);
-        }
-    }
 
     @Override
     public void markChildren() {
@@ -29,82 +25,93 @@ public class DicomObject extends DicomScopable {
         }
     }
 
-    protected void put(DicomElement dicomElement, DicomValue dicomValue) {
-        final DicomTag tag = new DicomTag(dicomElement);
+    public Map<DicomTag, DicomValue> getDicomMap() {
+        return dicomMap;
+    }
+
+    protected void put(int dicomHexTag, DicomValue dicomValue) {
+        final DicomTag tag = new DicomTag(dicomHexTag);
         dicomMap.put(tag, dicomValue);
     }
 
-    public void putExistenceChecks(DicomElement... dicomElements) {
-        for (DicomElement dicomElement : dicomElements) {
+    public void putExistenceChecks(int... dicomElements) {
+        for (int dicomElement : dicomElements) {
             put(dicomElement, new DicomTagPresent());
         }
     }
 
-    public void putNonexistenceChecks(DicomElement... dicomElements) {
-        for (DicomElement dicomElement : dicomElements) {
+    public void putExistenceChecks(String... dicomElements) {
+        for (String dicomElement : dicomElements) {
+            put(dicomTagTransform(dicomElement), new DicomTagPresent());
+        }
+    }
+
+    public void putNonexistenceChecks(int... dicomElements) {
+        for (int dicomElement : dicomElements) {
             put(dicomElement, new DicomTagNotPresent());
         }
     }
 
-    public void putValueEqualCheck(DicomElement dicomElement, String value) {
+    public void putNonexistenceChecks(String... dicomElements) {
+        for (String dicomElement : dicomElements) {
+            put(dicomTagTransform(dicomElement), new DicomTagNotPresent());
+        }
+    }
+
+    public void putWildcardedNonexistenceCheck(String wildcardedElement) {
+        for (String concreteTag : DicomUtils.resolveAllDicomEditTags(wildcardedElement)) {
+            putNonexistenceChecks(concreteTag);
+        }
+    }
+
+    public void putValueEqualCheck(int dicomElement, String value) {
         put(dicomElement, new DicomTagHasValue(value));
     }
 
-    public void putValueNotEqualCheck(DicomElement dicomElement, String value) {
+    public void putValueEqualCheck(String dicomElement, String value) {
+        putValueEqualCheck(dicomTagTransform(dicomElement), value);
+    }
+
+    public void putValueNotEqualCheck(int dicomElement, String value) {
         put(dicomElement, new DicomTagDoesntHaveValue(value));
     }
 
-    public void putSequence(DicomElement dicomElement, DicomSequence sequence) {
+    public void putValueNotEqualCheck(String dicomElement, String value) {
+        putValueNotEqualCheck(dicomTagTransform(dicomElement), value);
+    }
+
+    public void putValueStartsWithCheck(int dicomElement, String value) {
+        put(dicomElement, new DicomTagStartsWith(value));
+    }
+
+    public void putValueStartsWithCheck(String dicomElement, String value) {
+        putValueStartsWithCheck(dicomTagTransform(dicomElement), value);
+    }
+
+    public void putSequenceCheck(int dicomElement, DicomSequence sequence) {
         put(dicomElement, sequence);
     }
 
-    public DicomTag getTagByElement(DicomElement element) {
-        for (DicomTag tag : dicomMap.keySet()) {
-            if (tag.getDicomElement().equals(element)) {
+    public void putSequenceCheck(String dicomElement, DicomSequence sequence) {
+        putSequenceCheck(dicomTagTransform(dicomElement), sequence);
+    }
+
+    public DicomTag getTagByHexCode(int hexCode) {
+            for (DicomTag tag : dicomMap.keySet()) {
+            if (tag.getDecimalOfHexTag() == hexCode) {
                 return tag;
             }
         }
         return null;
     }
 
-    public DicomValue getValueByElement(DicomElement element) {
+    public DicomValue getValueByHexCode(int element) {
         for (Map.Entry<DicomTag, DicomValue> entry : dicomMap.entrySet()) {
-            if (entry.getKey().getDicomElement().equals(element)) {
+            if (entry.getKey().getDecimalOfHexTag() == element) {
                 return entry.getValue();
             }
         }
         return null;
     }
-
-    /*public String getSummary(String header) {
-        String summary = header;
-        List<String> presentTags = new ArrayList<>();
-        List<String> nonpresentTags = new ArrayList<>();
-        String valueString = "";
-        String notvalueString = "";
-
-        for (Map.Entry<DicomTag, DicomValue> entry : dicomMap.entrySet()) {
-            switch (entry.getValue().getType()) {
-                case PRESENT:
-                    presentTags.add(entry.getKey().getDicomTag());
-                    break;
-                case NOT_PRESENT:
-                    nonpresentTags.add(entry.getKey().getDicomTag());
-                    break;
-                case HAS_VALUE:
-                    valueString += String.format("\n\t* DICOM header %s has value: \"%s\"", entry.getKey().getDicomTag(), entry.getValue().getValue());
-                    break;
-                case DOESNT_HAVE_VALUE:
-                    notvalueString += String.format("\n\t* DICOM header %s doesn't have value: \"%s\"", entry.getKey().getDicomTag(), entry.getValue().getValue());
-                    break;
-            }
-        }
-        if (!presentTags.isEmpty()) summary += "\n\t* The following DICOM headers are all present: " + StringUtils.join(presentTags.toArray(), ", ");
-        if (!nonpresentTags.isEmpty()) summary += "\n\t* The following DICOM headers are all not present: " + StringUtils.join(nonpresentTags.toArray(), ", ");
-        summary += valueString;
-        summary += notvalueString;
-        return summary;
-    }*/
-    // TODO:above
 
 }

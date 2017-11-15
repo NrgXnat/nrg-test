@@ -16,11 +16,13 @@ import org.nrg.testing.TestController;
 import org.nrg.testing.enums.TestData;
 import org.nrg.testing.util.RandomHelper;
 import org.nrg.testing.util.TestNgUtils;
+import org.nrg.testing.xnat.XnatObjectUtils;
 import org.nrg.testing.xnat.conf.Settings;
 import org.nrg.testing.xnat.conf.XnatConfig;
 import org.nrg.testing.xnat.versions.XnatVersion;
 import org.nrg.testing.xnat.versions.XnatVersionList;
 import org.nrg.xnat.enums.Accessibility;
+import org.nrg.xnat.enums.DicomEditVersion;
 import org.nrg.xnat.enums.PrearchiveCode;
 import org.nrg.xnat.interfaces.XnatInterface;
 import org.nrg.xnat.pogo.*;
@@ -216,6 +218,10 @@ public abstract class XnatRestDriver {
     public XnatAliasToken generateAliasToken(User user) {
         return interfaceFor(user).generateAliasToken();
     }
+
+    public AnonScript getDefaultXnatAnonScript() {
+        return XnatObjectUtils.anonScriptFromURL(DicomEditVersion.UNSPECIFIED, formatXapiUrl("anonymize/default"), Settings.DEFAULT_XNAT_CONFIG.getAdminUser());
+    }
     
     public String projectExperimentsUrl(Project project) {
         return mainInterface().projectExperimentsUrl(project);
@@ -283,11 +289,11 @@ public abstract class XnatRestDriver {
     }
 
     public void uploadToSessionZipImporter(User authUser, File sessionZip, Project project, Subject subject, ImagingSession session) {
-        interfaceFor(authUser).uploadToSessionZipImporter(sessionZip, project, subject, session);
+        interfaceFor((authUser != null) ? authUser : mainUser()).uploadToSessionZipImporter(sessionZip, project, subject, session);
     }
 
     public void uploadToSessionZipImporter(File sessionZip, Project project) {
-        uploadToSessionZipImporter(mainUser(), sessionZip, project, null, null);
+        uploadToSessionZipImporter(null, sessionZip, project, null, null);
     }
 
     public void uploadToSessionZipImporter(TestData testData, Project project) {
@@ -368,8 +374,19 @@ public abstract class XnatRestDriver {
         interfaceFor(authUser).makeUserAdmin(targetUser);
     }
 
+    public void postToSiteConfig(User authUser, Map configSettings) {
+        interfaceFor(authUser).postToSiteConfig(configSettings);
+    }
+
+    public void setAutoArchiveTimings(User authUser, int idleTime, int idleSchedule) {
+        final Map<String, Integer> postMap = new HashMap<>();
+        postMap.put(SiteConfig.AUTOARCHIVE_IDLE_TIME, idleTime);
+        postMap.put(SiteConfig.AUTOARCHIVE_IDLE_SCHEDULE, idleSchedule);
+        postToSiteConfig(authUser, postMap);
+    }
+
     public String siteAnonScriptUrl() {
-        return mainInterface().siteAnonScriptUrl();
+        return mainInterface().legacySiteAnonScriptUrl();
     }
 
     public AnonScript getSiteAnonScript(User authUser) {
@@ -378,6 +395,10 @@ public abstract class XnatRestDriver {
 
     public void setSiteAnonScriptStatus(User authUser, boolean status) {
         interfaceFor(authUser).setSiteAnonScriptStatus(status);
+    }
+
+    public void setSiteAnonScript(User authUser, AnonScript script) {
+        interfaceFor(authUser).setSiteAnonScript(script);
     }
 
     public void disableSiteAnonScript(User authUser) {
@@ -552,6 +573,14 @@ public abstract class XnatRestDriver {
         return extension.getParentObject();
     }
 
+    public void relabelSubject(User authUser, Project project, Subject subject, String newLabel) {
+        interfaceFor(authUser).relabelSubject(project, subject, newLabel);
+    }
+
+    public void relabelSubject(User authUser, Subject subject, String newLabel) {
+        interfaceFor(authUser).relabelSubject(subject, newLabel);
+    }
+
     public void shareSubject(User authUser, Project sourceProject, Subject subject, Share share) {
         interfaceFor(authUser).shareSubject(sourceProject, subject, share);
     }
@@ -578,6 +607,14 @@ public abstract class XnatRestDriver {
 
     public void createSubjectAssessor(User authUser, SubjectAssessor subjectAssessor) {
         interfaceFor(authUser).createSubjectAssessor(subjectAssessor);
+    }
+
+    public void relabelSubjectAssessor(User authUser, Project project, Subject subject, SubjectAssessor subjectAssessor, String newLabel) {
+        interfaceFor(authUser).relabelSubjectAssessor(project, subject, subjectAssessor, newLabel);
+    }
+
+    public void relabelSubjectAssessor(User authUser, SubjectAssessor subjectAssessor, String newLabel) {
+        interfaceFor(authUser).relabelSubjectAssessor(subjectAssessor, newLabel);
     }
 
     public void shareSubjectAssessor(User authUser, Project project, Subject subject, SubjectAssessor subjectAssessor, Share share) {

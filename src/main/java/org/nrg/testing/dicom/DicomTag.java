@@ -2,20 +2,25 @@ package org.nrg.testing.dicom;
 
 public class DicomTag extends DicomScopable {
 
-    private DicomElement tag;
+    private int decimalOfHexTag;
 
     @Override
     public void setParent(DicomScopable parent) {
         this.parent = parent;
-        if (!(parent instanceof DicomObject)) throw new ClassCastException("DICOM tag can only have a DICOM object as it's parent.");
+        if (!(parent instanceof DicomObject)) throw new ClassCastException("DICOM tag can only have a DICOM object as its parent.");
     }
 
-    public DicomTag(DicomElement tag) {
-        this.tag = tag;
+    public DicomTag(int tag) {
+        decimalOfHexTag = tag;
     }
 
-    public DicomElement getDicomElement() {
-        return tag;
+    public int getDecimalOfHexTag() {
+        return decimalOfHexTag;
+    }
+
+    public String fullHexString() {
+        final String hex = String.format("%08x", decimalOfHexTag);
+        return "(" + hex.substring(0, 4) + "," + hex.substring(4) + ")";
     }
 
     @Override
