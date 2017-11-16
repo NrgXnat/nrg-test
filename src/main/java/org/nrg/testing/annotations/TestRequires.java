@@ -16,7 +16,7 @@ public @interface TestRequires {
     boolean ssh() default false;
     boolean db() default false;
     boolean dicomScp() default false;
-    boolean user() default false;
+    int users() default 0;
     boolean admin() default false;
     TestData[] data() default TestData.NONE;
 }

@@ -5,7 +5,6 @@ import org.nrg.listeners.git.GitLogListener;
 import org.nrg.listeners.jira.JIRATestNGListener;
 import org.nrg.testing.BaseTestCase;
 import org.nrg.testing.TestController;
-import org.nrg.testing.annotations.Follows;
 import org.nrg.testing.annotations.JiraKey;
 import org.nrg.testing.annotations.TestRequires;
 import org.nrg.testing.annotations.XnatVersionLink;
@@ -68,13 +67,13 @@ public abstract class BaseXnatTest extends BaseTestCase {
         if (classTests != null) {
             for (ITestNGMethod test : classTests) {
                 final TestRequires requires = TestNgUtils.getAnnotation(test, TestRequires.class);
-                if (requires != null && requires.user()) requiredUsers++;
+                if (requires != null) requiredUsers += requires.users();
             }
         }
 
         final TestRequires classRequires = testClass.getAnnotation(TestRequires.class);
         if (classRequires != null) {
-            if (classRequires.user()) requiredUsers += numTestsToBeRunInClass(testClass);
+            requiredUsers += numTestsToBeRunInClass(testClass) * classRequires.users();
             if (classRequires.db()) {
                 TestNgUtils.assumeTrue(Settings.HAS_DB_INFO, "DB connection information is required for all tests in class: " + testClass.getSimpleName());
             }
