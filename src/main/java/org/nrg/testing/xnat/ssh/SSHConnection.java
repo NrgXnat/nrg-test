@@ -47,7 +47,7 @@ public class SSHConnection {
             return false;
         }
         try {
-            AssertJUnit.assertEquals("0", executeCommand("echo 'Hello world'").get("Code"));
+            AssertJUnit.assertEquals(0, executeCommand("echo 'Hello world'").getExitStatus());
             LOGGER.info("SSH appears to be working...");
             return true;
         } catch (Exception | Error e) {
@@ -62,7 +62,7 @@ public class SSHConnection {
             executeCommand("mkdir -p ~/bin");
             pushScript(String.format("manage_%s.sh", Settings.TOMCAT_VERSION), ssh);
             ssh.disconnect();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             LOGGER.fatal("Failed to transfer scripts over SCP.", e);
             throw new RuntimeException(e);
         }
@@ -74,25 +74,19 @@ public class SSHConnection {
             final File script = ResourceLoader.copyAndGetResource(scriptName);
             ssh.newSCPFileTransfer().upload(new FileSystemFile(script), "bin/");
             executeCommand(String.format("chmod +x bin/%s", script.getName()));
-        } catch (Exception e) {
+        } catch (Throwable e) {
             LOGGER.fatal("Failed to transfer scripts over SCP.", e);
             throw new RuntimeException(e);
         }
-
     }
 
-    public static Map<String, String> executeCommand(String command) {
+    public static SSHCommandResult executeCommand(String command) {
         try {
             SSHClient ssh = getConnection();
             Session session = ssh.startSession();
             Session.Command sessionCommand = session.exec(command);
-            Map<String, String> results = new HashMap<>();
-            results.put("IS", IOUtils.readFully(sessionCommand.getInputStream()).toString());
-            results.put("ES", sessionCommand.getErrorStream().toString());
-            Integer code = (sessionCommand.getExitStatus() == null) ? 0 : sessionCommand.getExitStatus();
-            results.put("Code", code.toString());
+            final SSHCommandResult results = SSHCommandResult.read(sessionCommand);
             ssh.disconnect();
-
             return results;
         } catch (Exception e) {
             LOGGER.warn("Failed to connect to test server with SSH", e);
@@ -116,9 +110,9 @@ public class SSHConnection {
 
     private static void manageTomcat(String command) {
         LOGGER.info(String.format("Sending command to tomcat: %s...", command));
-        Map<String, String> results = executeCommand(String.format("bin/manage_%s.sh %s", Settings.TOMCAT_VERSION, command));
-        LOGGER.info(results.get("IS"));
-        AssertJUnit.assertEquals("0", results.get("Code"));
+        final SSHCommandResult results = executeCommand(String.format("bin/manage_%s.sh %s", Settings.TOMCAT_VERSION, command));
+        LOGGER.info(results.getStdOut());
+        AssertJUnit.assertEquals(0, results.getExitStatus());
     }
 
     private static void waitForTomcat() {

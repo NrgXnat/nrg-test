@@ -73,7 +73,7 @@ public abstract class BaseXnatTest extends BaseTestCase {
 
         final TestRequires classRequires = testClass.getAnnotation(TestRequires.class);
         if (classRequires != null) {
-            requiredUsers += numTestsToBeRunInClass(testClass) * classRequires.users();
+            requiredUsers += classRequires.users();
             if (classRequires.db()) {
                 TestNgUtils.assumeTrue(Settings.HAS_DB_INFO, "DB connection information is required for all tests in class: " + testClass.getSimpleName());
             }
