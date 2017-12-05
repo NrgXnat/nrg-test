@@ -32,4 +32,5 @@ public class DecompressGzipMutator extends FileMutator {
             throw new RuntimeException("Error in unzipping gzipped archive " + file.getName());
         }
     }
+
 }

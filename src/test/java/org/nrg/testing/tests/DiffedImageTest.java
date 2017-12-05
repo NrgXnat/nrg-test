@@ -2,7 +2,7 @@ package org.nrg.testing.tests;
 
 import com.google.common.collect.Sets;
 import org.nrg.testing.UnitTestUtils;
-import org.nrg.testing.xnat.processing.files.ImageProcessingException;
+import org.nrg.testing.xnat.processing.exceptions.ImageProcessingException;
 import org.nrg.testing.xnat.processing.files.comparators.imaging.ComparisonPixel;
 import org.nrg.testing.xnat.processing.files.comparators.imaging.DiffedImage;
 import org.testng.Assert;

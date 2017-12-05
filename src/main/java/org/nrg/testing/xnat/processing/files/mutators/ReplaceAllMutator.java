@@ -1,12 +1,3 @@
-/*
- * ReplaceAllMutator
- * XNAT http://www.xnat.org
- * Copyright (c) 2016, Washington University School of Medicine
- * All Rights Reserved
- *
- * Released under the Simplified BSD.
- */
-
 package org.nrg.testing.xnat.processing.files.mutators;
 
 import org.apache.commons.io.FileUtils;
@@ -19,22 +10,21 @@ import java.util.Map;
 
 public class ReplaceAllMutator extends FileMutator {
 
-    private Map<String, String> matchRegexMap = new HashMap<>();
+    private Map<String, String> replacements = new HashMap<>();
 
-    public ReplaceAllMutator(String inputString) {
-        String[] splitString = inputString.split(",");
-        if (splitString.length % 2 == 1) throw new RuntimeException("ReplaceAllMutator cannot create a map from an odd number of Strings");
-        if (splitString.length == 0) throw new RuntimeException("Nothing to split because there's no commas.");
-        for (int i = 0; i < splitString.length; i += 2) {
-            matchRegexMap.put(splitString[i], splitString[i + 1]);
-        }
+    public Map<String, String> getReplacements() {
+        return replacements;
+    }
+
+    public void setReplacements(Map<String, String> replacements) {
+        this.replacements = replacements;
     }
 
     @Override
     public File mutateFile(File file) {
         try {
             String fileContents = FileUtils.readFileToString(file, "UTF-8");
-            for (Map.Entry<String, String> mapEntry : matchRegexMap.entrySet()) {
+            for (Map.Entry<String, String> mapEntry : replacements.entrySet()) {
                 fileContents = fileContents.replaceAll(mapEntry.getKey(), mapEntry.getValue());
             }
             fileContents = fileContents.replaceAll(Settings.EMAIL, "EMAIL");
@@ -44,4 +34,5 @@ public class ReplaceAllMutator extends FileMutator {
             throw new RuntimeException("Could not replace text in file " + file, ioe);
         }
     }
+
 }

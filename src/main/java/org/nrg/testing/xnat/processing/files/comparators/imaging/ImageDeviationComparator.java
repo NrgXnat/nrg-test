@@ -1,35 +1,54 @@
 package org.nrg.testing.xnat.processing.files.comparators.imaging;
 
-import org.nrg.testing.xnat.processing.files.ImageProcessingException;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.nrg.testing.xnat.processing.exceptions.ImageProcessingException;
 
 public class ImageDeviationComparator extends ImageComparator {
 
-    private int maxGrayscaleDeviation;
-    private int maxColorscaleDeviation;
+    @JsonProperty("gray")  private int maxGrayscaleDeviation = 0;
+    @JsonProperty("color") private int maxColorscaleDeviation = 0;
 
-    public ImageDeviationComparator(String deviations) {
-        if (deviations == null) {
-            maxGrayscaleDeviation = 0;
-            maxColorscaleDeviation = 0;
-        } else {
-            String[] devArray = deviations.split(";");
-            maxGrayscaleDeviation = Integer.parseInt(devArray[0]);
-            maxColorscaleDeviation = Integer.parseInt(devArray[1]);
+    public int getMaxGrayscaleDeviation() {
+        return maxGrayscaleDeviation;
+    }
+
+    public void setMaxGrayscaleDeviation(int maxGrayscaleDeviation) {
+        this.maxGrayscaleDeviation = maxGrayscaleDeviation;
+    }
+
+    public int getMaxColorscaleDeviation() {
+        return maxColorscaleDeviation;
+    }
+
+    public void setMaxColorscaleDeviation(int maxColorscaleDeviation) {
+        this.maxColorscaleDeviation = maxColorscaleDeviation;
+    }
+
+    @Override
+    public void checkDiffedImage() throws ImageProcessingException {
+        final int linearDeviation = diffedImage.getAbsoluteDeviation();
+        if (diffedImage.isColor() && linearDeviation > maxColorscaleDeviation) {
+            throw new ImageProcessingException(String.format("linear color deviation of %d exceeds maximum allowed of %d", linearDeviation, maxColorscaleDeviation));
+        } else if (!diffedImage.isColor() && linearDeviation > maxGrayscaleDeviation) {
+            throw new ImageProcessingException(String.format("linear grayscale deviation of %d exceeds maximum allowed of %d", linearDeviation, maxGrayscaleDeviation));
         }
     }
 
     @Override
-    public String checkDiffedImage() throws ImageProcessingException {
-        final int linearDeviation = diffedImage.getAbsoluteDeviation();
-        if (diffedImage.isColor()) {
-            if (linearDeviation > maxColorscaleDeviation) {
-                return String.format("linear color deviation of %d exceeds maximum allowed of %d", linearDeviation, maxColorscaleDeviation);
-            }
-        } else {
-            if (linearDeviation > maxGrayscaleDeviation) {
-                return String.format("linear grayscale deviation of %d exceeds maximum allowed of %d", linearDeviation, maxGrayscaleDeviation);
-            }
-        }
-        return null;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ImageDeviationComparator)) return false;
+
+        ImageDeviationComparator that = (ImageDeviationComparator) o;
+
+        return maxGrayscaleDeviation == that.maxGrayscaleDeviation && maxColorscaleDeviation == that.maxColorscaleDeviation;
     }
+
+    @Override
+    public int hashCode() {
+        int result = maxGrayscaleDeviation;
+        result = 31 * result + maxColorscaleDeviation;
+        return result;
+    }
+
 }

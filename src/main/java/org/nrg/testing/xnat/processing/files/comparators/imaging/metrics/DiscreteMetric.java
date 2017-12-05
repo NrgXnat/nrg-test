@@ -6,7 +6,7 @@ public class DiscreteMetric extends Metric {
 
     @Override
     public double distance(ComparisonPixel pixel) {
-        return 1; // ZeroComparisonPixel should alwaays return 0 on a metric without even getting this far
+        return 1; // ZeroComparisonPixel should always return 0 on a metric without even getting this far
     }
 
 }

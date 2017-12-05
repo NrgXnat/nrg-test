@@ -2,7 +2,7 @@ package org.nrg.testing.tests;
 
 import org.nrg.testing.UnitTestUtils;
 import org.nrg.testing.xnat.processing.files.comparators.imaging.ComparisonPixel;
-import org.nrg.testing.xnat.processing.files.comparators.imaging.PNormDistance;
+import org.nrg.testing.xnat.processing.files.comparators.imaging.metrics.PNormDistance;
 import org.nrg.testing.xnat.processing.files.comparators.imaging.PixelFactory;
 import org.nrg.testing.xnat.processing.files.comparators.imaging.metrics.DiscreteMetric;
 import org.nrg.testing.xnat.processing.files.comparators.imaging.metrics.HammingMetric;

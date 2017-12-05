@@ -7,9 +7,10 @@ import loci.formats.in.NiftiReader;
 import loci.plugins.util.ImageProcessorReader;
 import org.apache.log4j.Logger;
 import org.nrg.testing.util.GraphUtils;
-import org.nrg.testing.xnat.processing.files.ImageProcessingException;
+import org.nrg.testing.xnat.processing.exceptions.ImageProcessingException;
 import org.nrg.testing.xnat.processing.files.comparators.imaging.metrics.DiscreteMetric;
 import org.nrg.testing.xnat.processing.files.comparators.imaging.metrics.Metric;
+import org.nrg.testing.xnat.processing.files.comparators.imaging.metrics.PNormDistance;
 
 import java.io.File;
 import java.util.*;

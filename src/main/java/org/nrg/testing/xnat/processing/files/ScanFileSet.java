@@ -1,30 +1,23 @@
-/*
- * org.nrg.selenium.pipeline.pipelineFileLocations.ScanFileSet
- * XNAT http://www.xnat.org
- * Copyright (c) 2015, Washington University School of Medicine
- * All Rights Reserved
- *
- * Released under the Simplified BSD.
- *
- * Last modified: 10/30/15 6:17 PM
- */
-
 package org.nrg.testing.xnat.processing.files;
 
 import org.nrg.testing.xnat.rest.XnatRestDriver;
+import org.nrg.xnat.pogo.experiments.ImagingSession;
 
-public class ScanFileSet extends ProcessingFileSet {
+public class ScanFileSet extends ProcessingFileSets {
 
     String scanId;
 
-    public ScanFileSet(String scanId, String csvFileSetName, String session) {
+    public String getScanId() {
+        return scanId;
+    }
+
+    public void setScanId(String scanId) {
         this.scanId = scanId;
-        this.csvFileSetName = csvFileSetName;
-        this.session = session;
     }
 
     @Override
-    public String restSubcall(XnatRestDriver xnatDriver) {
-        return String.format("scans/%s/files", scanId);
+    public String findBaseUrlForResources(XnatRestDriver driver, ImagingSession session) {
+        return String.format("/data/experiments/%s/scans/%s", session.getAccessionNumber(), scanId);
     }
+
 }

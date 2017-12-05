@@ -1,15 +1,17 @@
 package org.nrg.testing.xnat.processing;
 
+import org.nrg.xnat.pogo.DataType;
+
 public class CreatedAssessor implements ProcessingCheckable {
 
-    private String name;
+    private DataType dataType;
 
-    public CreatedAssessor(String assessor) {
-        name = assessor;
+    public CreatedAssessor(DataType assessor) {
+        dataType = assessor;
     }
 
     public String getName() {
-        return name;
+        return dataType.getSingularName();
     }
 
 }
