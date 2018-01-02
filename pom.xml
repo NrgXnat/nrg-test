@@ -7,11 +7,11 @@
     <parent>
         <groupId>org.nrg</groupId>
         <artifactId>test_dependencies</artifactId>
-        <version>1.7</version>
+        <version>2.0</version>
     </parent>
 
     <artifactId>nrg_test</artifactId>
-    <version>1.4</version>
+    <version>1.5-SNAPSHOT</version>
 
     <name>Base NRG Testing Framework</name>
     <description>Framework for testing of NRG applications.</description>
@@ -34,7 +34,7 @@
         <multiprocessor.version>3.0</multiprocessor.version>
         <test_listeners.version>4.1</test_listeners.version>
         <jira_reporter_version>1.1</jira_reporter_version>
-        <grxnat.version>1.8.1</grxnat.version>
+        <grxnat.version>1.9-SNAPSHOT</grxnat.version>
     </properties>
 
     <build>
