@@ -43,6 +43,7 @@ public class DicomUtils {
         return Collections.max(Arrays.asList(input.indexOf('X'), input.indexOf('x'), input.indexOf('@'), input.indexOf('#')));
     }
 
+    @Deprecated // moved to grxnat DicomUtils
     public static int dicomTagTransform(String friendlyDicomHeader) {
         return Integer.parseInt(friendlyDicomHeader.replace("(", "").replace(")", "").replace(",", "").replace(" ", ""), 16);
     }

@@ -24,7 +24,7 @@ public class FixedTagValue implements InterfileDicomValidation {
             if (headerValue == null) {
                 headerValue = currentFileHeaderValue;
             } else {
-                assertEquals(String.format("All DICOM files were expected to have the same value for tag 0x%08x", dicomTag), headerValue, currentFileHeaderValue);
+                assertEquals("All DICOM files were expected to have the same value for tag 0x" + org.nrg.xnat.util.DicomUtils.intToSimpleHeaderString(dicomTag), headerValue, currentFileHeaderValue);
             }
         }
     }
