@@ -16,6 +16,8 @@ public @interface TestRequires {
     boolean ssh() default false;
     boolean db() default false;
     boolean dicomScp() default false;
+    boolean openXnat() default false;
+    boolean closedXnat() default false;
     int users() default 0;
     boolean admin() default false;
     TestData[] data() default TestData.NONE;

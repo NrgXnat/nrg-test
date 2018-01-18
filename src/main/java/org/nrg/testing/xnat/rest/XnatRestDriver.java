@@ -378,6 +378,18 @@ public abstract class XnatRestDriver {
         interfaceFor(authUser).postToSiteConfig(configSettings);
     }
 
+    public void setLoginRequirement(User authUser, boolean loginRequired) {
+        interfaceFor(authUser).setLoginRequirement(loginRequired);
+    }
+
+    public void openXnat(User authUser) {
+        interfaceFor(authUser).openXnat();
+    }
+
+    public void closeXnat(User authUser) {
+        interfaceFor(authUser).closeXnat();
+    }
+
     public void setAutoArchiveTimings(User authUser, int idleTime, int idleSchedule) {
         final Map<String, Integer> postMap = new HashMap<>();
         postMap.put(SiteConfig.AUTOARCHIVE_IDLE_TIME, idleTime);
