@@ -74,7 +74,7 @@ public class DicomFileValidator extends DicomValidator {
     }
 
     private Attributes expectedLocation(DicomTag tag) {
-        if (tag.getDecimalOfHexTag() < 524288) { // Metadata below (0008,0000)
+        if (tag.getDecimalOfHexTag() < 0x00080000) { // Metadata below (0008,0000)
             return currentFullDicomData.getFileMetaInformation(); // (0002,xxxx) elements should not be in sequences
         }
 

@@ -1,16 +1,12 @@
 package org.nrg.testing.xnat.processing.files.comparators.imaging;
 
 import ij.ImagePlus;
-import ij.ImageStack;
-import ij.io.Opener;
-import loci.formats.in.NiftiReader;
-import loci.plugins.util.ImageProcessorReader;
 import org.apache.log4j.Logger;
+import org.nrg.testing.enums.ImageType;
 import org.nrg.testing.util.GraphUtils;
 import org.nrg.testing.xnat.processing.exceptions.ImageProcessingException;
-import org.nrg.testing.xnat.processing.files.comparators.imaging.metrics.DiscreteMetric;
 import org.nrg.testing.xnat.processing.files.comparators.imaging.metrics.Metric;
-import org.nrg.testing.xnat.processing.files.comparators.imaging.metrics.PNormDistance;
+import org.nrg.testing.xnat.processing.files.comparators.imaging.metrics.Metrics;
 
 import java.io.File;
 import java.util.*;
@@ -19,13 +15,15 @@ public class DiffedImage {
 
     private boolean isColor;
     private ComparisonPixel[][][] signedComparisonPixels; // z, x, y so we can iterate over "pages"/"slices" (z)
+    private ImageType type;
     private static final Logger LOGGER = Logger.getLogger(DiffedImage.class);
 
     public boolean isColor() {
         return isColor;
     }
 
-    public DiffedImage(File originalImageFile, File generatedImageFile) throws ImageProcessingException {
+    public DiffedImage(File originalImageFile, File generatedImageFile, ImageType type) throws ImageProcessingException {
+        this.type = type;
         ImagePlus original = openImage(originalImageFile);
         ImagePlus generated = openImage(generatedImageFile);
         if (original == null || generated == null) {
@@ -75,6 +73,10 @@ public class DiffedImage {
         }
         original.close();
         generated.close();
+    }
+
+    public DiffedImage(File originalImageFile, File generatedImageFile) throws ImageProcessingException {
+        this(originalImageFile, generatedImageFile, null);
     }
 
     public DiffedImage(String originalImage, String generatedImage) throws ImageProcessingException {
@@ -129,15 +131,15 @@ public class DiffedImage {
     }
 
     public int getAbsoluteDeviation() {
-        return (int)Math.round(getTotalStackDifference(new PNormDistance(1)));
+        return (int)Math.round(getTotalStackDifference(Metrics.TAXICAB));
     }
 
     public double getSquaredDeviation() {
-        return getTotalStackDifference(new PNormDistance(2));
+        return getTotalStackDifference(Metrics.EUCLIDEAN);
     }
 
     public int getNumNonzeroPixels() {
-        return (int)Math.round(getTotalStackDifference(new DiscreteMetric()));
+        return (int)Math.round(getTotalStackDifference(Metrics.DISCRETE));
     }
 
     public double getPercentNonzeroPixels() {
@@ -203,27 +205,22 @@ public class DiffedImage {
         return deviation;
     }
 
-    private static ImagePlus openImage(File image) throws ImageProcessingException {
-        try {
-            ImagePlus readImage;
-            if (image.getName().endsWith(".nii")) {
-                NiftiReader niftiReader = new NiftiReader();
-                niftiReader.setId(image.getPath());
-                ImageProcessorReader processorReader = new ImageProcessorReader(niftiReader);
-                ImageStack imageStack = new ImageStack(niftiReader.getSizeX(), niftiReader.getSizeY());
-                for (int z = 0; z < niftiReader.getSizeZ(); z++) {
-                    imageStack.addSlice(processorReader.openProcessors(z)[0]); // add each slice to stack
-                }
-                niftiReader.close();
-                processorReader.close();
-                readImage = new ImagePlus(image.getName(), imageStack);
+    private ImagePlus openImage(File image) throws ImageProcessingException {
+        if (type == null) {
+            final String imageName = image.getName().toLowerCase();
+            if (imageName.endsWith(".nii")) {
+                type = ImageType.NIFTI;
+            } else if (imageName.endsWith(".dcm") || imageName.endsWith(".ima")) {
+                type = ImageType.DICOM;
             } else {
-                Opener imageOpener = new Opener();
-                readImage = imageOpener.openImage(image.getPath());
+                type = ImageType.PLAIN_IMAGE;
             }
-            return readImage;
+        }
+        try {
+            return type.readImage(image);
         } catch (Exception e) {
             throw new ImageProcessingException(String.format("Could not open image: %s due to: %s", image.getName(), e.getMessage()));
         }
     }
+
 }

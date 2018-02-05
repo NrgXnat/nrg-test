@@ -6,9 +6,9 @@ import java.io.File;
 import java.nio.file.Paths;
 
 public enum TestData {
-    ANON_SESSION ("anonymizationSession"),
+    ANON_SESSION ("anonymizationSession", "1.3.12.2.1107.5.2.32.35177.30000006121218324675000000034"),
     ANON_2 ("anon2"),
-    JPEGLOSSLESS_2000 ("jpeglosslessTestSession"),
+    JPEGLOSSLESS_2000 ("jpeglosslessTestSession", "1.2.840.113654.2.45.6231.166972699289982407626220940255566350778"),
     PETMR_DATA ("petmrTestData"),
     SAMPLE_1 ("sample1", "1.3.12.2.1107.5.2.32.35177.30000006121218324675000000034"),
     SAMPLE_2 ("sample2"),
@@ -16,6 +16,8 @@ public enum TestData {
     SIMPLE_PET ("simplePET"),
     XSYNC_DATA ("xsync_test_data"),
     NIFTI_FILE ("Nifti_file"),
+    MIXED_FRAME_STUDY ("mixed_frame_study", "1.2.276.0.7230010.3.1.2.0.40812.1517409389.348186"),
+    BIG_ENDIAN ("dicom_web_big_endian", "1.2.276.0.7230010.3.1.2.0.35635.1517265970.592487"),
     DICOM_WEB_CT1 ("dicom_web_ct1", "1.3.6.1.4.1.14519.5.2.1.1188.4001.213420711084714071744561785405"),
     DICOM_WEB_CT2 ("dicom_web_ct2", "1.3.6.1.4.1.14519.5.2.1.2783.4001.264840947689124794109906553823"),
     DICOM_WEB_CT3 ("dicom_web_ct3", "1.3.6.1.4.1.14519.5.2.1.2783.4001.836352507614755874726843241657"),

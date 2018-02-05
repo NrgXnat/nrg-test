@@ -280,6 +280,7 @@ public class FileIO {
         return readFile(getDataFile(filename));
     }
 
+    @Deprecated
     public static DatasetWithFMI readDicomFile(File file) {
         DatasetWithFMI dataset;
         try {
