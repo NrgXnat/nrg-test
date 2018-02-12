@@ -6,6 +6,7 @@ import org.dcm4che3.data.DatasetWithFMI;
 import org.nrg.testing.dicom.values.DicomSequence;
 import org.nrg.testing.dicom.values.DicomValue;
 import org.nrg.testing.file.FileIO;
+import org.nrg.xnat.util.*;
 
 import java.io.File;
 import java.util.List;
@@ -19,7 +20,7 @@ public class DicomFileValidator extends DicomValidator {
     @Override
     public void validate(File actualFile, DicomObject expectedDicomObject) {
         expectedDicomObject.markChildren();
-        currentFullDicomData = FileIO.readDicomFile(actualFile);
+        currentFullDicomData = org.nrg.xnat.util.DicomUtils.readDicom(actualFile);
         for (DicomValue dicomValue : expectedDicomObject.getDicomMap().values()) {
             dicomValue.assertValuesSatisfied(this);
         }

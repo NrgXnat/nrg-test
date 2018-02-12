@@ -18,7 +18,7 @@ public class XnatVersionLineage {
         return recursiveVersionSearch(Settings.XNAT_VERSION, specifiedVersion);
     }
 
-    public static boolean testedVersionProcedes(Class<? extends XnatVersion> specifiedVersion) {
+    public static boolean testedVersionPrecedes(Class<? extends XnatVersion> specifiedVersion) {
         return recursiveVersionSearch(specifiedVersion, Settings.XNAT_VERSION);
     }
 

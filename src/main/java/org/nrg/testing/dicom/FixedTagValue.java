@@ -1,7 +1,5 @@
 package org.nrg.testing.dicom;
 
-import org.nrg.testing.file.FileIO;
-
 import java.io.File;
 import java.util.Map;
 
@@ -20,7 +18,7 @@ public class FixedTagValue implements InterfileDicomValidation {
         String headerValue = null;
 
         for (Map.Entry<File, DicomObject> fileEntry : dicomObjectFileMap.entrySet()) {
-            String currentFileHeaderValue = FileIO.readDicomFile(fileEntry.getKey()).getDataset().getString(dicomTag);
+            String currentFileHeaderValue = org.nrg.xnat.util.DicomUtils.readDicom(fileEntry.getKey()).getDataset().getString(dicomTag);
             if (headerValue == null) {
                 headerValue = currentFileHeaderValue;
             } else {

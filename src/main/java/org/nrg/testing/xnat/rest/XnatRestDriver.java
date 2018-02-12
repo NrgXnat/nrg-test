@@ -511,32 +511,16 @@ public abstract class XnatRestDriver {
         return interfaceFor(authUser).readSessionAssessors(project, subject, session);
     }
 
-    public Subject findSubject(Project project, String label) {
-        return mainInterface().findSubject(project, label);
+    public void populateAdditionalScanMetadata(User authUser, Project project, Subject subject, ImagingSession session) {
+        interfaceFor(authUser).populateAdditionalScanMetadata(project, subject, session);
     }
 
-    public SubjectAssessor findSubjectAssessor(Subject subject, String label) {
-        return mainInterface().findSubjectAssessor(subject, label);
-    }
-
-    public SessionAssessor findSessionAssessor(ImagingSession session, String label) {
-        return mainInterface().findSessionAssessor(session, label);
+    public Scan readAdditionalScanMetadata(User authUser, Project project, Subject subject, ImagingSession session, Scan scan) {
+        return interfaceFor(authUser).readAdditionalScanMetadata(project, subject, session, scan);
     }
 
     public Resource findResource(List<Resource> resources, String label) {
         return mainInterface().findResource(resources, label);
-    }
-
-    public List<Scan> filterScansByType(List<Scan> scans, String type) {
-        return mainInterface().filterScansByType(scans, type);
-    }
-
-    public List<Scan> filterScansByType(List<Scan> scans, List<String> acceptableTypes) {
-        return mainInterface().filterScansByType(scans, acceptableTypes);
-    }
-
-    public Scan findScan(ImagingSession session, String scanId) {
-        return mainInterface().findScan(session, scanId);
     }
 
     public String accessibilityRestUrl(Project project) {
