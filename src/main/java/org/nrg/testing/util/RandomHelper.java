@@ -1,14 +1,3 @@
-/*
- * org.nrg.xnat.selenium.util.RandomHelper
- * XNAT http://www.xnat.org
- * Copyright (c) 2014, Washington University School of Medicine
- * All Rights Reserved
- *
- * Released under the Simplified BSD.
- *
- * Last modified 2/4/14 11:19 AM
- */
-
 package org.nrg.testing.util;
 
 import org.apache.commons.lang3.StringUtils;

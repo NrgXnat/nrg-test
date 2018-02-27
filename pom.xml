@@ -34,7 +34,7 @@
         <multiprocessor.version>3.0</multiprocessor.version>
         <test_listeners.version>4.1</test_listeners.version>
         <jira_reporter_version>1.1</jira_reporter_version>
-        <grxnat.version>1.9</grxnat.version>
+        <grxnat.version>1.10-SNAPSHOT</grxnat.version>
     </properties>
 
     <build>

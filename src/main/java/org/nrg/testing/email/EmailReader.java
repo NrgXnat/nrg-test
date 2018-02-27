@@ -1,13 +1,4 @@
 /*
- * org.nrg.xnat.selenium.EmailReader
- * XNAT http://www.xnat.org
- * Copyright (c) 2014, Washington University School of Medicine
- * All Rights Reserved
- *
- * Released under the Simplified BSD.
- *
- * Last modified 4/30/14 10:50 AM
- *
  * Adapted from http://www.compiletimeerror.com/2013/06/reading-email-using-javamail-api-example.html#.U17GNvldVUV
  */
 
