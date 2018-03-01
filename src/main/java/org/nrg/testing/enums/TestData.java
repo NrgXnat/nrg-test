@@ -47,6 +47,7 @@ public enum TestData {
     DICOM_WEB_MG ("dicom_web_mg", "1.3.6.1.4.1.14519.5.2.1.4792.2001.174604453911712310689369687743"),
     EXTRACTION_DIFFUSION ("diffusion"),
     EXTRACTION_MR ("extraction_mr"),
+    EXTRACTION_CT ("extraction_ct"),
     NONE (null);
 
     private final String name;
