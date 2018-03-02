@@ -48,6 +48,7 @@ public enum TestData {
     EXTRACTION_DIFFUSION ("diffusion"),
     EXTRACTION_MR ("extraction_mr"),
     EXTRACTION_CT ("extraction_ct"),
+    EXTRACTION_OPT ("extraction_opt"),
     NONE (null);
 
     private final String name;
