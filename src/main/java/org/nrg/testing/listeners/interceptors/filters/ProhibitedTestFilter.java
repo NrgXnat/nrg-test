@@ -55,8 +55,7 @@ public class ProhibitedTestFilter extends TestFilterInterceptor {
 
     public List<IMethodInstance> intercept(List<IMethodInstance> methods, ITestContext context) {
         final List<IMethodInstance> allowedTests = super.intercept(methods, context);
-        final List<IMethodInstance> prohibitedTests = new ArrayList<>();
-        prohibitedTests.addAll(methods);
+        final List<IMethodInstance> prohibitedTests = new ArrayList<>(methods);
         prohibitedTests.removeAll(allowedTests);
 
         if (prohibitedTests.isEmpty()) {

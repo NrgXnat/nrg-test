@@ -453,6 +453,10 @@ public abstract class XnatRestDriver {
         setProjectAnonScriptStatus(authUser, project, true);
     }
 
+    public List<Investigator> readInvestigators(User authUser) {
+        return interfaceFor(authUser).readInvestigators();
+    }
+
     public void createInvestigators(User authUser, List<Investigator> investigators) {
         interfaceFor(authUser).createInvestigators(investigators);
     }
