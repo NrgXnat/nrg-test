@@ -81,8 +81,8 @@ public class DicomRepresentationTest {
                 "(0008,103f)"
         );
         
-        assertEquals(allTagsMatching0008103X, DicomUtils.resolveAllDicomEditTags("(0008,103X)"));
-        assertEquals(allTagsMatching0008103X, DicomUtils.resolveAllDicomEditTags("(0008,103x)"));
+        assertEquals(allTagsMatching0008103X, DicomEditUtils.resolveAllDicomEditTags("(0008,103X)"));
+        assertEquals(allTagsMatching0008103X, DicomEditUtils.resolveAllDicomEditTags("(0008,103x)"));
         assertEquals(Arrays.asList(
                 "(0001,0000)", "(0003,0000)", "(0005,0000)", "(0007,0000)", "(0009,0000)", "(000b,0000)", "(000d,0000)", "(000f,0000)",
                 "(0001,2000)", "(0003,2000)", "(0005,2000)", "(0007,2000)", "(0009,2000)", "(000b,2000)", "(000d,2000)", "(000f,2000)",
@@ -92,7 +92,7 @@ public class DicomRepresentationTest {
                 "(0001,a000)", "(0003,a000)", "(0005,a000)", "(0007,a000)", "(0009,a000)", "(000b,a000)", "(000d,a000)", "(000f,a000)",
                 "(0001,c000)", "(0003,c000)", "(0005,c000)", "(0007,c000)", "(0009,c000)", "(000b,c000)", "(000d,c000)", "(000f,c000)",
                 "(0001,e000)", "(0003,e000)", "(0005,e000)", "(0007,e000)", "(0009,e000)", "(000b,e000)", "(000d,e000)", "(000f,e000)"
-        ), DicomUtils.resolveAllDicomEditTags("(000#,@000)"));
+        ), DicomEditUtils.resolveAllDicomEditTags("(000#,@000)"));
     }
 
 }

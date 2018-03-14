@@ -2,7 +2,7 @@ package org.nrg.testing.dicom;
 
 public class DicomTag extends DicomScopable {
 
-    private int decimalOfHexTag;
+    private int tagKey;
 
     @Override
     public void setParent(DicomScopable parent) {
@@ -11,15 +11,15 @@ public class DicomTag extends DicomScopable {
     }
 
     public DicomTag(int tag) {
-        decimalOfHexTag = tag;
+        tagKey = tag;
     }
 
-    public int getDecimalOfHexTag() {
-        return decimalOfHexTag;
+    public int asInt() {
+        return tagKey;
     }
 
     public String fullHexString() {
-        final String hex = String.format("%08x", decimalOfHexTag);
+        final String hex = String.format("%08x", tagKey);
         return "(" + hex.substring(0, 4) + "," + hex.substring(4) + ")";
     }
 

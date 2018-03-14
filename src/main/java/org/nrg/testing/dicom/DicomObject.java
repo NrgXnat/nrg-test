@@ -5,7 +5,7 @@ import org.nrg.testing.dicom.values.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.nrg.testing.dicom.DicomUtils.dicomTagTransform;
+import static org.nrg.xnat.util.DicomUtils.stringHeaderToHexInt;
 
 public class DicomObject extends DicomScopable {
     protected Map<DicomTag, DicomValue> dicomMap = new HashMap<>();
@@ -42,7 +42,7 @@ public class DicomObject extends DicomScopable {
 
     public void putExistenceChecks(String... dicomElements) {
         for (String dicomElement : dicomElements) {
-            put(dicomTagTransform(dicomElement), new DicomTagPresent());
+            put(stringHeaderToHexInt(dicomElement), new DicomTagPresent());
         }
     }
 
@@ -54,12 +54,12 @@ public class DicomObject extends DicomScopable {
 
     public void putNonexistenceChecks(String... dicomElements) {
         for (String dicomElement : dicomElements) {
-            put(dicomTagTransform(dicomElement), new DicomTagNotPresent());
+            put(stringHeaderToHexInt(dicomElement), new DicomTagNotPresent());
         }
     }
 
     public void putWildcardedNonexistenceCheck(String wildcardedElement) {
-        for (String concreteTag : DicomUtils.resolveAllDicomEditTags(wildcardedElement)) {
+        for (String concreteTag : DicomEditUtils.resolveAllDicomEditTags(wildcardedElement)) {
             putNonexistenceChecks(concreteTag);
         }
     }
@@ -69,7 +69,7 @@ public class DicomObject extends DicomScopable {
     }
 
     public void putValueEqualCheck(String dicomElement, String value) {
-        putValueEqualCheck(dicomTagTransform(dicomElement), value);
+        putValueEqualCheck(stringHeaderToHexInt(dicomElement), value);
     }
 
     public void putValueNotEqualCheck(int dicomElement, String value) {
@@ -77,7 +77,7 @@ public class DicomObject extends DicomScopable {
     }
 
     public void putValueNotEqualCheck(String dicomElement, String value) {
-        putValueNotEqualCheck(dicomTagTransform(dicomElement), value);
+        putValueNotEqualCheck(stringHeaderToHexInt(dicomElement), value);
     }
 
     public void putValueStartsWithCheck(int dicomElement, String value) {
@@ -85,7 +85,7 @@ public class DicomObject extends DicomScopable {
     }
 
     public void putValueStartsWithCheck(String dicomElement, String value) {
-        putValueStartsWithCheck(dicomTagTransform(dicomElement), value);
+        putValueStartsWithCheck(stringHeaderToHexInt(dicomElement), value);
     }
 
     public void putSequenceCheck(int dicomElement, DicomSequence sequence) {
@@ -93,12 +93,12 @@ public class DicomObject extends DicomScopable {
     }
 
     public void putSequenceCheck(String dicomElement, DicomSequence sequence) {
-        putSequenceCheck(dicomTagTransform(dicomElement), sequence);
+        putSequenceCheck(stringHeaderToHexInt(dicomElement), sequence);
     }
 
     public DicomTag getTagByHexCode(int hexCode) {
             for (DicomTag tag : dicomMap.keySet()) {
-            if (tag.getDecimalOfHexTag() == hexCode) {
+            if (tag.asInt() == hexCode) {
                 return tag;
             }
         }
@@ -107,7 +107,7 @@ public class DicomObject extends DicomScopable {
 
     public DicomValue getValueByHexCode(int element) {
         for (Map.Entry<DicomTag, DicomValue> entry : dicomMap.entrySet()) {
-            if (entry.getKey().getDecimalOfHexTag() == element) {
+            if (entry.getKey().asInt() == element) {
                 return entry.getValue();
             }
         }
