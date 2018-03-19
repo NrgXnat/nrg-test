@@ -1,18 +1,7 @@
-/*
- * org.nrg.selenium.listeners.adapters.TestListener
- * XNAT http://www.xnat.org
- * Copyright (c) 2016, Washington University School of Medicine
- * All Rights Reserved
- *
- * Released under the Simplified BSD.
- */
-
 package org.nrg.testing.listeners.adapters;
 
-import org.apache.commons.io.FileUtils;
+import com.jayway.restassured.RestAssured;
 import org.apache.log4j.Logger;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.nrg.jira_reporter.JiraReporter;
 import org.nrg.listeners.BaseListener;
 import org.nrg.listeners.jira.JIRATest;
@@ -34,7 +23,8 @@ import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
 
 import java.io.File;
-import java.nio.file.Paths;
+import java.net.NoRouteToHostException;
+import java.net.UnknownHostException;
 import java.util.*;
 
 import static org.nrg.testing.jira.JIRASettings.*;
@@ -80,6 +70,16 @@ public class NRGTestListener extends BaseListener {
         super.onTestFailure(testResult);
         setFields(testResult);
         final JIRATest currentTest = testController.getCurrentTest();
+        if (currentTest.getFailureReason() == null) {
+            try {
+                RestAssured.given().get(Settings.BASEURL);
+            } catch (Exception exception) {
+                // noinspection ConstantConditions
+                if (exception instanceof NoRouteToHostException || exception instanceof UnknownHostException) {
+                    currentTest.setFailureReason(String.format("%s: test server seems to be inaccessible", exception.getClass().getName()));
+                }
+            }
+        }
         failureReasons.put(testResult.getMethod(), currentTest.getFailureReason());
         final String failedFiles = Settings.getFailedScreenshotPath(testClassName);
 
