@@ -8,6 +8,7 @@ import com.jayway.restassured.response.Response;
 import com.jayway.restassured.specification.RequestSender;
 import com.jayway.restassured.specification.RequestSpecification;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.time.StopWatch;
 import org.apache.http.entity.ContentType;
 import org.apache.log4j.Logger;
 import org.nrg.jira.testing_components.TestStatus;
@@ -263,7 +264,7 @@ public abstract class XnatRestDriver {
     }
 
     public void clearPrearchiveSessions(User authUser, Project project) {
-        final JsonPath jsonPath = Credentials.build(authUser).given().queryParam("format", "json").get(formatRestUrl("prearchive/projects", project.getId())).
+        final JsonPath jsonPath = Credentials.build(authUser).queryParam("format", "json").get(formatRestUrl("prearchive/projects", project.getId())).
                 then().assertThat().statusCode(200).and().extract().jsonPath().setRoot("ResultSet.Result");
 
         final List<String> deleteUrls = jsonPath.getList("collect { it.url }");
@@ -274,13 +275,22 @@ public abstract class XnatRestDriver {
     }
 
     public void clearUnassignedPrearchiveSessions(User authUser, List<String> studyInstanceUIDs) {
-        final JsonPath jsonPath = Credentials.build(authUser).given().queryParam("format", "json").get(formatRestUrl("prearchive")).
+        final JsonPath jsonPath = Credentials.build(authUser).queryParam("format", "json").get(formatRestUrl("prearchive")).
                 then().assertThat().statusCode(200).and().extract().jsonPath().setRoot("ResultSet.Result");
 
         final List<String> deleteUrls = jsonPath.param("UIDs", studyInstanceUIDs).getList("findAll { it.tag in UIDs && it.project == 'Unassigned' }.url");
 
         for (String deleteUrl : deleteUrls) {
             Credentials.build(authUser).delete(formatRestUrl(deleteUrl)).then().assertThat().statusCode(200);
+        }
+    }
+
+    public void waitForPrearchiveEmpty(User authUser, Project project, int maximumWait) {
+        final StopWatch stopWatch = CommonUtils.launchStopWatch();
+        while (true) {
+            CommonUtils.checkStopWatch(stopWatch, maximumWait, "Prearchive did not empty for project " + project);
+            if (Credentials.build(authUser).queryParam("format", "json").get(formatRestUrl("prearchive/projects", project.getId())).jsonPath().getInt("ResultSet.Result.size()") == 0) return;
+            CommonUtils.sleep(1000);
         }
     }
 

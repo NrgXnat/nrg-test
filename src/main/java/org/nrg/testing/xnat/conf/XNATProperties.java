@@ -7,6 +7,8 @@ import org.nrg.testing.xnat.versions.XnatVersion;
 import org.nrg.testing.xnat.versions.XnatVersionList;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -126,15 +128,21 @@ public class XNATProperties extends BaseProperties {
     }
 
     public String getDicomHost() {
-        return getPropertyFromAnywhere(DICOM_HOST);
+        final String host = getPropertyFromAnywhere(DICOM_HOST);
+        try {
+            return (host == null) ? new URL(Settings.BASEURL).getHost() : host;
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Base URL seems to be malformed: " + Settings.BASEURL);
+        }
     }
 
     public int getDicomPort() {
-        return getIntProperty(DICOM_PORT, -1);
+        return getIntProperty(DICOM_PORT, 8104);
     }
 
     public String getDicomAetitle() {
-        return getPropertyFromAnywhere(DICOM_AETITLE);
+        final String provided = getPropertyFromAnywhere(DICOM_AETITLE);
+        return (provided == null) ? "XNAT" : provided;
     }
 
     public boolean getJiraSetting() {
