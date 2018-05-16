@@ -6,11 +6,15 @@ package org.nrg.testing.email;
 
 import org.apache.commons.lang3.time.StopWatch;
 import org.nrg.testing.xnat.conf.Settings;
+import org.nrg.testing.xnat.versions.XnatVersionLineage;
+import org.nrg.testing.xnat.versions.Xnat_1_7_4;
+import org.nrg.xnat.pogo.users.User;
 
 import javax.mail.*;
 import javax.mail.search.SearchTerm;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -41,6 +45,8 @@ public class EmailReader {
     public EmailReader(String searchString) {
         this(SearchTerms.bodyContains(searchString));
     }
+
+    public EmailReader() {}
 
     public EmailReader setTimeout(int timeout) {
         this.timeout = timeout;
@@ -87,6 +93,11 @@ public class EmailReader {
             throw new RuntimeException("Failed to get recent emails", mex);
         }
         return emails;
+    }
+
+    public String readVerificationEmailLink(User user) {
+        searchTerm = SearchTerms.verificationEmail(user);
+        return XnatVersionLineage.testedVersionFollows(Xnat_1_7_4.class) ? getEmail().extractFirstLink() : getEmail().extractSingleLink();
     }
 
     /**

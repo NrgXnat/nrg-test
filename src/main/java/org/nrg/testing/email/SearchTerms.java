@@ -1,8 +1,13 @@
 package org.nrg.testing.email;
 
+import org.nrg.testing.xnat.versions.XnatVersionLineage;
+import org.nrg.testing.xnat.versions.Xnat_1_7_4;
+import org.nrg.xnat.pogo.users.User;
+
 import javax.mail.Message;
 import javax.mail.search.SearchTerm;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -92,6 +97,13 @@ public class SearchTerms {
                 }
             }
         };
+    }
+
+    public static SearchTerm verificationEmail(User user) {
+        return bodyContainsAll(Arrays.asList(
+                String.format("Dear %s %s", user.getFirstName(), user.getLastName()),
+                (XnatVersionLineage.testedVersionFollows(Xnat_1_7_4.class)) ? "If you would like to register, please confirm your email address" : "Please click this link to verify your email address")
+        );
     }
 
     private static SearchTerm[] containsArray(final List<String> stringList) {

@@ -69,6 +69,10 @@ public class Email {
         return removeAmpersandEncoding(links.get(0).attr("abs:href"));
     }
 
+    public String extractFirstLink() {
+        return removeAmpersandEncoding(document.select("a[href]").get(0).attr("abs:href"));
+    }
+
     public String extractLinkByText(String text) {
         final Elements links = document.select("a[href]");
         for (Element element : links) {
