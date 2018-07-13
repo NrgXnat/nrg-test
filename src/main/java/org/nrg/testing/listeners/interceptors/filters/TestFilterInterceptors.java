@@ -27,4 +27,5 @@ public class TestFilterInterceptors {
     public static boolean isTestAllowed(ITestNGMethod testNGMethod) {
         return isTestAllowed(new MethodInstance(testNGMethod));
     }
+
 }

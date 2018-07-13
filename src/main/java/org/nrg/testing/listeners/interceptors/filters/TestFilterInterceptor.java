@@ -28,4 +28,5 @@ public abstract class TestFilterInterceptor implements IMethodInterceptor {
         }
         return allowedTests;
     }
+
 }

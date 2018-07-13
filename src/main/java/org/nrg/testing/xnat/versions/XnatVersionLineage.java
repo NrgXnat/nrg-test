@@ -5,7 +5,7 @@ import org.nrg.testing.xnat.conf.Settings;
 
 public class XnatVersionLineage {
 
-    private static boolean recursiveVersionSearch(Class<? extends XnatVersion> current, Class<? extends XnatVersion> desired) {
+    public static boolean recursiveVersionSearch(Class<? extends XnatVersion> current, Class<? extends XnatVersion> desired) {
         if (current.getAnnotation(Follows.class) == null) return false;
         for (Class<? extends XnatVersion> version : current.getAnnotation(Follows.class).value()) {
             if (version.equals(desired)) return true;
