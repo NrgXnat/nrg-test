@@ -2,6 +2,7 @@ package org.nrg.testing.email;
 
 import org.nrg.testing.xnat.versions.XnatVersionLineage;
 import org.nrg.testing.xnat.versions.Xnat_1_7_4;
+import org.nrg.xnat.pogo.Project;
 import org.nrg.xnat.pogo.users.User;
 
 import javax.mail.Message;
@@ -106,6 +107,14 @@ public class SearchTerms {
         );
     }
 
+    public static SearchTerm projectAccessEmail(Project project, boolean approved) {
+        return bodyContains(
+                XnatVersionLineage.testedVersionFollows(Xnat_1_7_4.class) ?
+                    (approved ? String.format("You have been granted access to the %s project", project.getTitle()) : String.format("request to access the %s project has been denied", project.getTitle())) :
+                    String.format("%s access %s",project.getTitle(), (approved) ? "granted" : "denied")
+        );
+    }
+
     private static SearchTerm[] containsArray(final List<String> stringList) {
         final List<SearchTerm> terms = new ArrayList<>();
         for (String term : stringList) {
@@ -113,4 +122,5 @@ public class SearchTerms {
         }
         return terms.toArray(new SearchTerm[]{});
     }
+
 }
