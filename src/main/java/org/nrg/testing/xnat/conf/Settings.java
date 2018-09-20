@@ -51,6 +51,7 @@ public class Settings {
     public static final boolean TIMELOG_SETTING = properties.getTimelogSetting();
     public static final boolean GITLOGS_SETTING = properties.getGitlogSetting();
     public static final boolean BASIC_MODE = properties.getBasicSetting();
+    public static final String GECKO_DRIVER_PATH = properties.getGeckoDriverPath();
 
     // values that get fuzzy when multiple XNATs in play
     public static final String MAIN_USERNAME = properties.getMainUser();

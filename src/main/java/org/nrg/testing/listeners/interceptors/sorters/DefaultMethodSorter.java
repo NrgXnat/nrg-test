@@ -112,7 +112,7 @@ public class DefaultMethodSorter implements IMethodInterceptor {
         for (Class<?> testClass : classes) {
             final SoftClassDependency dependency = testClass.getAnnotation(SoftClassDependency.class);
             if (dependency == null) {
-                unsortedClasses.put(testClass, new HashSet<Class>());
+                unsortedClasses.put(testClass, new HashSet<>());
             } else {
                 unsortedClasses.put(testClass, Sets.newHashSet(dependency.value()));
             }

@@ -17,7 +17,7 @@ public class TestFilterInterceptors {
 
     public static boolean isTestAllowed(IMethodInstance testInstance) {
         for (TestFilterInterceptor interceptor : interceptors) {
-            if (!interceptor.isTestAllowed(testInstance)) {
+            if (interceptor.isActive() && !interceptor.isTestAllowed(testInstance)) {
                 return false;
             }
         }

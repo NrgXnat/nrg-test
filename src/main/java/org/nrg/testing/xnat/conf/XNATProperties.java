@@ -51,6 +51,7 @@ public class XNATProperties extends BaseProperties {
     public static final String SSH_PRIVATE_KEY_NAME = "xnat.ssh.key";
     public static final String PRODUCE_PDF = "xnat.producePdf";
     public static final String DOM_SETTING = "xnat.captureDom";
+    public static final String GECKO_DRIVER_PATH = "geckodriver.path";
     public static final String TOMCAT_VERSION = "tomcat.version";
     public static final String XNAT_REQUIRED = "xnat.required"; // used to specify that additional XNATs will be needed
 
@@ -225,6 +226,10 @@ public class XNATProperties extends BaseProperties {
 
     public Class<? extends XnatVersion> getXNATVersion() {
         return parseVersion(XNAT_VERSION);
+    }
+
+    public String getGeckoDriverPath() {
+        return getPropertyFromAnywhere(GECKO_DRIVER_PATH);
     }
 
     public String getTomcatVersion() {
