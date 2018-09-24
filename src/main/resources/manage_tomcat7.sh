@@ -6,4 +6,4 @@ if [ $# -ne 1 ]; then
 fi
 
 echo "Attempting to $1 tomcat...";
-sudo service tomcat7 $1
+sudo /sbin/service tomcat7 $1
