@@ -117,7 +117,7 @@ public abstract class ProcessingFileSets {
         final String folderName = RandomHelper.randomID(20);
         final File zip = Paths.get(Settings.TEMP_SUBDIR, folderName + ".zip").toFile();
         restDriver.saveBinaryResponseToFile(restDriver.mainInterface().queryBase().queryParam("format", "zip").get(restDriver.resourceFilesUrl(actualResource)), zip);
-        FileIO.unzip(Settings.TEMP_SUBDIR, folderName);
+        FileIO.unzip(Paths.get(Settings.TEMP_SUBDIR), zip);
         return Paths.get(Settings.TEMP_SUBDIR, folderName).toFile();
     }
 
