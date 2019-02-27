@@ -21,8 +21,7 @@ public class ProcessingResourceDeserializer extends CustomDeserializer<Processin
         if (jsonNode.has("regex") && jsonNode.get("regex").asBoolean()) processingResource.setRegex(true);
         if (jsonNode.has("secondaryResources")) processingResource.setSecondaryResources(jsonNode.get("secondaryResources").asText());
         if (jsonNode.has("complexFiles")) {
-            final List<ProcessingResourceFile> subclassList = readObjectList(jsonNode, "complexFiles", objectCodec, ProcessingResourceFile.class);
-            for (ProcessingResourceFile file : subclassList) {
+            for (ProcessingResourceFile file : readObjectList(jsonNode, "complexFiles", objectCodec, ProcessingResourceFile.class)) {
                 processingResource.getResourceFiles().add(file);
             }
         }
