@@ -20,4 +20,9 @@ public class ScanFileSet extends ProcessingFileSets {
         return String.format("/data/experiments/%s/scans/%s", session.getAccessionNumber(), scanId);
     }
 
+    @Override
+    public int numIntermediateLocalResourceFolders() {
+        return 3;
+    }
+
 }

@@ -10,4 +10,9 @@ public class SessionFileSet extends ProcessingFileSets {
         return "data/experiments/" + session.getAccessionNumber();
     }
 
+    @Override
+    public int numIntermediateLocalResourceFolders() {
+        return 1;
+    }
+
 }

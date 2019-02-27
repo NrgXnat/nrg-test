@@ -20,4 +20,9 @@ public class AssessorFileSet extends ProcessingFileSets {
         return String.format("/data/experiments/%s/assessors/%s", session.getAccessionNumber(), xsiType);
     }
 
+    @Override
+    public int numIntermediateLocalResourceFolders() {
+        return 2;
+    }
+
 }

@@ -15,14 +15,17 @@ import org.nrg.testing.xnat.processing.exceptions.FileValidationException;
 import org.nrg.testing.xnat.processing.exceptions.ProcessingValidationException;
 import org.nrg.testing.xnat.processing.files.comparators.FileComparator;
 import org.nrg.testing.xnat.processing.files.mutators.FileMutator;
+import org.nrg.testing.xnat.processing.files.resources.GenericResource;
 import org.nrg.testing.xnat.processing.files.resources.ProcessingResource;
 import org.nrg.testing.xnat.processing.files.resources.ProcessingResourceFile;
 import org.nrg.testing.xnat.rest.XnatRestDriver;
 import org.nrg.xnat.pogo.experiments.ImagingSession;
 import org.nrg.xnat.pogo.resources.Resource;
 import org.nrg.xnat.pogo.resources.ResourceFile;
+import org.nrg.xnat.pogo.resources.SubjectAssessorResource;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -85,7 +88,7 @@ public abstract class ProcessingFileSets {
                     if (comparatorKey != null) {
                         final FileComparator comparator = comparators.get(comparatorKey);
                         final String mutatorKey = file.getMutator();
-                        final File actualFile = Paths.get(primaryResources.getAbsolutePath(), actualFileObject.fullPath()).toFile();
+                        final File actualFile = primaryResources.toPath().resolve(actualFileObject.fullPath()).toFile();
                         try {
                             if (!actualFile.exists()) throw new FileValidationException("Could not find file downloaded for validation: " + actualFileObject.fullPath());
                             comparator.checkFileMatches(secondaryResources, mutatorKey == null ? actualFile : mutators.get(mutatorKey).mutateFile(actualFile), file);
@@ -113,12 +116,10 @@ public abstract class ProcessingFileSets {
 
     public abstract String findBaseUrlForResources(XnatRestDriver driver, ImagingSession session);
 
+    public abstract int numIntermediateLocalResourceFolders();
+
     private File downloadActualResources(XnatRestDriver restDriver, Resource actualResource) {
-        final String folderName = RandomHelper.randomID(20);
-        final File zip = Paths.get(Settings.TEMP_SUBDIR, folderName + ".zip").toFile();
-        restDriver.saveBinaryResponseToFile(restDriver.mainInterface().queryBase().queryParam("format", "zip").get(restDriver.resourceFilesUrl(actualResource)), zip);
-        FileIO.unzip(Paths.get(Settings.TEMP_SUBDIR, folderName), zip);
-        return Paths.get(Settings.TEMP_SUBDIR, folderName).toFile();
+        return handleDownload(restDriver, actualResource, numIntermediateLocalResourceFolders());
     }
 
     private File downloadSecondaryResources(XnatRestDriver restDriver, ImagingSession session, ProcessingResource processingResource) {
@@ -126,12 +127,27 @@ public abstract class ProcessingFileSets {
         if (secondaryResources == null) {
             return null;
         } else {
-            final String folderName = RandomHelper.randomID(20);
-            final File zip = Paths.get(Settings.TEMP_SUBDIR, folderName + ".zip").toFile();
-            restDriver.saveBinaryResponseToFile(restDriver.mainInterface().queryBase().queryParam("format", "zip").get(restDriver.formatRestUrl("experiments", session.getAccessionNumber(), "resources", secondaryResources, "files")), zip);
-            FileIO.unzip(Paths.get(Settings.TEMP_SUBDIR, folderName), zip);
-            return Paths.get(Settings.TEMP_SUBDIR, folderName).toFile();
+            final ProcessingFileSets secondaryFileSets = new SessionFileSet();
+            final Resource resource = new GenericResource(secondaryFileSets.findBaseUrlForResources(restDriver, session)).folder(secondaryResources);
+            return handleDownload(restDriver, resource, secondaryFileSets.numIntermediateLocalResourceFolders());
         }
+    }
+
+    private File handleDownload(XnatRestDriver restDriver, Resource resource, int numSubdirs) {
+        final String folderName = RandomHelper.randomID(20);
+        final File zip = Paths.get(Settings.TEMP_SUBDIR, folderName + ".zip").toFile();
+        restDriver.saveBinaryResponseToFile(restDriver.mainInterface().queryBase().queryParam("format", "zip").queryParam("structure", "simplified").get(restDriver.resourceFilesUrl(resource)), zip);
+        final Path baseLocalPath = Paths.get(Settings.TEMP_SUBDIR, folderName);
+        FileIO.unzip(baseLocalPath, zip);
+        return iterateSubdirs(baseLocalPath.toFile(), numSubdirs).toPath().resolve(resource.getFolder()).toFile();
+    }
+
+    private File iterateSubdirs(File baseDir, int numIterations) {
+        File currentDir = baseDir;
+        for (int i = 0; i < numIterations; i++) {
+            currentDir = currentDir.listFiles()[0];
+        }
+        return currentDir;
     }
 
 }
