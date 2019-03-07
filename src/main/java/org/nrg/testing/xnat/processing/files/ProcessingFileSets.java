@@ -72,7 +72,7 @@ public abstract class ProcessingFileSets {
     public List<String> validate(XnatRestDriver xnatRestDriver, ImagingSession session, SessionRenewer sessionRenewer) {
         final IgnoreNullList<String> verificationErrors = new IgnoreNullList<>();
         final String resourceUrlBase = findBaseUrlForResources(xnatRestDriver, session);
-        StopWatch sessionTimeoutChecker = CommonUtils.launchStopWatch();
+        sessionRenewer.startTimer();
         for (ProcessingResource processingResource : resources) {
             processingResource.setUrl(resourceUrlBase);
             final Resource actualResource = processingResource.findActualResources(xnatRestDriver, session);
@@ -98,10 +98,7 @@ public abstract class ProcessingFileSets {
                     }
                 }
 
-                if (CommonUtils.maxTimeReached(sessionTimeoutChecker, 10*60)) {
-                    if (sessionRenewer != null) sessionRenewer.renewSession();
-                    sessionTimeoutChecker = CommonUtils.launchStopWatch();
-                }
+                sessionRenewer.checkAndRenewTimer();
                 fileIterator.remove(); // dereference ProcessingResourceFile to allow garbage collection
             }
         }

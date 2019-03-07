@@ -8,7 +8,6 @@ public class ProcessingResourceFile extends ResourceFile {
     private String mutator;
     private String comparator;
     private String compareTo;
-    private String md5;
     private String expectedText;
     private long expectedSize;
 
@@ -42,14 +41,6 @@ public class ProcessingResourceFile extends ResourceFile {
 
     public void setCompareTo(String compareTo) {
         this.compareTo = compareTo;
-    }
-
-    public String getMd5() {
-        return md5;
-    }
-
-    public void setMd5(String md5) {
-        this.md5 = md5;
     }
 
     public String getExpectedText() {
