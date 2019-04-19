@@ -1,14 +1,3 @@
-/*
- * org.nrg.selenium.FileLocation
- * XNAT http://www.xnat.org
- * Copyright (c) 2014, Washington University School of Medicine
- * All Rights Reserved
- *
- * Released under the Simplified BSD.
- *
- * Last modified 2/11/14 4:13 PM
- */
-
 package org.nrg.testing.file;
 
 import org.apache.commons.lang3.StringUtils;
@@ -17,35 +6,36 @@ import java.io.File;
 import java.io.IOException;
 
 public class FileLocation {
-    private String currentDirectory;
-    public static FileLocation fileLocation = new FileLocation();
+    
+    public static final String CURRENT_DIRECTORY = getCurrentDir();
+    public static final String RESOURCE_DIRECTORY = makePath(CURRENT_DIRECTORY, "src", "test", "resources");
 
-    private FileLocation() {
-        final File dir = new File(".");
-        try {
-            currentDirectory = dir.getCanonicalPath();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    public static String getDataLocation() {
+        return makePath(RESOURCE_DIRECTORY, "data");
     }
 
-    public String getDataLocation() {
-        return makePath(new String[] { currentDirectory, "src", "test", "resources", "data" });
+    public static String getConfigLocation() {
+        return makePath(RESOURCE_DIRECTORY, "config");
     }
 
-    public String getConfigLocation() {
-        return makePath(new String[] { currentDirectory, "src", "test", "resources", "config" });
+    public static String getResultLocation() {
+        return makePath(CURRENT_DIRECTORY, "target");
     }
 
-    public String getResultLocation() {
-        return makePath(new String[] { currentDirectory, "target" });
+    public static String getTimeLogsLocation() {
+        return makePath(CURRENT_DIRECTORY, "timeLogs");
     }
 
-    public String getTimeLogsLocation() {
-        return makePath(new String[] { currentDirectory, "timeLogs" });
-    }
-
-    private String makePath(Object[] parts) {
+    private static String makePath(String... parts) {
         return StringUtils.join(parts, File.separator);
     }
+    
+    private static String getCurrentDir() {
+        try {
+            return new File(".").getCanonicalPath();
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to find current directory at test initialization.", e);
+        }
+    }
+    
 }

@@ -16,7 +16,7 @@ public class XnatRestDriver_1_6dev extends XnatRestDriver_1_7_2 {
 
     @Override
     public List<Class<? extends XnatVersion>> getHandledVersions() {
-        return new ArrayList<Class<? extends XnatVersion>>(Collections.singletonList(Xnat_1_6dev.class));
+        return new ArrayList<>(Collections.singletonList(Xnat_1_6dev.class));
     }
 
     @Override

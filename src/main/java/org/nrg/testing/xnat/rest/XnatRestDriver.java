@@ -719,6 +719,14 @@ public abstract class XnatRestDriver {
         return mainInterface().sessionAssessorUrl(assessor);
     }
 
+    public String reconstructionUrl(Project project, Subject subject, ImagingSession session, Reconstruction reconstruction) {
+        return mainInterface().reconstructionUrl(project, subject, session, reconstruction);
+    }
+
+    public String reconstructionUrl(Reconstruction reconstruction) {
+        return mainInterface().reconstructionUrl(reconstruction);
+    }
+
     public void deleteProject(User authUser, Project project) {
         interfaceFor(authUser).deleteProject(project);
     }

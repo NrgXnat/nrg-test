@@ -26,11 +26,11 @@ public class ImageDeviationComparator extends ImageComparator {
 
     @Override
     public void checkDiffedImage() throws ImageProcessingException {
-        final int linearDeviation = diffedImage.getAbsoluteDeviation();
-        if (diffedImage.isColor() && linearDeviation > maxColorscaleDeviation) {
-            throw new ImageProcessingException(String.format("linear color deviation of %d exceeds maximum allowed of %d", linearDeviation, maxColorscaleDeviation));
-        } else if (!diffedImage.isColor() && linearDeviation > maxGrayscaleDeviation) {
-            throw new ImageProcessingException(String.format("linear grayscale deviation of %d exceeds maximum allowed of %d", linearDeviation, maxGrayscaleDeviation));
+        final int oneNormDeviation = diffedImage.getAbsoluteDeviation();
+        if (diffedImage.isColor() && oneNormDeviation > maxColorscaleDeviation) {
+            throw new ImageProcessingException(String.format("1-norm color deviation of %d exceeds maximum allowed of %d", oneNormDeviation, maxColorscaleDeviation));
+        } else if (!diffedImage.isColor() && oneNormDeviation > maxGrayscaleDeviation) {
+            throw new ImageProcessingException(String.format("1-norm grayscale deviation of %d exceeds maximum allowed of %d", oneNormDeviation, maxGrayscaleDeviation));
         }
     }
 

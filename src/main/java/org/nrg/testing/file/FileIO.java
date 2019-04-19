@@ -171,15 +171,6 @@ public class FileIO {
         }
     }
 
-    @Deprecated // use version in org.nrg.xnat.util.FileIOUtils
-    public static String readFile(File file) {
-        try {
-            return FileUtils.readFileToString(file, "utf-8");
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to read in file:" + file);
-        }
-    }
-
     public static String readDataFile(String filename) {
         return FileIOUtils.readFile(getDataFile(filename));
     }

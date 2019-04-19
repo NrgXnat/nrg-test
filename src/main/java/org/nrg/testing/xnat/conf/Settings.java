@@ -24,10 +24,10 @@ public class Settings {
     // values constant even with multiple XNATs in play
     public static final String EMAIL = properties.getMainEmail(); // must be ahead of user initialization
     public static final String EMAIL_PASS = properties.getMainEmailPassword();
-    public static final String DATA_LOCATION = FileLocation.fileLocation.getDataLocation();
-    public static final String TARGET_LOCATION = FileLocation.fileLocation.getResultLocation();
-    public static final String CONFIG_LOCATION = FileLocation.fileLocation.getConfigLocation();
-    public static final String TIMELOG_LOCATION = FileLocation.fileLocation.getTimeLogsLocation();
+    public static final String DATA_LOCATION = FileLocation.getDataLocation();
+    public static final String TARGET_LOCATION = FileLocation.getResultLocation();
+    public static final String CONFIG_LOCATION = FileLocation.getConfigLocation();
+    public static final String TIMELOG_LOCATION = FileLocation.getTimeLogsLocation();
     public static final String TEMP = properties.getTempFolder();
     public static final Calendar calendar = Calendar.getInstance();
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
