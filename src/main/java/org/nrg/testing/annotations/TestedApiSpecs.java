@@ -13,6 +13,7 @@ public @interface TestedApiSpecs {
     TestedApiSpecs.Spec[] value();
 
     @Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+    @Retention(RetentionPolicy.RUNTIME)
     @interface Spec {
         Method[] method();
         String[] url();

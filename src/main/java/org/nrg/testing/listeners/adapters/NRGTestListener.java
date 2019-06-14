@@ -125,7 +125,7 @@ public class NRGTestListener extends BaseListener {
                 LOGGER.warn("JIRA PDF export failed due to:", e);
             }
         }
-        SummaryEmail.sendSummaryEmail(xnatRestDriver, getPassedTests(), failureReasons, getSkippedTests());
+        SummaryEmail.sendSummaryEmail(getPassedTests(), failureReasons, getSkippedTests());
     }
 
     private void testCleanup(ITestResult testResult) {

@@ -22,6 +22,7 @@ import org.nrg.testing.xnat.versions.XnatVersion;
 import org.nrg.testing.xnat.versions.XnatVersionList;
 import org.nrg.xnat.pogo.Project;
 import org.nrg.xnat.pogo.Subject;
+import org.nrg.xnat.pogo.XnatPlugin;
 import org.nrg.xnat.pogo.users.User;
 import org.testng.ITestContext;
 import org.testng.ITestNGMethod;
@@ -42,6 +43,7 @@ public abstract class BaseXnatTest extends BaseTestCase {
 
     protected User mainUser = Settings.DEFAULT_XNAT_CONFIG.getMainUser();
     protected User mainAdminUser = Settings.DEFAULT_XNAT_CONFIG.getMainAdminUser();
+    private List<XnatPlugin> installedPlugins = null;
 
     @BeforeSuite
     public void setupXnatTests(ITestContext testContext) {
@@ -86,6 +88,11 @@ public abstract class BaseXnatTest extends BaseTestCase {
             if (classRequires.admin()) {
                 TestNgUtils.assumeTrue(Settings.ADMIN_AVAILABLE, "XNAT admin account is required for all tests in class: " + testClass.getSimpleName());
             }
+            if (classRequires.plugins().length > 0) {
+                for (String pluginId : classRequires.plugins()) {
+                    TestNgUtils.assumeTrue(installedPlugins().contains(new XnatPlugin().id(pluginId)), String.format("XNAT plugin with id %s is required for all tests in class: %s", pluginId, testClass.getSimpleName()));
+                }
+            }
             if (classRequires.closedXnat()) {
                 restDriver.closeXnat(mainAdminUser);
             } else if (classRequires.openXnat()) {
@@ -124,6 +131,11 @@ public abstract class BaseXnatTest extends BaseTestCase {
             }
             if (testRequires.admin()) {
                 TestNgUtils.assumeTrue(Settings.ADMIN_AVAILABLE, "XNAT admin account is required for test: " + method.getName());
+            }
+            if (testRequires.plugins().length > 0) {
+                for (String pluginId : testRequires.plugins()) {
+                    TestNgUtils.assumeTrue(installedPlugins().contains(new XnatPlugin().id(pluginId)), String.format("XNAT plugin with id %s is required for test: %s", pluginId, method.getName()));
+                }
             }
             if (testRequires.closedXnat()) {
                 restDriver.closeXnat(mainAdminUser);
@@ -206,6 +218,13 @@ public abstract class BaseXnatTest extends BaseTestCase {
                 }
             }
         }
+    }
+
+    private List<XnatPlugin> installedPlugins() {
+        if (installedPlugins == null) {
+            installedPlugins = restDriver.readInstalledPlugins(mainAdminUser);
+        }
+        return installedPlugins;
     }
 
     protected abstract void setupXnat();

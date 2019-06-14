@@ -105,6 +105,14 @@ public abstract class XnatRestDriver {
         return interfaceFor(mainUser());
     }
 
+    public RequestSpecification mainQueryBase() {
+        return mainInterface().queryBase();
+    }
+
+    public RequestSpecification queryBaseFor(User user) {
+        return interfaceFor(user).queryBase();
+    }
+
     public void captureStep(TestStatus status, String comment) {
         if (testController.isTestRunning()) {
             testController.getCurrentTest().updateStepResult(testController.getStepCounter().getValue(), status, comment);
@@ -192,24 +200,14 @@ public abstract class XnatRestDriver {
     }
 
     public String permuteSeleniumEmail() {
-        List<String> emailList = adminCredentials().when().get(formatRestUrl("users")).then().extract().path("ResultSet.Result.email");
-        String permutedEmail = generateEmailPermutation();
-        while (emailList.contains(permutedEmail)) {
-            // regenerate as necessary until unique
-            permutedEmail = generateEmailPermutation();
-        }
-        return permutedEmail;
-    }
+        final String emailId = Settings.EMAIL.substring(0, Settings.EMAIL.indexOf("@"));
+        final String emailProvider = Settings.EMAIL.substring(Settings.EMAIL.indexOf("@"));
 
-    private String generateEmailPermutation() {
-        String emailID = Settings.EMAIL.substring(0, Settings.EMAIL.indexOf("@"));
-        String emailProvider = Settings.EMAIL.substring(Settings.EMAIL.indexOf("@"));
-        String permutedEmail = "";
-        for (int i = 0; i < emailID.length() - 1; i++) {
-            // trailing periods are not allowed
-            permutedEmail += Settings.EMAIL.charAt(i) + RandomHelper.randomPeriods();
+        if (!emailProvider.equals("@gmail.com")) {
+            LOGGER.warn("Provided email address should be a gmail address [unless the tests have access to PHI].");
         }
-        return permutedEmail + emailID.substring(emailID.length() - 1) + emailProvider; // Don't forget the last character of the email!
+
+        return String.format("%s+%s%s", emailId, RandomHelper.randomLetters(12), emailProvider);
     }
 
     public String aliasTokenUrl() {
@@ -218,6 +216,10 @@ public abstract class XnatRestDriver {
 
     public XnatAliasToken generateAliasToken(User user) {
         return interfaceFor(user).generateAliasToken();
+    }
+
+    public List<XnatPlugin> readInstalledPlugins(User user) {
+        return interfaceFor(user).readInstalledPlugins();
     }
 
     public AnonScript getDefaultXnatAnonScript() {
@@ -378,6 +380,10 @@ public abstract class XnatRestDriver {
 
     public void addUserToGroups(User authUser, User targetUser, String... groups) {
         interfaceFor(authUser).addUserToGroups(targetUser, groups);
+    }
+
+    public void removeUserFromGroups(User authUser, User targetUser, String... groups) {
+        interfaceFor(authUser).removeUserFromGroups(targetUser, groups);
     }
 
     public void verifyUser(User authUser, User targetUser) {
@@ -635,8 +641,8 @@ public abstract class XnatRestDriver {
         interfaceFor(authUser).relabelSubjectAssessor(subjectAssessor, newLabel);
     }
 
-    public void shareSubjectAssessor(User authUser, Project project, Subject subject, SubjectAssessor subjectAssessor, Share share) {
-        interfaceFor(authUser).shareSubjectAssessor(project, subject, subjectAssessor, share);
+    public void shareSubjectAssessor(User authUser, SubjectAssessor subjectAssessor, Share share) {
+        interfaceFor(authUser).shareSubjectAssessor(subjectAssessor, share);
     }
 
     public void deleteSubjectAssessor(User authUser, Project project, Subject subject, SubjectAssessor subjectAssessor) {

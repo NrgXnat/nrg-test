@@ -56,6 +56,10 @@ public class BaseXnatRestTest extends BaseXnatTest {
         return Credentials.build(mainAdminUser);
     }
 
+    protected RequestSpecification mainQueryBase() {
+        return restDriver.mainQueryBase();
+    }
+
     protected String formatRestUrl(String... objects) {
         return restDriver.formatRestUrl(objects);
     }

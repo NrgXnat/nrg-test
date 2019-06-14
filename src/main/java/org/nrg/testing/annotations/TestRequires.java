@@ -20,5 +20,6 @@ public @interface TestRequires {
     boolean closedXnat() default false;
     int users() default 0;
     boolean admin() default false;
+    String[] plugins() default {};
     TestData[] data() default TestData.NONE;
 }
