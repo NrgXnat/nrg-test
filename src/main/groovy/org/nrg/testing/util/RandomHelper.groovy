@@ -104,7 +104,7 @@ class RandomHelper {
             throw new UnsupportedOperationException("Not possible to generate ${numbersToGenerate} random integers from a list of size ${spaceSize} without replacement.")
         }
 
-        final List<Integer> sourceList = (lowerBound .. upperBound)
+        final List<Integer> sourceList = (lowerBound .. upperBound).toList()
         final List<Integer> randomIntegers = []
 
         numbersToGenerate.times {
