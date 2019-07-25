@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.nrg.testing.tests.GraphTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2019-07-25T21:49:48" hostname="charlies-imac.wucon.wustl.edu" time="0.009">
+  <properties/>
+  <testcase name="test1Cycle" classname="org.nrg.testing.tests.GraphTest" time="0.005"/>
+  <testcase name="test1Noncycle" classname="org.nrg.testing.tests.GraphTest" time="0.0"/>
+  <testcase name="test2Cycle" classname="org.nrg.testing.tests.GraphTest" time="0.001"/>
+  <testcase name="test3NonCycle" classname="org.nrg.testing.tests.GraphTest" time="0.0"/>
+  <testcase name="testConnectedComponentExample1" classname="org.nrg.testing.tests.GraphTest" time="0.002"/>
+  <testcase name="testConnectedComponentExample2" classname="org.nrg.testing.tests.GraphTest" time="0.001"/>
+  <testcase name="testDegenerateGraphs" classname="org.nrg.testing.tests.GraphTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

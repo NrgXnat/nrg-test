@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.nrg.testing.tests.DicomValidationTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2019-07-25T21:49:44" hostname="charlies-imac.wucon.wustl.edu" time="0.102">
+  <properties/>
+  <testcase name="testBadCheckInRootObject" classname="org.nrg.testing.tests.DicomValidationTest" time="0.04"/>
+  <testcase name="testBadCheckInSequence" classname="org.nrg.testing.tests.DicomValidationTest" time="0.005"/>
+  <testcase name="testBadCheckInSequenceItemAddedAfterCheck" classname="org.nrg.testing.tests.DicomValidationTest" time="0.003"/>
+  <testcase name="testBadSequenceSizeCheck" classname="org.nrg.testing.tests.DicomValidationTest" time="0.008"/>
+  <testcase name="testBadWildcardedCheck" classname="org.nrg.testing.tests.DicomValidationTest" time="0.006"/>
+  <testcase name="testSequenceSizeCheckDisabled" classname="org.nrg.testing.tests.DicomValidationTest" time="0.003"/>
+  <testcase name="testValidation" classname="org.nrg.testing.tests.DicomValidationTest" time="0.037"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

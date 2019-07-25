@@ -1,0 +1,139 @@
+def groupName = 'org.nrg'
+def artifactName = 'nrg_test'
+def buildVersion = '2.0-SNAPSHOT'
+
+group groupName
+version buildVersion
+
+apply plugin: 'groovy'
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+apply plugin: 'idea'
+apply plugin: 'eclipse'
+apply plugin: 'io.spring.dependency-management'
+
+def vBom = '3.0-SNAPSHOT'
+def vTestUtils = '2.0-SNAPSHOT'
+def vMultiprocessor = '4.0-SNAPSHOT'
+def vTestListeners = '5.0-SNAPSHOT'
+def vGrxnat = '1.15-SNAPSHOT'
+
+description = 'Framework for testing of NRG applications.'
+
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath "io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE"
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.nrg:test_dependencies:${vBom}"
+    }
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    jcenter()
+    maven { url 'https://nrgxnat.jfrog.io/nrgxnat/libs-release' }
+    maven { url 'https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot' }
+    maven { url 'https://nrgxnat.jfrog.io/nrgxnat/remote-repos' }
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+    compile('org.codehaus.groovy:groovy-all')
+    compile("org.nrg:test_utils:${vTestUtils}")
+    compile("org.nrg:multiprocessor-scheduling:${vMultiprocessor}")
+    compile("org.nrg:test_listeners:${vTestListeners}")
+    compile("org.nrg:grxnat:${vGrxnat}")
+    compile('org.testng:testng')
+    compile('com.fasterxml.jackson.core:jackson-databind')
+    compile('org.hibernate:hibernate-core')
+    compile('net.lingala.zip4j:zip4j')
+    compile('commons-net:commons-net')
+    compile('org.reflections:reflections')
+    compile('com.hierynomus:sshj')
+    compile('org.apache.commons:commons-math3')
+    compile('com.sun.mail:javax.mail')
+    compile('org.jsoup:jsoup')
+    compile('net.sf.opencsv:opencsv')
+    compile('net.imagej:imagej') {
+        exclude(group: 'com.miglayout', module: 'miglayout')
+    }
+    compile('ome:bio-formats_plugins') {
+        exclude(group: 'ch.qos.logback', module: 'logback-classic')
+    }
+    compile('ome:formats-gpl') {
+        exclude(group: 'ch.qos.logback', module: 'logback-classic')
+    }
+}
+
+test {
+    useTestNG {}
+}
+
+jar {
+    from sourceSets.main.allSource
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId groupName
+            artifactId artifactName
+            version buildVersion
+
+            from components.java
+
+            pom.withXml {
+                def root = asNode()
+                root.appendNode('name', 'nrg_test')
+                root.appendNode('url', 'https://bitbucket.org/xnatdev/nrg_test')
+                root.appendNode('inceptionYear', '2017')
+
+                def scm = root.appendNode('scm')
+                scm.appendNode('url', 'https://bitbucket.org/xnatdev/nrg_test')
+                scm.appendNode('connection', 'https://bitbucket.org/xnatdev/nrg_test')
+                scm.appendNode('developerConnection', 'scm:git://bitbucket.org/xnatdev/nrg_test.git')
+
+                def developers = root.appendNode('developers')
+
+                def charlie = developers.appendNode('developer')
+                charlie.appendNode('id', 'grepStar')
+                charlie.appendNode('name', 'Charlie Moore')
+                charlie.appendNode('email', 'moore.c@wustl.edu')
+            }
+        }
+    }
+    repositories {
+        maven {
+            credentials {
+                // These properties must be set in the ~/.gradle/gradle.properties file or passed on the Gradle command
+                // line in the form -PrepoUsername=foo -PrepoPassword=bar.
+                username propertyWithDefault('repoUsername', 'username')
+                password propertyWithDefault('repoPassword', 'password')
+            }
+            if (project.version.endsWith('-SNAPSHOT')) {
+                url 'https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot-local'
+            } else {
+                url 'https://nrgxnat.jfrog.io/nrgxnat/libs-release-local'
+            }
+        }
+    }
+}
+
+def propertyWithDefault(String property, Object value) {
+    hasProperty(property) ? getProperty(property) : value
+}
+
+defaultTasks 'clean', 'jar', 'test', 'publishMavenJavaPublicationToMavenRepository', 'publishToMavenLocal'

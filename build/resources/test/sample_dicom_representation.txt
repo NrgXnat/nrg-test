@@ -1,0 +1,7 @@
+(0008,1110)
+    > Sequence item #0
+        > (0008,1115)
+            >> Sequence item #0
+                >> (0008,114A)
+                    >>> Sequence item #1
+                        >>> (0008,1155)

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.nrg.testing.tests.ComparisonPixelTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2019-07-25T21:49:44" hostname="charlies-imac.wucon.wustl.edu" time="0.027">
+  <properties/>
+  <testcase name="test1Norm" classname="org.nrg.testing.tests.ComparisonPixelTest" time="0.02"/>
+  <testcase name="test2Norm" classname="org.nrg.testing.tests.ComparisonPixelTest" time="0.003"/>
+  <testcase name="testDiscreteMetric" classname="org.nrg.testing.tests.ComparisonPixelTest" time="0.002"/>
+  <testcase name="testHammingMetric" classname="org.nrg.testing.tests.ComparisonPixelTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

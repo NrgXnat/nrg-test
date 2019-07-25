@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.nrg.testing.tests.DiffedImageTest" tests="12" skipped="0" failures="0" errors="0" timestamp="2019-07-25T21:49:45" hostname="charlies-imac.wucon.wustl.edu" time="2.767">
+  <properties/>
+  <testcase name="testAbsoluteDeviationWithColor" classname="org.nrg.testing.tests.DiffedImageTest" time="0.014"/>
+  <testcase name="testAbsoluteDeviationWithGrayscale" classname="org.nrg.testing.tests.DiffedImageTest" time="0.032"/>
+  <testcase name="testDiscreteDeviationWithColor" classname="org.nrg.testing.tests.DiffedImageTest" time="0.01"/>
+  <testcase name="testDiscreteDeviationWithGrayscale" classname="org.nrg.testing.tests.DiffedImageTest" time="0.024"/>
+  <testcase name="testImageComponentClustering" classname="org.nrg.testing.tests.DiffedImageTest" time="0.039"/>
+  <testcase name="testNiftiDimensionalMismatch" classname="org.nrg.testing.tests.DiffedImageTest" time="0.015"/>
+  <testcase name="testNiftiImageComparison" classname="org.nrg.testing.tests.DiffedImageTest" time="1.841"/>
+  <testcase name="testPixelPercentErrorWithColor" classname="org.nrg.testing.tests.DiffedImageTest" time="0.002"/>
+  <testcase name="testPixelPercentErrorWithGrayscale" classname="org.nrg.testing.tests.DiffedImageTest" time="0.008"/>
+  <testcase name="testSquareDeviationWithColor" classname="org.nrg.testing.tests.DiffedImageTest" time="0.001"/>
+  <testcase name="testSquareDeviationWithGrayscale" classname="org.nrg.testing.tests.DiffedImageTest" time="0.008"/>
+  <testcase name="testZeroNiftiImage" classname="org.nrg.testing.tests.DiffedImageTest" time="0.772"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

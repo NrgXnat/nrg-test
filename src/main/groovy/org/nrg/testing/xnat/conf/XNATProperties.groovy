@@ -1,0 +1,257 @@
+package org.nrg.testing.xnat.conf
+
+import org.apache.commons.lang3.StringUtils
+import org.apache.log4j.Logger
+import org.nrg.testing.CommonStringUtils
+import org.nrg.testing.util.BaseProperties
+import org.nrg.testing.xnat.versions.XnatVersion
+import org.nrg.testing.xnat.versions.XnatVersionList
+
+class XNATProperties extends BaseProperties {
+
+    private static final Logger LOGGER = Logger.getLogger(XNATProperties)
+    public static final List<String> MAIN_USER = seleniumAliasedProperty('xnat.main.user')
+    public static final List<String> MAIN_PASS = seleniumAliasedProperty('xnat.main.password')
+    public static final List<String> MAIN_ADMIN_USER = seleniumAliasedProperty('xnat.mainAdmin.user')
+    public static final List<String> MAIN_ADMIN_PASS = seleniumAliasedProperty('xnat.mainAdmin.password')
+    public static final String ADMIN_USER = 'xnat.admin.user'
+    public static final String ADMIN_PASS = 'xnat.admin.password'
+    public static final String XNAT_VERSION = 'xnat.version'
+    public static final String BASEURL = 'xnat.baseurl'
+    public static final String EMAIL = 'xnat.users.email'
+    public static final String EMAIL_PASS = 'xnat.users.email.password'
+    public static final String DEFAULT_TIMEOUT = 'xnat.defaultTimeout'
+    public static final String BROWSER = 'xnat.browser'
+    public static final String INIT_SETTING = 'xnat.init'
+    public static final String TEMP_DIR = 'xnat.temp'
+    public static final String DICOM_HOST = 'xnat.dicom.host'
+    public static final String DICOM_PORT = 'xnat.dicom.port'
+    public static final String DICOM_AETITLE = 'xnat.dicom.aetitle'
+    public static final String JIRA_SETTING = 'xnat.jira'
+    public static final String ADMIN_SETTING = 'xnat.requireAdmin'
+    public static final String DYNAMIC_ORDERING = 'xnat.pipeline.useDynamicOrdering'
+    public static final String QUEUE_SLOTS = 'xnat.pipeline.slots'
+    public static final String NOTIFICATION_EMAILS = 'xnat.notifiedEmails'
+    public static final String NOTIFICATION_SETTING = 'xnat.notifyOnSuccess'
+    public static final String NOTIFICATION_TITLE = 'xnat.notificationTitle'
+    public static final String CHECK_DEPENDENCIES = 'xnat.dependencies'
+    public static final String TIMELOG_SETTING = 'xnat.timelogs'
+    public static final String GITLOGS_SETTING = 'xnat.gitLogs'
+    public static final String BASIC_MODE = 'xnat.basic'
+    public static final String DATABASE_URL = 'xnat.db.url'
+    public static final String DATABASE_USER = 'xnat.db.user'
+    public static final String DATABASE_PASS = 'xnat.db.password'
+    public static final String SSH_USER = 'xnat.ssh.user'
+    public static final String SSH_PRIVATE_KEY_NAME = 'xnat.ssh.key'
+    public static final String PRODUCE_PDF = 'xnat.producePdf'
+    public static final String DOM_SETTING = 'xnat.captureDom'
+    public static final String GECKO_DRIVER_PATH = 'geckodriver.path'
+    public static final String TOMCAT_VERSION = 'tomcat.version'
+    public static final String XNAT_REQUIRED = 'xnat.required' // used to specify that additional XNATs will be needed
+
+    XNATProperties() {
+        super('xnat.config', 'local.properties')
+    }
+
+    private String nthXnatProperty(String basePropertyName, int n) {
+        basePropertyName.replace('xnat.', "xnat${n}.")
+    }
+
+    private static List<String> seleniumAliasedProperty(String normalProperty) {
+        [normalProperty, normalProperty.replace('main', 'selenium')]
+    }
+
+    String getBaseURL() {
+        getPropertyFromAnywhere(BASEURL)
+    }
+
+    String getAdminUser() {
+        getPropertyFromAnywhere(ADMIN_USER)
+    }
+
+    String getAdminPassword() {
+        getSensitiveProperty(ADMIN_PASS)
+    }
+
+    String getMainUser() {
+        getPropertyFromAnywhere(MAIN_USER)
+    }
+
+    String getMainPassword() {
+        getSensitiveProperty(MAIN_PASS)
+    }
+
+    String getMainEmail() {
+        getPropertyFromAnywhere(EMAIL)
+    }
+
+    String getMainEmailPassword() {
+        getSensitiveProperty(EMAIL_PASS)
+    }
+
+    String getMainAdminUser() {
+        getPropertyFromAnywhere(MAIN_ADMIN_USER)
+    }
+
+    String getMainAdminPassword() {
+        getSensitiveProperty(MAIN_ADMIN_PASS)
+    }
+
+    int getDefaultTimeout() {
+        getIntProperty(DEFAULT_TIMEOUT, 30)
+    }
+
+    String getBrowser() {
+        getStringProperty(false, BROWSER, 'Firefox')
+    }
+
+    boolean getInitSetting() {
+        getBooleanProperty(INIT_SETTING, true)
+    }
+
+    String getTempFolder() {
+        getPropertyFromAnywhere(TEMP_DIR) ?: StringUtils.stripEnd(System.getProperty('java.io.tmpdir'), File.separator)
+    }
+
+    String getDicomHost() {
+        getPropertyFromAnywhere(DICOM_HOST) ?: new URL(Settings.BASEURL).host
+    }
+
+    int getDicomPort() {
+        getIntProperty(DICOM_PORT, 8104)
+    }
+
+    String getDicomAetitle() {
+        getPropertyFromAnywhere(DICOM_AETITLE) ?: 'XNAT'
+    }
+
+    boolean getJiraSetting() {
+        getBooleanProperty(JIRA_SETTING, false)
+    }
+
+    boolean getAdminSetting() {
+        getBooleanProperty(ADMIN_SETTING, true)
+    }
+
+    boolean getDynamicOrderingSetting() {
+        getBooleanProperty(DYNAMIC_ORDERING, false)
+    }
+
+    int getQueueSlots() {
+        getIntProperty(QUEUE_SLOTS, 0)
+    }
+
+    String[] getNotificationEmails() {
+        final String emailString = getPropertyFromAnywhere(NOTIFICATION_EMAILS)
+        StringUtils.isEmpty(emailString) ? null : emailString.split(',')
+    }
+
+    boolean getNotificationSetting() {
+        getBooleanProperty(NOTIFICATION_SETTING, false)
+    }
+
+    String getNotificationTitle() {
+        getPropertyFromAnywhere(NOTIFICATION_TITLE)
+    }
+
+    boolean getDependencyCheck() {
+        getBooleanProperty(CHECK_DEPENDENCIES, true)
+    }
+
+    boolean getTimelogSetting() {
+        getBooleanProperty(TIMELOG_SETTING, false)
+    }
+
+    boolean getGitlogSetting() {
+        getBooleanProperty(GITLOGS_SETTING, false)
+    }
+
+    boolean getBasicSetting() {
+        getBooleanProperty(BASIC_MODE, false)
+    }
+
+    String getDatabaseUrl() {
+        getSensitiveProperty(DATABASE_URL)
+    }
+
+    String getDatabaseUser() {
+        getSensitiveProperty(DATABASE_USER)
+    }
+
+    String getDatabasePass() {
+        getSensitiveProperty(DATABASE_PASS)
+    }
+
+    String getSshUser() {
+        getPropertyFromAnywhere(SSH_USER)
+    }
+
+    String getSshPrivateKeyName() {
+        getStringProperty(false, SSH_PRIVATE_KEY_NAME, 'id_rsa')
+    }
+
+    boolean getPdfSetting() {
+        getBooleanProperty(PRODUCE_PDF, false)
+    }
+
+    boolean getDomSetting() {
+        getBooleanProperty(DOM_SETTING, false)
+    }
+
+    Class<? extends XnatVersion> getXNATVersion() {
+        parseVersion(XNAT_VERSION)
+    }
+
+    String getGeckoDriverPath() {
+        getPropertyFromAnywhere(GECKO_DRIVER_PATH)
+    }
+
+    String getTomcatVersion() {
+        getStringProperty(false, TOMCAT_VERSION, 'tomcat7')
+    }
+
+    boolean nthXnatRequired(int n) {
+        getBooleanProperty(nthXnatProperty(XNAT_REQUIRED, n), false)
+    }
+
+    List<XnatConfig> getOtherXnatConfigs() {
+        final List<XnatConfig> bonusConfigs = []
+        int configIndex = 2
+        while (true) {
+            if (nthXnatRequired(configIndex)) {
+                bonusConfigs << new XnatConfig().
+                        mainUsername(getPropertyFromAnywhere(nthXnatProperty(MAIN_USER[0], configIndex))).
+                        mainPassword(getSensitiveProperty(nthXnatProperty(MAIN_PASS[0], configIndex))).
+                        mainAdminUsername(getPropertyFromAnywhere(nthXnatProperty(MAIN_ADMIN_USER[0], configIndex))).
+                        mainAdminPassword(getSensitiveProperty(nthXnatProperty(MAIN_ADMIN_PASS[0], configIndex))).
+                        adminUsername(getPropertyFromAnywhere(nthXnatProperty(ADMIN_USER, configIndex))).
+                        adminPassword(getSensitiveProperty(nthXnatProperty(ADMIN_PASS, configIndex))).
+                        xnatVersion(parseVersion(nthXnatProperty(XNAT_VERSION, configIndex))).
+                        xnatUrl(CommonStringUtils.formatUrl(getPropertyFromAnywhere(nthXnatProperty(BASEURL, configIndex)))).
+                        init(getBooleanProperty(nthXnatProperty(INIT_SETTING, configIndex), true)).
+                        build()
+            } else {
+                break
+            }
+            configIndex++
+        }
+        bonusConfigs
+    }
+
+    private Class<? extends XnatVersion> parseVersion(String key) {
+        XnatVersionList.readXnatVersions()
+
+        final String version = getPropertyFromAnywhere(key)
+        if (version == null) {
+            LOGGER.fatal("Required setting ${key} was not set.")
+            throw new RuntimeException("Required setting ${key} was not set.")
+        }
+
+        final Class<? extends XnatVersion> versionClass = XnatVersionList.KNOWN_KEY_VERSION_MAP.get(version)
+        if (versionClass == null) {
+            throw new RuntimeException("Could not find requested version of XNAT (${key}) in list of available versions.")
+        }
+        versionClass
+    }
+
+}

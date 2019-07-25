@@ -1,0 +1,68 @@
+package org.nrg.testing.listeners.interceptors.filters
+
+import org.nrg.testing.TestNgUtils
+import org.nrg.testing.annotations.AddedIn
+import org.nrg.testing.annotations.DeprecatedIn
+import org.nrg.testing.annotations.DisallowXnatVersion
+import org.nrg.testing.annotations.RequireXnatVersion
+import org.nrg.testing.xnat.conf.Settings
+import org.nrg.testing.xnat.versions.XnatVersion
+import org.nrg.testing.xnat.versions.XnatVersionList
+import org.testng.IMethodInstance
+import org.testng.ITestNGMethod
+
+import java.lang.annotation.Annotation
+
+class ProhibitedTestFilter extends TestFilterInterceptor {
+
+    ProhibitedTestFilter() {
+        super()
+        XnatVersionList.readXnatVersions()
+    }
+
+    @Override
+    boolean isTestAllowed(IMethodInstance testInstance) {
+        isTestAllowed(testInstance, Settings.XNAT_VERSION)
+    }
+
+    @Override
+    boolean isActive() {
+        true
+    }
+
+    boolean isTestAllowed(IMethodInstance testInstance, Class<? extends XnatVersion> versionClass) {
+        final ITestNGMethod method = testInstance.method
+        final Class<?> testClass = TestNgUtils.getTestClass(method)
+
+        return !(
+                violatesXnatVersionConstraint(testClass.getAnnotation(RequireXnatVersion), versionClass) ||
+                violatesXnatVersionConstraint(testClass.getAnnotation(DisallowXnatVersion), versionClass) ||
+                violatesXnatVersionConstraint(testClass.getAnnotation(AddedIn), versionClass) ||
+                violatesXnatVersionConstraint(testClass.getAnnotation(DeprecatedIn), versionClass) ||
+                violatesXnatVersionConstraint(TestNgUtils.getAnnotation(method, RequireXnatVersion), versionClass) ||
+                violatesXnatVersionConstraint(TestNgUtils.getAnnotation(method, DisallowXnatVersion), versionClass) ||
+                violatesXnatVersionConstraint(TestNgUtils.getAnnotation(method, AddedIn), versionClass) ||
+                violatesXnatVersionConstraint(TestNgUtils.getAnnotation(method, DeprecatedIn), versionClass)
+        )
+    }
+
+    private boolean violatesXnatVersionConstraint(Annotation annotation, Class <? extends XnatVersion> xnatVersion) {
+        if (annotation == null) {
+            false
+        } else {
+            switch (annotation.class) {
+                case (RequireXnatVersion) :
+                    return !(xnatVersion in (annotation as RequireXnatVersion).allowedVersions())
+                case (DisallowXnatVersion) :
+                    return xnatVersion in (annotation as DisallowXnatVersion).disallowedVersions()
+                case (AddedIn) :
+                    return XnatVersionList.firstFollowsSecond((annotation as AddedIn).value(), xnatVersion)
+                case (DeprecatedIn) :
+                    return !XnatVersionList.firstFollowsSecond((annotation as DeprecatedIn).value(), xnatVersion)
+                default :
+                    return true
+            }
+        }
+    }
+
+}

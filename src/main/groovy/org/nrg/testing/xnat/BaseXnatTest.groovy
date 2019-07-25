@@ -1,0 +1,317 @@
+package org.nrg.testing.xnat
+
+import org.apache.commons.lang3.StringUtils
+import org.nrg.listeners.git.GitLogListener
+import org.nrg.listeners.jira.JIRATestListener
+import org.nrg.testing.BaseTestCase
+import org.nrg.testing.TestController
+import org.nrg.testing.TestNgUtils
+import org.nrg.testing.annotations.JiraKey
+import org.nrg.testing.annotations.TestRequires
+import org.nrg.testing.annotations.XnatVersionLink
+import org.nrg.testing.file.FileIO
+import org.nrg.testing.jira.JIRAProperties
+import org.nrg.testing.jira.JIRASettings
+import org.nrg.testing.xnat.conf.Settings
+import org.nrg.testing.xnat.conf.XNATProperties
+import org.nrg.testing.xnat.conf.XnatConfig
+import org.nrg.testing.xnat.rest.XnatRestDriver
+import org.nrg.testing.xnat.ssh.SSHConnection
+import org.nrg.testing.xnat.versions.XnatVersionList
+import org.nrg.xnat.pogo.Project
+import org.nrg.xnat.pogo.Subject
+import org.nrg.xnat.pogo.XnatPlugin
+import org.nrg.xnat.pogo.users.User
+import org.testng.ITestContext
+import org.testng.ITestNGMethod
+import org.testng.annotations.BeforeClass
+import org.testng.annotations.BeforeMethod
+import org.testng.annotations.BeforeSuite
+
+import java.lang.reflect.Method
+
+abstract class BaseXnatTest extends BaseTestCase {
+
+    protected Project testSpecificProject
+    protected Subject testSpecificSubject
+    protected XnatRestDriver restDriver = initRestDriver()
+    protected List<User> userPool = []
+
+    protected final User mainUser = Settings.DEFAULT_XNAT_CONFIG.mainUser
+    protected final User mainAdminUser = Settings.DEFAULT_XNAT_CONFIG.mainAdminUser
+    private final List<XnatPlugin> installedPlugins = []
+
+    @BeforeSuite
+    void setupXnatTests(ITestContext testContext) {
+        XnatVersionList.readXnatVersions()
+        validateSettings()
+        constructRestDriver()
+        if (Settings.INIT_SETTING) {
+            setupXnat()
+        }
+        if (Settings.JIRA_SETTING) {
+            JIRATestListener.updateBuildInfo(restDriver.buildInfo)
+        }
+        if (Settings.GITLOGS_SETTING) {
+            GitLogListener.init(Settings.MAIN_ADMIN_USERNAME, Settings.MAIN_ADMIN_PASS, Settings.BASEURL)
+        }
+        handleSetupAnnotationRequirements()
+    }
+
+    /**
+     * Handles annotated requirements at the class level and creates generic users required by class or tests
+     */
+    @BeforeClass
+    void handleClassRequirements() {
+        int requiredUsers = 0
+
+        final Class<? extends BaseTestCase> testClass = this.class as Class<? extends BaseTestCase>
+        final String testClassName = testClass.simpleName
+
+        (getTestsByClass(testClass) ?: []).each { test ->
+            final TestRequires requires = TestNgUtils.getAnnotation(test, TestRequires)
+            if (requires != null) {
+                requiredUsers += requires.users()
+            }
+        }
+
+        final TestRequires classRequires = testClass.getAnnotation(TestRequires)
+        if (classRequires != null) {
+            requiredUsers += classRequires.users()
+            if (classRequires.db()) {
+                TestNgUtils.assumeTrue(Settings.HAS_DB_INFO, "DB connection information is required for all tests in class: ${testClassName}")
+            }
+            if (classRequires.dicomScp()) {
+                TestNgUtils.assumeTrue(Settings.HAS_DICOM_RECEIVER_INFO, "DICOM SCP connection information is required for all tests in class: ${testClassName}")
+            }
+            if (classRequires.ssh()) {
+                TestNgUtils.assumeTrue(Settings.SSH_FUNCTIONS, "SSH connection information is required for all tests in class: ${testClassName}")
+            }
+            if (classRequires.admin()) {
+                TestNgUtils.assumeTrue(Settings.ADMIN_AVAILABLE, "XNAT admin account is required for all tests in class: ${testClassName}")
+            }
+            classRequires.plugins().each { pluginId ->
+                TestNgUtils.assumeTrue(pluginId in installedPlugins()*.id, "XNAT plugin with id ${pluginId} is required for all tests in class: ${testClassName}")
+            }
+            if (classRequires.closedXnat()) {
+                restDriver.closeXnat(mainAdminUser)
+            } else if (classRequires.openXnat()) {
+                restDriver.openXnat(mainAdminUser)
+            }
+        }
+
+        if (requiredUsers > 0) {
+            userPool.clear()
+            userPool.addAll(createGenericUsers(requiredUsers))
+        }
+    }
+
+    @BeforeMethod(alwaysRun = true)
+    void setupXnatTest(Method m, ITestContext testContext) {
+        initializeTestRandomVariables()
+        checkTestRequirements(m)
+    }
+
+    protected void initializeTestRandomVariables() {
+        testSpecificProject = new Project()
+        testSpecificSubject = new Subject()
+    }
+
+    protected void checkTestRequirements(Method method) {
+        final TestRequires testRequires = method.getAnnotation(TestRequires)
+        if (testRequires != null) {
+            final String testName = method.name
+            if (testRequires.db()) {
+                TestNgUtils.assumeTrue(Settings.HAS_DB_INFO, "DB connection information is required for test: ${testName}")
+            }
+            if (testRequires.dicomScp()) {
+                TestNgUtils.assumeTrue(Settings.HAS_DICOM_RECEIVER_INFO, "DICOM SCP connection information is required for test: ${testName}")
+            }
+            if (testRequires.ssh()) {
+                TestNgUtils.assumeTrue(Settings.SSH_FUNCTIONS, "SSH connection information is required for test: ${testName}")
+            }
+            if (testRequires.admin()) {
+                TestNgUtils.assumeTrue(Settings.ADMIN_AVAILABLE, "XNAT admin account is required for test: ${testName}")
+            }
+            testRequires.plugins().each { pluginId ->
+                TestNgUtils.assumeTrue(pluginId in installedPlugins()*.id, "XNAT plugin with id ${pluginId} is required for test: ${testName}")
+            }
+            if (testRequires.closedXnat()) {
+                restDriver.closeXnat(mainAdminUser)
+            } else if (testRequires.openXnat()) {
+                restDriver.openXnat(mainAdminUser)
+            }
+        }
+    }
+
+    @Override
+    protected String readJiraNumber(ITestNGMethod test) {
+        final JiraKey key = TestNgUtils.getAnnotation(test, JiraKey)
+        if (key != null) {
+            final String simpleId = key.simpleKey()
+            final XnatVersionLink[] versionLinks = key.versionMap()
+
+            if (containsCurrentXnatVersion(versionLinks)) {
+                getJiraId(versionLinks)
+            } else if (StringUtils.isNotEmpty(simpleId)) {
+                simpleId
+            } else {
+                null
+            }
+        } else {
+            null
+        }
+    }
+
+    private String getJiraId(XnatVersionLink[] links) {
+        links.find { link ->
+            link.xnatVersions().any { xnatVersion ->
+                xnatVersion == Settings.XNAT_VERSION
+            }
+        }.mappedValue()
+    }
+
+    private boolean containsCurrentXnatVersion(XnatVersionLink[] links) {
+        links.any { link ->
+            link.xnatVersions().any { xnatVersion ->
+                xnatVersion == Settings.XNAT_VERSION
+            }
+        }
+    }
+
+    /**
+     * Takes care of all requirements that may be needed for individual tests/classes but that can be satisfied on startup
+     */
+    private void handleSetupAnnotationRequirements() {
+        final List<String> alreadyDownloadedData = []
+        boolean scriptsPushed = false
+        allRunningTests.keySet().each { test ->
+            final TestRequires testReq = TestNgUtils.getAnnotation(test, TestRequires)
+            final TestRequires classReq = test.realClass.getAnnotation(TestRequires)
+            getDataForAnnotation(alreadyDownloadedData, testReq)
+            getDataForAnnotation(alreadyDownloadedData, classReq) // Annotation can be at the class level too
+            if (!scriptsPushed) {
+                if ((testReq != null && testReq.ssh()) || (classReq != null && classReq.ssh())) {
+                    new SSHConnection().pushScripts()
+                    scriptsPushed = true
+                }
+            }
+        }
+    }
+
+    private void getDataForAnnotation(List<String> alreadyDownloadedData, TestRequires dataAnnotation) {
+        if (dataAnnotation != null) {
+            dataAnnotation.data().each { dataElement ->
+                final String data = dataElement.zipName
+                if (data != null && !alreadyDownloadedData.contains(data)) {
+                    FileIO.getTestData(data)
+                    FileIO.unzip(Settings.DATA_LOCATION, data)
+                    alreadyDownloadedData << data
+                }
+            }
+        }
+    }
+
+    private List<XnatPlugin> installedPlugins() {
+        if (installedPlugins.isEmpty()) {
+            installedPlugins.addAll(restDriver.readInstalledPlugins(mainAdminUser))
+        }
+        installedPlugins
+    }
+
+    protected abstract void setupXnat()
+
+    protected abstract List<User> createGenericUsers(int numUsers)
+
+    protected void validateSettings() {
+        [
+                (XNATProperties.MAIN_USER[0]) : Settings.MAIN_USERNAME,
+                (XNATProperties.MAIN_PASS[0]) : Settings.MAIN_PASS,
+                (XNATProperties.BASEURL) : Settings.BASEURL
+        ].each { propertyName, settingValue ->
+            if (settingValue == null) {
+                throw new RuntimeException("Required value found to be null. Property must be set as ${propertyName}.")
+            }
+        }
+
+        if (Settings.ADMIN_SETTING) {
+            checkConditionalProperties(XNATProperties.ADMIN_SETTING, [
+                    (XNATProperties.MAIN_ADMIN_USER[0]) : Settings.MAIN_ADMIN_USERNAME,
+                    (XNATProperties.MAIN_ADMIN_PASS[0]) : Settings.MAIN_ADMIN_PASS,
+                    (XNATProperties.ADMIN_USER) : Settings.ADMIN_USERNAME,
+                    (XNATProperties.ADMIN_PASS) : Settings.ADMIN_PASS
+            ])
+        }
+        if (Settings.NOTIFICATION_EMAILS != null) {
+            checkConditionalProperties(XNATProperties.NOTIFICATION_EMAILS, [
+                    (XNATProperties.EMAIL) : Settings.EMAIL,
+                    (XNATProperties.EMAIL_PASS) : Settings.EMAIL_PASS
+            ])
+        }
+        if (Settings.JIRA_SETTING) {
+            checkConditionalProperties(XNATProperties.JIRA_SETTING, [
+                    (JIRAProperties.JIRA_USER) : JIRASettings.JIRA_USER,
+                    (JIRAProperties.JIRA_PASS) : JIRASettings.JIRA_PASS,
+                    (JIRAProperties.JIRA_URL) : JIRASettings.JIRA_URL,
+                    (JIRAProperties.JIRA_PROJECT) : JIRASettings.PROJECT,
+                    (JIRAProperties.JIRA_PROJECT_VERSION) : JIRASettings.VERSION
+            ])
+        }
+
+        if (Settings.DYNAMIC_ORDERING) {
+            if (Settings.QUEUE_SLOTS == 0){
+                throw new RuntimeException("Dynamic ordering is being used, so ${XNATProperties.QUEUE_SLOTS} must be set to a positive integer number of slots.")
+            }
+        }
+
+        if (Settings.INIT_SETTING) {
+            checkDependentBooleans(XNATProperties.INIT_SETTING, XNATProperties.ADMIN_SETTING, Settings.ADMIN_SETTING)
+        }
+        if (Settings.PRODUCE_PDF) {
+            checkDependentBooleans(XNATProperties.PRODUCE_PDF, XNATProperties.JIRA_SETTING, Settings.JIRA_SETTING)
+        }
+    }
+
+    // Used when baseOptionalPropertyName being specified requires downstream properties to be set
+    private void checkConditionalProperties(String baseOptionalPropertyName, Map<String, String> propertySettingMap) {
+        propertySettingMap.each { propertyName, settingValue ->
+            if (settingValue == null) {
+                throw new RuntimeException("${baseOptionalPropertyName} is set to true, which means that property ${propertyName} must also be provided.")
+            }
+        }
+    }
+
+    private void checkDependentBooleans(String baseOptionalBooleanPropertyName, String propertyName, boolean settingValue) {
+        if (!settingValue) {
+            throw new RuntimeException("${baseOptionalBooleanPropertyName} is set to true, which means that ${propertyName} must also be.")
+        }
+    }
+
+    protected User getGenericUser() {
+        if (userPool.size() > 0) {
+            final User user = userPool[0]
+            userPool.remove(0)
+            user
+        } else {
+            null
+        }
+    }
+
+    protected void constructRestDriver(XnatConfig xnatConfig = null) {
+        restDriver = XnatRestDriver.getInstance(xnatConfig)
+        if (testController == null) {
+            testController = new TestController()
+        }
+        restDriver.setTestController(testController)
+    }
+
+    private XnatRestDriver initRestDriver() { // Just to guarantee restDriver object is properly initialized if subclasses want to use it via instance variables
+        constructRestDriver()
+        restDriver
+    }
+
+    XnatRestDriver getRestDriver() {
+        restDriver
+    }
+
+}

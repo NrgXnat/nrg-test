@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.nrg.testing.tests.MethodSorterTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2019-07-25T21:49:48" hostname="charlies-imac.wucon.wustl.edu" time="0.06">
+  <properties/>
+  <testcase name="test1Cycle" classname="org.nrg.testing.tests.MethodSorterTest" time="0.016"/>
+  <testcase name="test2Cycle" classname="org.nrg.testing.tests.MethodSorterTest" time="0.002"/>
+  <testcase name="testClass1Cycle" classname="org.nrg.testing.tests.MethodSorterTest" time="0.003"/>
+  <testcase name="testClassCycle" classname="org.nrg.testing.tests.MethodSorterTest" time="0.0"/>
+  <testcase name="testClassSort" classname="org.nrg.testing.tests.MethodSorterTest" time="0.026"/>
+  <testcase name="testLargerClassNoncycle" classname="org.nrg.testing.tests.MethodSorterTest" time="0.002"/>
+  <testcase name="testLargerCycle" classname="org.nrg.testing.tests.MethodSorterTest" time="0.002"/>
+  <testcase name="testLargerNonCycle" classname="org.nrg.testing.tests.MethodSorterTest" time="0.005"/>
+  <testcase name="testSingleMethod" classname="org.nrg.testing.tests.MethodSorterTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
