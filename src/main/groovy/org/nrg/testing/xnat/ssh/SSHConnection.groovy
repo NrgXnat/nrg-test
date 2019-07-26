@@ -1,19 +1,19 @@
 package org.nrg.testing.xnat.ssh
 
+import groovy.util.logging.Log4j
 import net.schmizz.sshj.SSHClient
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier
 import net.schmizz.sshj.xfer.FileSystemFile
 import org.apache.commons.lang3.time.StopWatch
-import org.apache.log4j.Logger
 import org.nrg.testing.TimeUtils
 import org.nrg.testing.util.ResourceLoader
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.conf.XNATProperties
 import org.testng.AssertJUnit
 
+@Log4j
 class SSHConnection {
 
-    private static final Logger LOGGER = Logger.getLogger(SSHConnection)
     private SSHClient sshClient
 
     private void initiateConnection() {
@@ -29,19 +29,19 @@ class SSHConnection {
 
     boolean testSSH() {
         if (Settings.SSH_USER == null) {
-            LOGGER.info("No username is available for SSH, so all tests requiring SSH access will be skipped. Set ${XNATProperties.SSH_USER} if SSH is needed.")
+            log.info("No username is available for SSH, so all tests requiring SSH access will be skipped. Set ${XNATProperties.SSH_USER} if SSH is needed.")
         } else if (!Settings.SSH_KEY.exists()) {
-            LOGGER.info("No SSH key is available, so all tests requiring SSH access will be skipped. Set ${XNATProperties.SSH_PRIVATE_KEY_NAME} if SSH is needed.")
+            log.info("No SSH key is available, so all tests requiring SSH access will be skipped. Set ${XNATProperties.SSH_PRIVATE_KEY_NAME} if SSH is needed.")
         } else {
             try {
                 if (executeSingleCommand('echo \'Hello world\'').exitStatus == 0) {
-                    LOGGER.info('SSH appears to be working...')
+                    log.info('SSH appears to be working...')
                     return true
                 } else {
-                    LOGGER.warn('Simple echo to test SSH failed. All tests requiring SSH access will be skipped.')
+                    log.warn('Simple echo to test SSH failed. All tests requiring SSH access will be skipped.')
                 }
             } catch (Exception e) {
-                LOGGER.warn('All tests requiring SSH access will be skipped because SSH doesn\'t seem to be working: ', e)
+                log.warn('All tests requiring SSH access will be skipped because SSH doesn\'t seem to be working: ', e)
             }
         }
         false
@@ -82,9 +82,9 @@ class SSHConnection {
     }
 
     private void manageTomcat(String command) {
-        LOGGER.info("Sending command to tomcat: ${command}...")
+        log.info("Sending command to tomcat: ${command}...")
         final SSHCommandResult results = executeSingleCommand("bin/manage_${Settings.TOMCAT_VERSION}.sh ${command}")
-        LOGGER.info(results.stdOut)
+        log.info(results.stdOut)
         AssertJUnit.assertEquals(0, results.exitStatus)
     }
 
@@ -92,7 +92,7 @@ class SSHConnection {
         final StopWatch stopWatch = TimeUtils.launchStopWatch()
         while (true) {
             TimeUtils.checkStopWatch(stopWatch, 500, 'Tomcat didn\'t come back after restarting/starting it with SSH')
-            LOGGER.info('Waiting for tomcat to start back up...')
+            log.info('Waiting for tomcat to start back up...')
             if (Settings.mainCredentials().get(Settings.BASEURL).statusCode == 200) break
             TimeUtils.sleep(10000)
         }

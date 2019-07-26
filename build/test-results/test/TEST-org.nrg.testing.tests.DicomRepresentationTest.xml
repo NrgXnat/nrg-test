@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="org.nrg.testing.tests.DicomRepresentationTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2019-07-25T21:49:44" hostname="charlies-imac.wucon.wustl.edu" time="0.055">
-  <properties/>
-  <testcase name="scopingTest" classname="org.nrg.testing.tests.DicomRepresentationTest" time="0.005"/>
-  <testcase name="testFullScopeStringRepresentation" classname="org.nrg.testing.tests.DicomRepresentationTest" time="0.035"/>
-  <testcase name="testTagWildcardResolution" classname="org.nrg.testing.tests.DicomRepresentationTest" time="0.014"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

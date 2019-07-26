@@ -28,7 +28,7 @@ class Settings {
     public static final String TARGET_LOCATION = FileLocation.getResultLocation()
     public static final String TIMELOG_LOCATION = FileLocation.getTimeLogsLocation()
     public static final String TEMP = properties.tempFolder
-    public static final String DIRECTORY_NAME = "nrg_test_downloads_${TimeUtils.getTimestamp('yyyy-MM-dd_HH-mm-ss')}"
+    public static final String DIRECTORY_NAME = "nrg_test_downloads_${TimeUtils.getTimestamp('uuuu-MM-dd_HH-mm-ss')}"
     public static final String TEMP_SUBDIR = generateTempSubdir()
     public static final String FAILED_SCREENSHOT_PATH = [TARGET_LOCATION, 'failed_test_screenshots'].join(File.separator)
     public static final String SCREENSHOT_PATH = [TARGET_LOCATION, 'test_step_screenshots'].join(File.separator)

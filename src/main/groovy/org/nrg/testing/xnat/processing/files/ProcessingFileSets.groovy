@@ -4,8 +4,9 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import org.apache.log4j.Logger
 import org.nrg.jira.components.zephyr.TestStatus
+import org.nrg.testing.FileIOUtils
 import org.nrg.testing.HttpUtils
-import org.nrg.testing.file.FileIO
+
 import org.nrg.testing.util.IgnoreNullList
 import org.nrg.testing.util.RandomHelper
 import org.nrg.testing.xnat.conf.Settings
@@ -22,7 +23,6 @@ import org.nrg.xnat.pogo.experiments.ImagingSession
 import org.nrg.xnat.pogo.resources.Resource
 import org.nrg.xnat.pogo.resources.ResourceFile
 
-import java.nio.file.Path
 import java.nio.file.Paths
 
 @JsonTypeInfo(
@@ -109,9 +109,9 @@ abstract class ProcessingFileSets {
         final String folderName = RandomHelper.randomID(20)
         final File zip = Paths.get(Settings.TEMP_SUBDIR, "${folderName}.zip").toFile()
         HttpUtils.saveBinaryResponseToFile(restDriver.mainInterface().queryBase().queryParam('format', 'zip').queryParam('structure', 'simplified').get(restDriver.resourceFilesUrl(resource)), zip)
-        final Path baseLocalPath = Paths.get(Settings.TEMP_SUBDIR, folderName)
-        FileIO.unzip(baseLocalPath, zip)
-        iterateSubdirs(baseLocalPath.toFile(), numSubdirs).toPath().resolve(resource.folder).toFile()
+        final File baseLocalDir = Paths.get(Settings.TEMP_SUBDIR, folderName).toFile()
+        FileIOUtils.unzip(baseLocalDir, zip, false)
+        iterateSubdirs(baseLocalDir, numSubdirs).toPath().resolve(resource.folder).toFile()
     }
 
     private File iterateSubdirs(File baseDir, int numIterations) {

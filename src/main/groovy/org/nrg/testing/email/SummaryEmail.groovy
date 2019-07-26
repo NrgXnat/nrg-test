@@ -76,7 +76,7 @@ class SummaryEmail {
             message.setRecipients(Message.RecipientType.TO, convertAddresses())
 
             final String failureString = allPassed ? 'All passing!' : "${failedTests.size()} failed and ${skippedTests.size()} blocked tests"
-            message.setSubject("Results for ${notificationTitle}: ${failureString} (${TimeUtils.getTimestamp('yyyy-MM-dd')})")
+            message.setSubject("Results for ${notificationTitle}: ${failureString} (${TimeUtils.getTimestamp('uuuu-MM-dd')})")
             message.setSentDate(new Date())
             final int totalNumTests = passedTests.size() + failedTests.size() + skippedTests.size()
 

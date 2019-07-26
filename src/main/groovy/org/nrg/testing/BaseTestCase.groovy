@@ -1,14 +1,13 @@
 package org.nrg.testing
 
 import com.jayway.restassured.RestAssured
+import groovy.util.logging.Log4j
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.mutable.MutableInt
-import org.apache.log4j.Logger
 import org.nrg.listeners.git.GitLogListener
 import org.nrg.listeners.jira.JIRATestListener
 import org.nrg.testing.annotations.JiraKey
-import org.nrg.testing.file.FileIO
 import org.nrg.testing.jira.JIRASettings
 import org.nrg.testing.listeners.adapters.NRGTestListener
 import org.nrg.testing.listeners.interceptors.sorters.DefaultMethodSorter
@@ -24,12 +23,12 @@ import org.testng.annotations.Listeners
 
 import java.lang.annotation.Annotation
 import java.lang.reflect.Method
+import java.nio.file.Paths
 
-@SuppressWarnings('GrMethodMayBeStatic')
-@Listeners([NRGTestListener.class, JIRATestListener.class, GitLogListener.class, DefaultMethodSorter.class, ProhibitedTestFilter.class, BasicTestFilter.class])
+@Log4j
+@Listeners([NRGTestListener, JIRATestListener, GitLogListener, DefaultMethodSorter, ProhibitedTestFilter, BasicTestFilter])
 class BaseTestCase {
-
-    protected static final Logger LOGGER = Logger.getLogger(BaseTestCase.class)
+    
     protected MutableInt stepCounter
     protected static Map<ITestNGMethod, String> allRunningTests
     protected TestController testController
@@ -45,7 +44,7 @@ class BaseTestCase {
 
     void setupJira() {
         if (Settings.JIRA_SETTING) {
-            LOGGER.info('Setting up JIRA test integration...')
+            log.info('Setting up JIRA test integration...')
             JIRATestListener.init(JIRASettings.JIRA_URL, JIRASettings.PROJECT, JIRASettings.VERSION, JIRASettings.JIRA_CYCLE_NAME, JIRASettings.JIRA_USER, JIRASettings.JIRA_PASS, allRunningTests)
             JIRATestListener.updateEnvironmentInfo(Settings.BASEURL)
         } else {
@@ -57,7 +56,7 @@ class BaseTestCase {
     void setupAllTests(ITestContext testContext) {
         RestAssured.useRelaxedHTTPSValidation()
         allRunningTests = constructTestMap(testContext.getAllTestMethods())
-        LOGGER.info("${allRunningTests.size()} tests are scheduled to run.")
+        log.info("${allRunningTests.size()} tests are scheduled to run.")
         setupJira()
         deleteOldScreenshots()
         new File(Settings.DATA_LOCATION).mkdir()
@@ -102,7 +101,7 @@ class BaseTestCase {
             if (StringUtils.isNotEmpty(simpleId)) {
                 simpleId
             } else {
-                LOGGER.warn("When using @JiraKey annotation outside of XNAT tests, simpleKey() is required to mark JIRA number for tests. Value is empty on test: ${TestNgUtils.getTestName(test)}")
+                log.warn("When using @JiraKey annotation outside of XNAT tests, simpleKey() is required to mark JIRA number for tests. Value is empty on test: ${TestNgUtils.getTestName(test)}")
                 null
             }
         } else {
@@ -120,12 +119,20 @@ class BaseTestCase {
 
     protected List<ITestNGMethod> getTestsByClass(Class testClass) {
         if (allRunningTests == null) {
-            LOGGER.fatal('allRunningTests object appears to be null, which makes no sense.')
+            log.fatal('allRunningTests object appears to be null, which makes no sense.')
             throw new RuntimeException()
         }
         allRunningTests.keySet().findAll { test ->
             TestNgUtils.getTestClass(test) == testClass
         }
+    }
+
+    protected File getDataFile(String filename) {
+        Paths.get(Settings.DATA_LOCATION, filename).toFile()
+    }
+
+    protected String readDataFile(String filename) {
+        getDataFile(filename).text
     }
 
     static Set<ITestNGMethod> getAllTests() {

@@ -70,7 +70,7 @@ class TimeLog {
         final String[] medianRow = new String[csvWidth]
         final String[] meanRow = new String[csvWidth]
         final String[] trendRow = new String[csvWidth]
-        dataRow[0] = TimeUtils.getTimestamp('yyyy-MM-dd')
+        dataRow[0] = TimeUtils.getTimestamp('uuuu-MM-dd')
         medianRow[0] = 'median execution time (seconds)'
         meanRow[0] = 'mean execution time (seconds)'
         trendRow[0] = 'trend of execution time'

@@ -1,15 +1,18 @@
 package org.nrg.testing.xnat
 
+import groovy.util.logging.Log4j
 import org.apache.commons.lang3.StringUtils
 import org.nrg.listeners.git.GitLogListener
 import org.nrg.listeners.jira.JIRATestListener
 import org.nrg.testing.BaseTestCase
+import org.nrg.testing.FileIOUtils
 import org.nrg.testing.TestController
 import org.nrg.testing.TestNgUtils
+import org.nrg.testing.XnatFtpServerClient
 import org.nrg.testing.annotations.JiraKey
 import org.nrg.testing.annotations.TestRequires
 import org.nrg.testing.annotations.XnatVersionLink
-import org.nrg.testing.file.FileIO
+import org.nrg.testing.enums.TestData
 import org.nrg.testing.jira.JIRAProperties
 import org.nrg.testing.jira.JIRASettings
 import org.nrg.testing.xnat.conf.Settings
@@ -29,7 +32,11 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.BeforeSuite
 
 import java.lang.reflect.Method
+import java.nio.file.Paths
 
+import static org.testng.AssertJUnit.assertTrue
+
+@Log4j
 abstract class BaseXnatTest extends BaseTestCase {
 
     protected Project testSpecificProject
@@ -183,32 +190,39 @@ abstract class BaseXnatTest extends BaseTestCase {
      * Takes care of all requirements that may be needed for individual tests/classes but that can be satisfied on startup
      */
     private void handleSetupAnnotationRequirements() {
-        final List<String> alreadyDownloadedData = []
         boolean scriptsPushed = false
-        allRunningTests.keySet().each { test ->
-            final TestRequires testReq = TestNgUtils.getAnnotation(test, TestRequires)
-            final TestRequires classReq = test.realClass.getAnnotation(TestRequires)
-            getDataForAnnotation(alreadyDownloadedData, testReq)
-            getDataForAnnotation(alreadyDownloadedData, classReq) // Annotation can be at the class level too
+        final Set<TestData> testDataRequirements = []
+        allTests.each { test ->
+            final List<TestRequires> requirements = [TestNgUtils.getAnnotation(test, TestRequires), test.realClass.getAnnotation(TestRequires)]
+            requirements.each { requirement ->
+                if (requirement != null) {
+                    testDataRequirements.addAll(requirement.data())
+                }
+            }
             if (!scriptsPushed) {
-                if ((testReq != null && testReq.ssh()) || (classReq != null && classReq.ssh())) {
+                if (requirements.any { it != null && it.ssh() }) {
                     new SSHConnection().pushScripts()
                     scriptsPushed = true
                 }
             }
         }
-    }
-
-    private void getDataForAnnotation(List<String> alreadyDownloadedData, TestRequires dataAnnotation) {
-        if (dataAnnotation != null) {
-            dataAnnotation.data().each { dataElement ->
-                final String data = dataElement.zipName
-                if (data != null && !alreadyDownloadedData.contains(data)) {
-                    FileIO.getTestData(data)
-                    FileIO.unzip(Settings.DATA_LOCATION, data)
-                    alreadyDownloadedData << data
+        if (!testDataRequirements.isEmpty()) {
+            final XnatFtpServerClient ftpClient = new XnatFtpServerClient(Settings.EMAIL)
+            testDataRequirements.each { testData ->
+                final String dataName = testData.zipName
+                final File testDataFile = Paths.get(Settings.DATA_LOCATION, dataName).toFile()
+                if (testDataFile.exists()) {
+                    if (testDataFile.length() < 1000) { // it's less than 1 KB (e.g. probably empty, no test data will be this small)
+                        assertTrue(testDataFile.delete())
+                    } else {
+                        log.info("I already have the ${dataName} test data. No need to download again!")
+                        return
+                    }
                 }
+                ftpClient.downloadFile("/pub/data/${dataName}", testDataFile)
+                FileIOUtils.unzip(testDataFile.parentFile, testDataFile, true)
             }
+            ftpClient.closeFTP()
         }
     }
 
