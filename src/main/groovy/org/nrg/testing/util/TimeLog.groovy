@@ -23,8 +23,7 @@ class TimeLog {
     private static final String PASSED = 'Passed'
     private static final String BLOCKED = 'Blocked'
     private static final Map<Integer, String> resultStringMap = [(ITestResult.FAILURE) : FAILED, (ITestResult.SUCCESS) : PASSED, (ITestResult.SKIP) : BLOCKED]
-    private static Path BACKUP_LOCATION = Paths.get(Settings.TIMELOG_LOCATION, 'backups')
-    private final List<Entry> timeLogList = []
+    final List<Entry> timeLogList = []
 
     void addTimeLogEntry(StopWatch timer, ITestResult result) {
         final String test = TestNgUtils.getTestName(result)
@@ -33,36 +32,45 @@ class TimeLog {
     }
 
     void writeTimeLogs() {
+        final Path backupLocation = Paths.get(Settings.TIMELOG_LOCATION, 'backups')
+        FileIOUtils.mkdirs(backupLocation)
         timeLogList.className.unique(false).each { className ->
-            writeTimeLog(timeLogList.findAll { it.className == className })
+            final List<Entry> testsForOneClass = timeLogList.findAll { it.className == className }
+            final File csvLog = getTimeLog(className)
+            final List<List<String>> oldCsvContents = readPreviousTimelog(csvLog)
+            if (csvLog.exists()) {
+                writeCsvToFile(backupLocation.resolve("${className}${TimeUtils.getTimestamp()}.csv").toFile(), oldCsvContents)
+                csvLog.delete()
+            }
+            writeEntriesToFile(oldCsvContents, testsForOneClass, csvLog)
         }
     }
 
-    private void writeTimeLog(List<Entry> testsForOneClass) {
-        FileIOUtils.mkdirs(BACKUP_LOCATION)
-        final String className = testsForOneClass[0].className
-        final File csvLog = getTimeLog(className)
+    List<List<String>> readPreviousTimelog(File csvLog) {
         final List<List<String>> oldCsvContents = []
         if (csvLog.exists()) {
             final CSVReader reader = new CSVReader(new FileReader(csvLog))
-            oldCsvContents.addAll(reader.readAll() as List<List<String>>)
+            reader.readAll().each { row ->
+                oldCsvContents << (row as List<String>)
+            }
             reader.close()
-            writeCsvToFile(BACKUP_LOCATION.resolve("${className}${TimeUtils.getTimestamp()}.csv").toFile(), oldCsvContents)
-            csvLog.delete()
         }
+        oldCsvContents
+    }
 
+    List<List<String>> readEntriesToLists(List<List<String>> previousTimelog, List<Entry> entries) {
         final List<List<String>> fullContents = []
-        final List<String> currentRequiredHeaders = headersFor(testsForOneClass)
-        if (oldCsvContents.isEmpty()) {
+        final List<String> currentRequiredHeaders = headersFor(entries)
+        if (previousTimelog.isEmpty()) {
             fullContents << currentRequiredHeaders
         } else {
-            final List<String> headers = new ArrayList<>(oldCsvContents[0])
+            final List<String> headers = new ArrayList<>(previousTimelog[0])
             currentRequiredHeaders.each { header ->
                 if (!headers.contains(header)) headers << header
             }
             fullContents << headers
-            removePreviousStats(oldCsvContents)
-            fullContents.addAll(oldCsvContents.subList(1, oldCsvContents.size())) // keep non-header data
+            removePreviousStats(previousTimelog)
+            fullContents.addAll(previousTimelog.drop(1)) // keep non-header data
         }
         final int csvWidth = fullContents[0].size()
 
@@ -75,13 +83,18 @@ class TimeLog {
         meanRow[0] = 'mean execution time (seconds)'
         trendRow[0] = 'trend of execution time'
 
-        testsForOneClass.each { entry ->
+        entries.each { entry ->
             final int baseTestIndex = fullContents[0].indexOf(testTimeHeader(entry.testName))
             dataRow[baseTestIndex] = entry.runtime as String
             dataRow[baseTestIndex + 1] = entry.status
-            final List<Double> allTimesForTest = oldCsvContents*.get(baseTestIndex).findResult { String time ->
-                (time != null && time != '') ? Double.parseDouble(time) : null
-            } as List<Double>
+            final List<Double> allTimesForTest = previousTimelog.drop(1).findResults { row ->
+                if (baseTestIndex < row.size()) {
+                    final String time = row[baseTestIndex]
+                    (time != null && time != '') ? Double.parseDouble(time) : null
+                } else {
+                    null
+                }
+            } ?: []
             allTimesForTest << entry.runtime
             if (allTimesForTest.size() >= MIN_NUM_FOR_STATS) {
                 final DescriptiveStatistics stats = new DescriptiveStatistics()
@@ -103,22 +116,27 @@ class TimeLog {
             }
         }
         fullContents << (dataRow as List<String>)
-        fullContents << [] // visually distinguish stats
-        fullContents << (medianRow as List<String>)
-        fullContents << (meanRow as List<String>)
-        fullContents << (trendRow as List<String>)
+        if (medianRow.drop(1).any { it != null }) {
+            fullContents << (1 .. medianRow.size()).collect { '' } // visually distinguish stats with an empty row
+            fullContents << (medianRow as List<String>)
+            fullContents << (meanRow as List<String>)
+            fullContents << (trendRow as List<String>)
+        }
+        fullContents
+    }
 
-        writeCsvToFile(csvLog, fullContents)
+    void writeCsvToFile(File outputFile, List<List<String>> lines) {
+        final CSVWriter writer = new CSVWriter(new FileWriter(outputFile), ',' as char, CSVWriter.NO_QUOTE_CHARACTER)
+        writer.writeAll(lines.collect { it as String[] })
+        writer.close()
+    }
+
+    void writeEntriesToFile(List<List<String>> previousTimelog, List<Entry> entries, File outputFile) {
+        writeCsvToFile(outputFile, readEntriesToLists(previousTimelog, entries))
     }
 
     private File getTimeLog(String className) {
         Paths.get(Settings.TIMELOG_LOCATION, "${className}_TimeData.csv").toFile()
-    }
-
-    private void writeCsvToFile(File outputFile, List<List<String>> lines) {
-        final CSVWriter writer = new CSVWriter(new FileWriter(outputFile), ',' as char, CSVWriter.NO_QUOTE_CHARACTER)
-        writer.writeAll(lines as List<String[]>)
-        writer.close()
     }
 
     private List<String> headersFor(List<Entry> entries) {
@@ -139,7 +157,7 @@ class TimeLog {
             final List<List<String>> finalThreeLines = previousContents.takeRight(3)
             if (!finalThreeLines.any { line -> // if we can recognize the last 3 lines all as stats...
                 !['median', 'mean', 'trend'].any { stat ->
-                    stat in line[0]
+                    line[0].contains(stat)
                 }
             }) {
                 previousContents.subList(previousContents.size() - 4, previousContents.size()).clear() // remove the three stats rows and the empty divider row
@@ -147,7 +165,7 @@ class TimeLog {
         }
     }
 
-    private class Entry {
+    class Entry {
         String testName
         String className
         String status

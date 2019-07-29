@@ -1,0 +1,12 @@
+date,testFeatureAFacetB_Runtime_in_seconds,testFeatureAFacetB_Result,testFeatureAFacetC_Runtime_in_seconds,testFeatureAFacetC_Result,testFeatureAFacetD_Runtime_in_seconds,testFeatureAFacetD_Result,testFeatureAFacetE_Runtime_in_seconds,testFeatureAFacetE_Result
+2019-07-29,10.0,Failed,10.0,Passed,12.0,Passed
+2019-07-29,,,10.0,Passed,,
+2019-07-29,10.0,Failed,,,,
+2019-07-29,,,,,12.0,Passed
+2019-07-29,12.0,Failed,12.0,Passed,12.0,Passed
+2019-07-29,12.0,Failed,12.0,Passed,10.0,Passed
+2019-07-29,12.0,Failed,11.6,Passed,10.0,Passed,100.0,Passed
+,,,,,,,,
+median execution time (seconds),12.0,,11.6,,12.0,,,
+mean execution time (seconds),11.2,,11.12,,11.2,,,
+trend of execution time,increasing,,stable,,decreasing,,,
