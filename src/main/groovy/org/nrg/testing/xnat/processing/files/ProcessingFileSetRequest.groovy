@@ -32,7 +32,7 @@ class ProcessingFileSetRequest implements ProcessingCheckable {
         try {
             processingFileSets = yamlMapper.readValue(validationFileResponse.asInputStream(), ProcessingFileSets)
         } catch (Exception ignored) {
-            return ['Could not read session resource file specifying how to verify processing outpu']
+            return ['Could not read session resource file specifying how to verify processing output']
         }
         xnatRestDriver.passStep()
 

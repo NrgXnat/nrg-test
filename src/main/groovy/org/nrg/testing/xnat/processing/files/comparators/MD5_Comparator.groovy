@@ -12,10 +12,10 @@ class MD5_Comparator extends FileComparator {
         try {
             final String calculatedMD5 = FileIOUtils.calculateMD5(file)
             if (calculatedMD5 != processingResourceFile.md5) {
-                throw new FileValidationException("MD5 checksum did not match expected value for file: ${file.absolutePath}")
+                throw new FileValidationException("MD5 checksum did not match expected value for file: ${file.name}")
             }
         } catch (IOException ignored) {
-            throw new FileValidationException("Could not process MD5 checksum for file: ${file.absolutePath}")
+            throw new FileValidationException("Could not process MD5 checksum for file: ${file.name}")
         }
     }
 

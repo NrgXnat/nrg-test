@@ -1,35 +1,14 @@
 package org.nrg.testing.tests
 
+import org.nrg.testing.BaseTestWithDiffedImages
 import org.nrg.testing.UnitTestUtils
 import org.nrg.testing.xnat.processing.exceptions.ImageProcessingException
 import org.nrg.testing.xnat.processing.files.comparators.imaging.ComparisonPixel
-import org.nrg.testing.xnat.processing.files.comparators.imaging.DiffedImage
-import org.testng.annotations.BeforeClass
 import org.testng.annotations.Test
 
 import static org.testng.AssertJUnit.*
 
-import java.nio.file.Paths
-
-class DiffedImageTest {
-
-    private static DiffedImage colorDiffImage, grayDiffImage, zeroNiftiImage, differentNifti, colorGraphImage
-
-    @BeforeClass
-    void readImages() {
-        try {
-            // colorDiffImage should contain 15 nonzero pixels: 5 (80, 230, 160) pixels (purple - green) and 10 (220, 35, 0) pixels (yellow - green)
-            colorDiffImage = getImageDiff('test_color.gif', 'test_color_greened.gif')
-            // grayDiffImage should contain only 2 nonzero pixels: (180) and (254)
-            grayDiffImage = getImageDiff('gray_lou.gif', 'gray_lou_edited.gif')
-            // zeroNiftiImage should contain only zero pixels
-            zeroNiftiImage = getImageDiff('avg152T1_LR_nifti.nii', 'avg152T1_LR_nifti.nii')
-            differentNifti = getImageDiff('avg152T1_LR_nifti.nii', 'avg152T1_RL_nifti.nii')
-            colorGraphImage = getImageDiff('pixel_graph_test.png', 'pixel_graph_test_edited.png')
-        } catch (ImageProcessingException ipe) {
-            fail("Couldn't read images:\n${ipe}")
-        }
-    }
+class DiffedImageTest extends BaseTestWithDiffedImages {
 
     @Test
     void testAbsoluteDeviationWithColor() {
@@ -43,7 +22,7 @@ class DiffedImageTest {
 
     @Test
     void testSquareDeviationWithColor() {
-        UnitTestUtils.assertDoubleEqual(50*Math.sqrt(849) + 50*Math.sqrt(1985), colorDiffImage.squaredDeviation)
+        UnitTestUtils.assertDoubleEqual(50 * Math.sqrt(849) + 50 * Math.sqrt(1985), colorDiffImage.squaredDeviation)
     }
 
     @Test
@@ -65,12 +44,12 @@ class DiffedImageTest {
 
     @Test
     void testPixelPercentErrorWithColor() {
-        UnitTestUtils.assertDoubleEqual(100 * 15/(80 * 50), colorDiffImage.percentNonzeroPixels)
+        UnitTestUtils.assertDoubleEqual(100 * 15 / (80 * 50), colorDiffImage.percentNonzeroPixels)
     }
 
     @Test
     void testPixelPercentErrorWithGrayscale() {
-        UnitTestUtils.assertDoubleEqual(100 * 2/(250 * 150), grayDiffImage.percentNonzeroPixels)
+        UnitTestUtils.assertDoubleEqual(100 * 2 / (250 * 150), grayDiffImage.percentNonzeroPixels)
     }
 
     @Test
@@ -82,17 +61,38 @@ class DiffedImageTest {
     }
 
     @Test
-    void testNiftiImageComparison() {
+    void testBaseNiftiImageComparison() {
         assertTrue(differentNifti.absoluteDeviation > 0)
         assertTrue(differentNifti.squaredDeviation  > 0)
         assertTrue(differentNifti.numNonzeroPixels  > 0)
         assertTrue(differentNifti.pages == 91)
     }
 
+    @Test
+    void testNiftiSquareDeviation() {
+        UnitTestUtils.assertDoubleEqual(9 * 255, checkeredNifti.squaredDeviation)
+    }
+
+    @Test
+    void testNiftiAbsoluteDeviation() {
+        assertEquals(9 * 255, checkeredNifti.absoluteDeviation)
+    }
+
+    @Test
+    void testNiftiDiscreteDeviation() {
+        assertEquals(9, checkeredNifti.numNonzeroPixels)
+        assertEquals(9, checkeredNifti.nonzeroPixels.size())
+    }
+
+    @Test
+    void testNiftiPercentError() {
+        UnitTestUtils.assertDoubleEqual(50, checkeredNifti.percentNonzeroPixels)
+    }
+
     @Test()
     void testNiftiDimensionalMismatch() {
         try {
-            getImageDiff('avg152T1_LR_nifti.nii', 'zstat1.nii')
+            getImageDiff(niftiOriginal, niftiDifferentDimensions)
             fail('Diffing two Nifti images with different dimensions threw no exception.')
         } catch (ImageProcessingException e) {
             assertTrue('Exception produced by diffing different dimensional Nifti was not the right one.', e.getMessage().contains('image dimensions'))
@@ -140,10 +140,6 @@ class DiffedImageTest {
 
         assertEquals([expectedCC1, expectedCC2, expectedCC3, expectedCC4, expectedCC5] as Set, connectedComponents)
         assertEquals(expectedCC3.size(), colorGraphImage.maximalConnectedComponent)
-    }
-
-    private DiffedImage getImageDiff(String original, String generated) throws ImageProcessingException {
-        new DiffedImage(Paths.get(UnitTestUtils.DATA_LOCATION, original).toFile(), Paths.get(UnitTestUtils.DATA_LOCATION, generated).toFile())
     }
     
 }

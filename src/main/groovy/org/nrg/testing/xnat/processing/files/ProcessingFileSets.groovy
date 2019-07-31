@@ -2,7 +2,7 @@ package org.nrg.testing.xnat.processing.files
 
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import org.apache.log4j.Logger
+import groovy.util.logging.Log4j
 import org.nrg.jira.components.zephyr.TestStatus
 import org.nrg.testing.FileIOUtils
 import org.nrg.testing.HttpUtils
@@ -35,9 +35,9 @@ import java.nio.file.Paths
         @JsonSubTypes.Type(value = SessionFileSet, name = 'session'),
         @JsonSubTypes.Type(value = ScanFileSet, name = 'scan')
 ])
+@Log4j
 abstract class ProcessingFileSets {
 
-    private static final Logger LOGGER = Logger.getLogger(ProcessingFileSets)
     List<ProcessingResource> resources = []
     Map<String, FileMutator> mutators = [:]
     Map<String, FileComparator> comparators = [:]
@@ -78,7 +78,7 @@ abstract class ProcessingFileSets {
             }
         }
         if (verificationErrors.isEmpty()) {
-            LOGGER.info("All files present and valid for files defined in resources: ${resources}")
+            log.info("All files present and valid for files defined in resources: ${resources}")
             xnatRestDriver.passStep()
         } else {
             xnatRestDriver.captureStep(TestStatus.FAIL, verificationErrors.join())

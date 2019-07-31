@@ -1,0 +1,60 @@
+type : assessor_xsi
+xsiType : 'xnat:qcAssessmentData'
+resources :
+  - folder: LOG
+    files:
+      - logfile.log
+  - folder : 'DATA_\d{14}'
+    regex : true
+    secondaryResources : QC_files
+    complexFiles :
+      - name : generated_values.txt
+        comparator : text_equals
+        mutator : timestamp
+        expectedText : '44.4 | 55.5 | 99.9 | DATE'
+      - name : snapshot.png
+        comparator : image_deviation
+        compareTo : original_snapshot.png
+      - name : generated.nii.gz
+        comparator : pixel_count
+        mutator : ungzip
+      - name : snapshot2.png
+        comparator : pixel_percent
+      - name : 'scan_overlay\d{5}.jpg'
+        regex : true
+        comparator : cluster
+      - name : binary1.abcxyz
+        comparator : file_size
+      - name : binary2.abcxyz
+        comparator : md5
+    files :
+      - otherdata1.txt
+      - otherdata2.txt
+mutators :
+  ungzip :
+    type : ungzip
+  timestamp :
+    type : replaceAll
+    replacements :
+      '\d{8}' : 'DATE'
+comparators :
+  image_deviation :
+    type : ImageDeviation
+    gray : 5000
+    color : 20000
+  pixel_count :
+    type : NumPixels
+    maxDifferingPixels : 100
+  pixel_percent :
+    type : PercentPixels
+    maxPercentError : 1.0
+  cluster :
+    type : Cluster
+    maxClusterSize : 5
+  file_size :
+    type : FileSize
+    tolerance : 1
+  md5 :
+    type : MD5
+  text_equals :
+    type : TextEquals

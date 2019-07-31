@@ -1,7 +1,5 @@
 package org.nrg.testing.xnat.processing.files.mutators
 
-import org.nrg.testing.xnat.conf.Settings
-
 class ReplaceAllMutator extends FileMutator {
 
     Map<String, String> replacements = [:]
@@ -9,7 +7,6 @@ class ReplaceAllMutator extends FileMutator {
     @Override
     File mutateFile(File file) {
         String fileContents = file.text
-        replacements.put(Settings.EMAIL, 'EMAIL')
         replacements.each { key, value ->
             fileContents = fileContents.replaceAll(key, value)
         }

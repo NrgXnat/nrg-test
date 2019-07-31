@@ -20,50 +20,50 @@ class ComparisonPixelTest {
 
     @Test
     void test1Norm() {
-        UnitTestUtils.assertDoubleEqual(COLOR_PIXEL1.calculateDistance(TAXICAB), 18)
-        UnitTestUtils.assertDoubleEqual(COLOR_PIXEL2.calculateDistance(TAXICAB), 19)
-        UnitTestUtils.assertDoubleEqual(GRAY_PIXEL1.calculateDistance(TAXICAB), 100)
-        UnitTestUtils.assertDoubleEqual(GRAY_PIXEL2.calculateDistance(TAXICAB), 1)
-        UnitTestUtils.assertDoubleEqual(GRAY_ZERO_PIXEL.calculateDistance(TAXICAB), 0)
-        UnitTestUtils.assertDoubleEqual(GRAY_ZERO_DIFF_PIXEL.calculateDistance(TAXICAB), 0)
-        UnitTestUtils.assertDoubleEqual(COLOR_ZERO_PIXEL.calculateDistance(TAXICAB), 0)
-        UnitTestUtils.assertDoubleEqual(COLOR_ZERO_DIFF_PIXEL.calculateDistance(TAXICAB), 0)
+        UnitTestUtils.assertDoubleEqual(18, COLOR_PIXEL1.calculateDistance(TAXICAB))
+        UnitTestUtils.assertDoubleEqual(19, COLOR_PIXEL2.calculateDistance(TAXICAB))
+        UnitTestUtils.assertDoubleEqual(100, GRAY_PIXEL1.calculateDistance(TAXICAB))
+        UnitTestUtils.assertDoubleEqual(1, GRAY_PIXEL2.calculateDistance(TAXICAB))
+        UnitTestUtils.assertDoubleEqual(0, GRAY_ZERO_PIXEL.calculateDistance(TAXICAB))
+        UnitTestUtils.assertDoubleEqual(0, GRAY_ZERO_DIFF_PIXEL.calculateDistance(TAXICAB))
+        UnitTestUtils.assertDoubleEqual(0, COLOR_ZERO_PIXEL.calculateDistance(TAXICAB))
+        UnitTestUtils.assertDoubleEqual(0, COLOR_ZERO_DIFF_PIXEL.calculateDistance(TAXICAB))
     }
 
     @Test
     void test2Norm() {
-        UnitTestUtils.assertDoubleEqual(COLOR_PIXEL1.calculateDistance(EUCLIDEAN), 3*Math.sqrt(14))
-        UnitTestUtils.assertDoubleEqual(COLOR_PIXEL2.calculateDistance(EUCLIDEAN), 5*Math.sqrt(13))
-        UnitTestUtils.assertDoubleEqual(GRAY_PIXEL1.calculateDistance(EUCLIDEAN), 100)
-        UnitTestUtils.assertDoubleEqual(GRAY_PIXEL2.calculateDistance(EUCLIDEAN), 1)
-        UnitTestUtils.assertDoubleEqual(GRAY_ZERO_PIXEL.calculateDistance(EUCLIDEAN), 0)
-        UnitTestUtils.assertDoubleEqual(GRAY_ZERO_DIFF_PIXEL.calculateDistance(EUCLIDEAN), 0)
-        UnitTestUtils.assertDoubleEqual(COLOR_ZERO_PIXEL.calculateDistance(EUCLIDEAN), 0)
-        UnitTestUtils.assertDoubleEqual(COLOR_ZERO_DIFF_PIXEL.calculateDistance(EUCLIDEAN), 0)
+        UnitTestUtils.assertDoubleEqual(3 * Math.sqrt(14), COLOR_PIXEL1.calculateDistance(EUCLIDEAN))
+        UnitTestUtils.assertDoubleEqual(5 * Math.sqrt(13), COLOR_PIXEL2.calculateDistance(EUCLIDEAN))
+        UnitTestUtils.assertDoubleEqual(100, GRAY_PIXEL1.calculateDistance(EUCLIDEAN))
+        UnitTestUtils.assertDoubleEqual(1, GRAY_PIXEL2.calculateDistance(EUCLIDEAN))
+        UnitTestUtils.assertDoubleEqual(0, GRAY_ZERO_PIXEL.calculateDistance(EUCLIDEAN))
+        UnitTestUtils.assertDoubleEqual(0, GRAY_ZERO_DIFF_PIXEL.calculateDistance(EUCLIDEAN))
+        UnitTestUtils.assertDoubleEqual(0, COLOR_ZERO_PIXEL.calculateDistance(EUCLIDEAN))
+        UnitTestUtils.assertDoubleEqual(0, COLOR_ZERO_DIFF_PIXEL.calculateDistance(EUCLIDEAN))
     }
 
     @Test
     void testDiscreteMetric() {
-        UnitTestUtils.assertDoubleEqual(COLOR_PIXEL1.calculateDistance(DISCRETE), 1)
-        UnitTestUtils.assertDoubleEqual(COLOR_PIXEL2.calculateDistance(DISCRETE), 1)
-        UnitTestUtils.assertDoubleEqual(GRAY_PIXEL1.calculateDistance(DISCRETE), 1)
-        UnitTestUtils.assertDoubleEqual(GRAY_PIXEL2.calculateDistance(DISCRETE), 1)
-        UnitTestUtils.assertDoubleEqual(GRAY_ZERO_PIXEL.calculateDistance(DISCRETE), 0)
-        UnitTestUtils.assertDoubleEqual(GRAY_ZERO_DIFF_PIXEL.calculateDistance(DISCRETE), 0)
-        UnitTestUtils.assertDoubleEqual(COLOR_ZERO_PIXEL.calculateDistance(DISCRETE), 0)
-        UnitTestUtils.assertDoubleEqual(COLOR_ZERO_DIFF_PIXEL.calculateDistance(DISCRETE), 0)
+        UnitTestUtils.assertDoubleEqual(1, COLOR_PIXEL1.calculateDistance(DISCRETE))
+        UnitTestUtils.assertDoubleEqual(1, COLOR_PIXEL2.calculateDistance(DISCRETE))
+        UnitTestUtils.assertDoubleEqual(1, GRAY_PIXEL1.calculateDistance(DISCRETE))
+        UnitTestUtils.assertDoubleEqual(1, GRAY_PIXEL2.calculateDistance(DISCRETE))
+        UnitTestUtils.assertDoubleEqual(0, GRAY_ZERO_PIXEL.calculateDistance(DISCRETE))
+        UnitTestUtils.assertDoubleEqual(0, GRAY_ZERO_DIFF_PIXEL.calculateDistance(DISCRETE))
+        UnitTestUtils.assertDoubleEqual(0, COLOR_ZERO_PIXEL.calculateDistance(DISCRETE))
+        UnitTestUtils.assertDoubleEqual(0, COLOR_ZERO_DIFF_PIXEL.calculateDistance(DISCRETE))
     }
 
     @Test
     void testHammingMetric() {
-        UnitTestUtils.assertDoubleEqual(COLOR_PIXEL1.calculateDistance(HAMMING), 3)
-        UnitTestUtils.assertDoubleEqual(COLOR_PIXEL2.calculateDistance(HAMMING), 2)
-        UnitTestUtils.assertDoubleEqual(GRAY_PIXEL1.calculateDistance(HAMMING), 1)
-        UnitTestUtils.assertDoubleEqual(GRAY_PIXEL2.calculateDistance(HAMMING), 1)
-        UnitTestUtils.assertDoubleEqual(GRAY_ZERO_PIXEL.calculateDistance(HAMMING), 0)
-        UnitTestUtils.assertDoubleEqual(GRAY_ZERO_DIFF_PIXEL.calculateDistance(HAMMING), 0)
-        UnitTestUtils.assertDoubleEqual(COLOR_ZERO_PIXEL.calculateDistance(HAMMING), 0)
-        UnitTestUtils.assertDoubleEqual(COLOR_ZERO_DIFF_PIXEL.calculateDistance(HAMMING), 0)
+        UnitTestUtils.assertDoubleEqual(3, COLOR_PIXEL1.calculateDistance(HAMMING))
+        UnitTestUtils.assertDoubleEqual(2, COLOR_PIXEL2.calculateDistance(HAMMING))
+        UnitTestUtils.assertDoubleEqual(1, GRAY_PIXEL1.calculateDistance(HAMMING))
+        UnitTestUtils.assertDoubleEqual(1, GRAY_PIXEL2.calculateDistance(HAMMING))
+        UnitTestUtils.assertDoubleEqual(0, GRAY_ZERO_PIXEL.calculateDistance(HAMMING))
+        UnitTestUtils.assertDoubleEqual(0, GRAY_ZERO_DIFF_PIXEL.calculateDistance(HAMMING))
+        UnitTestUtils.assertDoubleEqual(0, COLOR_ZERO_PIXEL.calculateDistance(HAMMING))
+        UnitTestUtils.assertDoubleEqual(0, COLOR_ZERO_DIFF_PIXEL.calculateDistance(HAMMING))
     }
 
 }

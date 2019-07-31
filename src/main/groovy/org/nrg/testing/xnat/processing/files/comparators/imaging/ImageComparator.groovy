@@ -20,7 +20,7 @@ abstract class ImageComparator extends FileComparator {
         try {
             checkDiffedImage(new DiffedImage(original, file))
         } catch (ImageProcessingException ipe) {
-            throw new FileValidationException("Generated image file ${file} differs too much from expected file (${original}): ${ipe.message}")
+            throw new FileValidationException("Generated image file ${file.name} differs too much from expected file (${original.name}): ${ipe.message}")
         }
     }
 

@@ -10,7 +10,7 @@ class DecompressGzipMutator extends FileMutator {
 
     @Override
     File mutateFile(File file) {
-        final String name = file.path[0 .. -3] // trim off '.gz'
+        final String name = file.path[0 .. -4] // trim off '.gz'
         final GZIPInputStream inputStream = new GZIPInputStream(new FileInputStream(file))
         final FileOutputStream outputStream = new FileOutputStream(name)
         IOUtils.copy(inputStream, outputStream)

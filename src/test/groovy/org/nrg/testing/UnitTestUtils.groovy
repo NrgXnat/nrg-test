@@ -8,7 +8,7 @@ class UnitTestUtils {
     private static final double TOLERANCE = 0.000001
     public static final String DATA_LOCATION = FileLocation.getDataLocation()
 
-    static void assertDoubleEqual(double actual, double expected) {
+    static void assertDoubleEqual(double expected, double actual) {
         Assert.assertEquals(actual, expected, TOLERANCE)
     }
 
