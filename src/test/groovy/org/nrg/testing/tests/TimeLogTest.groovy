@@ -1,6 +1,7 @@
 package org.nrg.testing.tests
 
 import org.nrg.testing.FileIOUtils
+import org.nrg.testing.TimeUtils
 import org.nrg.testing.util.TimeLog
 import org.testng.annotations.Test
 
@@ -28,7 +29,7 @@ class TimeLogTest {
     void testStatsWithoutPreexistingStats() {
         final File outputLog = TEMP.resolve('timelog_no_stats.csv').toFile()
         final TimeLog timeLog = new TimeLog()
-        final List<List<String>> previousEntries = timeLog.readPreviousTimelog(FileIOUtils.loadResource('timelog_no_stats_example_original.csv'))
+        final List<List<String>> previousEntries = timeLog.readPreviousTimelog(injectDateToTimelog('timelog_no_stats_example_original.csv'))
         timeLog.timeLogList << new TimeLog.Entry(timeLog, 'testFeatureAFacetB', 'TestFeatureA', FAILED, 12)
         timeLog.timeLogList << new TimeLog.Entry(timeLog, 'testFeatureAFacetC', 'TestFeatureA', PASSED, 11.6)
         timeLog.timeLogList << new TimeLog.Entry(timeLog, 'testFeatureAFacetD', 'TestFeatureA', PASSED, 10)
@@ -41,7 +42,7 @@ class TimeLogTest {
     void testStatsWithPreexistingStats() {
         final File outputLog = TEMP.resolve('timelog_all_stats.csv').toFile()
         final TimeLog timeLog = new TimeLog()
-        final List<List<String>> previousEntries = timeLog.readPreviousTimelog(FileIOUtils.loadResource('timelog_existing_stats_example_original.csv'))
+        final List<List<String>> previousEntries = timeLog.readPreviousTimelog(injectDateToTimelog('timelog_existing_stats_example_original.csv'))
         timeLog.timeLogList << new TimeLog.Entry(timeLog, 'testFeatureAFacetB', 'TestFeatureA', FAILED, 10)
         timeLog.timeLogList << new TimeLog.Entry(timeLog, 'testFeatureAFacetC', 'TestFeatureA', PASSED, 12.2)
         timeLog.timeLogList << new TimeLog.Entry(timeLog, 'testFeatureAFacetD', 'TestFeatureA', PASSED, 10)
@@ -51,7 +52,13 @@ class TimeLogTest {
     }
 
     private void compareToExpected(String expectedFile, File actualFile) {
-        assertEquals(FileIOUtils.loadResource(expectedFile).text, actualFile.text)
+        assertEquals(injectDateToTimelog(expectedFile).text, actualFile.text)
+    }
+
+    private File injectDateToTimelog(String timelogFile) {
+        final File properFile = TEMP.resolve(timelogFile).toFile()
+        properFile.text = FileIOUtils.loadResource(timelogFile).text.replace('%DATE%', TimeUtils.getTimestamp('uuuu-MM-dd'))
+        properFile
     }
 
 
