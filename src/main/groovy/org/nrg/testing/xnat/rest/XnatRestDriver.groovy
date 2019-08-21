@@ -52,8 +52,11 @@ abstract class XnatRestDriver {
             'getAdminCredentials',
             'getMainUser',
             'getMainAdminUser',
-            'getAdminUser']
-    ) XnatConfig xnatConfig
+            'getAdminUser',
+            'getMainUsername',
+            'getMainAdminUsername',
+            'getAdminUsername'
+    ]) XnatConfig xnatConfig
     TestController testController
     protected static final Map<User, XnatInterface> xnatInterfaceMap = [:]
     public static final ObjectMapper XNAT_REST_MAPPER = XnatInterface.XNAT_REST_MAPPER
