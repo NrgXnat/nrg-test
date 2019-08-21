@@ -1,6 +1,7 @@
 package org.nrg.testing.xnat.rest
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.jayway.restassured.http.ContentType
 import com.jayway.restassured.internal.RestAssuredResponseImpl
 import com.jayway.restassured.path.json.exception.JsonPathException
 import com.jayway.restassured.response.Response
@@ -8,7 +9,6 @@ import com.jayway.restassured.specification.RequestSender
 import com.jayway.restassured.specification.RequestSpecification
 import groovy.util.logging.Log4j
 import org.apache.commons.lang3.time.StopWatch
-import org.apache.http.entity.ContentType
 import org.nrg.jira.components.zephyr.TestStatus
 import org.nrg.testing.CommonStringUtils
 import org.nrg.testing.HttpUtils
@@ -46,7 +46,14 @@ import static org.hamcrest.CoreMatchers.equalTo
 @Log4j
 abstract class XnatRestDriver {
 
-    XnatConfig xnatConfig
+    @Delegate(includes = [
+            'getMainCredentials',
+            'getMainAdminCredentials',
+            'getAdminCredentials',
+            'getMainUser',
+            'getMainAdminUser',
+            'getAdminUser']
+    ) XnatConfig xnatConfig
     TestController testController
     protected static final Map<User, XnatInterface> xnatInterfaceMap = [:]
     public static final ObjectMapper XNAT_REST_MAPPER = XnatInterface.XNAT_REST_MAPPER
@@ -76,7 +83,7 @@ abstract class XnatRestDriver {
     }
 
     XnatInterface mainInterface() {
-        interfaceFor(mainUser())
+        interfaceFor(mainUser)
     }
 
     RequestSpecification mainQueryBase() {
@@ -117,12 +124,12 @@ abstract class XnatRestDriver {
     Response getJson(RequestSender request, String url) {
         // request should be a RequestSpecification if it's just credentials or a ResponseSpecification if it's credentials appended with expected response behavior
         final Response response = request.get(url)
-        fixContentType(response, ContentType.APPLICATION_JSON)
+        fixContentType(response, ContentType.JSON)
         response
     }
 
     void fixContentType(Response restResponse, ContentType type) {
-        (restResponse as RestAssuredResponseImpl).setContentType(type.mimeType) // XNAT is returning the wrong content type in some cases
+        (restResponse as RestAssuredResponseImpl).setContentType(type) // XNAT is returning the wrong content type in some cases
     }
 
     File saveBinaryResponseToFile(Response response) {
@@ -131,32 +138,8 @@ abstract class XnatRestDriver {
         downloadedFile
     }
 
-    RequestSpecification mainCredentials() {
-        xnatConfig.mainCredentials
-    }
-
-    RequestSpecification mainAdminCredentials() {
-        xnatConfig.mainAdminCredentials
-    }
-
-    RequestSpecification adminCredentials() {
-        xnatConfig.adminCredentials
-    }
-
     RequestSpecification invalidCredentials() {
         Credentials.build(RandomHelper.randomLetters(12), RandomHelper.randomLetters(12)) // randomly generating this is fine. Probability of collision is astronomically small with 12 letters
-    }
-
-    User mainUser() {
-        xnatConfig.mainUser
-    }
-
-    User mainAdminUser() {
-        xnatConfig.mainAdminUser
-    }
-
-    User adminUser() {
-        xnatConfig.adminUser
     }
 
     String aliasTokenUrl() {
@@ -184,7 +167,7 @@ abstract class XnatRestDriver {
     }
 
     String getAccessionNumber(ImagingSession session) {
-        getAccessionNumber(mainUser(), session)
+        getAccessionNumber(mainUser, session)
     }
 
     Subject readSubject(User authUser, String accessionNumber) {
@@ -200,7 +183,7 @@ abstract class XnatRestDriver {
     }
 
     void waitForAutoRun(ImagingSession session) {
-        waitForAutoRun(mainUser(), 60, session)
+        waitForAutoRun(mainUser, 60, session)
     }
 
     String getBuildInfo() {
@@ -239,7 +222,7 @@ abstract class XnatRestDriver {
     }
 
     void uploadToSessionZipImporter(User authUser, File sessionZip, Project project, Subject subject, ImagingSession session) {
-        interfaceFor(authUser ?: mainUser()).uploadToSessionZipImporter(sessionZip, project, subject, session)
+        interfaceFor(authUser ?: mainUser).uploadToSessionZipImporter(sessionZip, project, subject, session)
     }
 
     void uploadToSessionZipImporter(File sessionZip, Project project) {
@@ -274,7 +257,7 @@ abstract class XnatRestDriver {
     }
 
     void createUser(User targetUser) {
-        createUser(adminUser(), targetUser)
+        createUser(adminUser, targetUser)
     }
 
     void createUser(User authUser, User user) {
@@ -663,31 +646,31 @@ abstract class XnatRestDriver {
     }
 
     void initializeXnat() {
-        final Response initResponse = adminCredentials().get(formatXapiUrl('/siteConfig/initialized'))
+        final Response initResponse = adminCredentials.get(formatXapiUrl('/siteConfig/initialized'))
         if (initResponse.statusCode() == 200 && initResponse.as(Boolean)) {
             log.info('XNAT already initialized')
         } else {
-            postToSiteConfig(adminUser(), ['initialized' : true])
+            postToSiteConfig(adminUser, ['initialized' : true])
         }
     }
 
     void setupTestUsers() {
-        final List<String> allUsers = adminCredentials().get(formatXapiUrl('/users')).path('')
+        final List<String> allUsers = adminCredentials.get(formatXapiUrl('/users')).path('')
 
-        if (mainUser().username in allUsers) {
-            verifyUser(adminUser(), mainUser())
-            enableUser(adminUser(), mainUser())
+        if (mainUser.username in allUsers) {
+            verifyUser(adminUser, mainUser)
+            enableUser(adminUser, mainUser)
         } else {
             createUser(xnatConfig.mainUser.email(Settings.EMAIL))
         }
 
-        if (mainAdminUser().username in allUsers) {
-            verifyUser(adminUser(), mainAdminUser())
-            enableUser(adminUser(), mainAdminUser())
-            makeUserAdmin(adminUser(), mainAdminUser())
+        if (mainAdminUser.username in allUsers) {
+            verifyUser(adminUser, mainAdminUser)
+            enableUser(adminUser, mainAdminUser)
+            makeUserAdmin(adminUser, mainAdminUser)
         } else {
-            createUser(mainAdminUser().email(Settings.EMAIL))
-            makeUserAdmin(adminUser(), mainAdminUser())
+            createUser(mainAdminUser.email(Settings.EMAIL))
+            makeUserAdmin(adminUser, mainAdminUser)
         }
     }
 
