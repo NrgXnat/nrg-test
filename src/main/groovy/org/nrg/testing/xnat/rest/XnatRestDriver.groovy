@@ -55,7 +55,8 @@ abstract class XnatRestDriver {
             'getAdminUser',
             'getMainUsername',
             'getMainAdminUsername',
-            'getAdminUsername'
+            'getAdminUsername',
+            'getXnatUrl'
     ]) XnatConfig xnatConfig
     TestController testController
     protected static final Map<User, XnatInterface> xnatInterfaceMap = [:]
