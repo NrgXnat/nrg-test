@@ -80,7 +80,7 @@ class SummaryEmail {
             message.setSentDate(new Date())
             final int totalNumTests = passedTests.size() + failedTests.size() + skippedTests.size()
 
-            final String messageContents = new EmailTemplate('summary_email.html').
+            final String messageContents = new MessageTemplate('summary_email.html').
                     replace('%num_total%', totalNumTests).
                     replace('%num_pass%', passedTests.size()).
                     replace('%num_fail%', failedTests.size()).

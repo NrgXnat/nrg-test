@@ -5,19 +5,19 @@ import org.nrg.testing.FileIOUtils
 import org.nrg.testing.TimeUtils
 import org.nrg.testing.xnat.conf.Settings
 
-class EmailTemplate {
+class MessageTemplate {
 
     private final String currentTime = TimeUtils.getTimestamp(TimeUtils.UNAMBIGUOUS_DATETIME)
     private final String template
-    private final Map<String, String> replacements = new HashMap<>()
+    private final Map<String, String> replacements = [:]
 
-    EmailTemplate(String template) {
+    MessageTemplate(String template) {
         this.template = template
-        replacements.put("%site%", Settings.BASEURL)
-        replacements.put("%time%", currentTime)
+        replacements.put('%site%', Settings.BASEURL)
+        replacements.put('%time%', currentTime)
     }
 
-    EmailTemplate replace(String key, Object value) {
+    MessageTemplate replace(String key, Object value) {
         replacements.put(key, String.valueOf(value))
         this
     }
