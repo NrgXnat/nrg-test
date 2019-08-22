@@ -3,6 +3,7 @@ package org.nrg.testing
 import org.apache.commons.lang3.mutable.MutableInt
 import org.apache.commons.lang3.time.StopWatch
 import org.nrg.listeners.jira.JIRATest
+import org.nrg.listeners.jira.JIRATestListener
 import org.testng.ITestNGMethod
 
 import static org.testng.AssertJUnit.fail
@@ -21,11 +22,11 @@ class TestController {
     }
 
     void startTestTimer() {
-        currentTestTimer = CommonUtils.launchStopWatch()
+        currentTestTimer = TimeUtils.launchStopWatch()
     }
 
     void selectJiraTest(ITestNGMethod test) {
-        currentTest = JIRATestNGListener.getCurrentTest(test)
+        currentTest = JIRATestListener.getCurrentTest(test)
     }
 
     void failTest(MutableInt step, String message) {

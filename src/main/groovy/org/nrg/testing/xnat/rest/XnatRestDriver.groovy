@@ -56,6 +56,9 @@ abstract class XnatRestDriver {
             'getMainUsername',
             'getMainAdminUsername',
             'getAdminUsername',
+            'getMainPassword',
+            'getMainAdminPassword',
+            'getAdminPassword',
             'getXnatUrl'
     ]) XnatConfig xnatConfig
     TestController testController
