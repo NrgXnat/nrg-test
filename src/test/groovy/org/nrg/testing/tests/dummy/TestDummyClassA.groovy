@@ -1,6 +1,6 @@
 package org.nrg.testing.tests.dummy
 
-import org.nrg.testing.UnitTestId
+import org.nrg.testing.unit.UnitTestId
 import org.nrg.testing.annotations.HardDependency
 import org.nrg.testing.tests.MethodSorterTest
 import org.testng.annotations.Test

@@ -1,6 +1,6 @@
 package org.nrg.testing.tests
 
-import org.nrg.testing.UnitTestFilter
+import org.nrg.testing.unit.UnitTestFilter
 import org.nrg.testing.annotations.AddedIn
 import org.nrg.testing.listeners.interceptors.filters.ProhibitedTestFilter
 import org.nrg.testing.xnat.versions.*

@@ -1,4 +1,4 @@
-package org.nrg.testing
+package org.nrg.testing.unit
 
 import java.lang.annotation.ElementType
 import java.lang.annotation.Retention
@@ -8,5 +8,5 @@ import java.lang.annotation.Target
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @interface UnitTestId {
-    int value()
+    int[] value()
 }

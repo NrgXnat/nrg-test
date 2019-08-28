@@ -1,6 +1,6 @@
-package org.nrg.testing
+package org.nrg.testing.unit
 
-
+import org.nrg.testing.TestNgUtils
 import org.testng.IMethodInstance
 import org.testng.IMethodInterceptor
 import org.testng.ITestContext
@@ -23,8 +23,8 @@ class UnitTestFilter implements IMethodInterceptor {
 
     static List<IMethodInstance> getDummyTests(int id) {
         METHOD_INSTANCES.findAll { instance ->
-            final UnitTestId testId = TestNgUtils.getAnnotation(instance.getMethod(), UnitTestId.class)
-            testId != null && testId.value() == id
+            final UnitTestId testId = TestNgUtils.getAnnotation(instance.getMethod(), UnitTestId)
+            testId != null && id in testId.value()
         }
     }
 
