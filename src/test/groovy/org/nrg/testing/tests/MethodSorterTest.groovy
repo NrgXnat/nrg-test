@@ -10,19 +10,18 @@ import static org.testng.AssertJUnit.*
 
 @SuppressWarnings('UnnecessaryQualifiedReference') // qualified field required to get groovy to compile
 @Listeners(UnitTestFilter)
+@Test(dependsOnGroups = MethodSorterTest.DUMMY)
 class MethodSorterTest {
 
     private static final DefaultMethodSorter INTERCEPTOR = new DefaultMethodSorter()
     public static final String DUMMY = 'dummy'
 
-    @Test(dependsOnGroups = MethodSorterTest.DUMMY)
     void testSingleMethod() {
         final int testId = 1
 
         assertEquals([UnitTestFilter.getDummyTests(testId).get(0)], INTERCEPTOR.orderMethods(UnitTestFilter.getDummyTests(testId)))
     }
 
-    @Test(dependsOnGroups = MethodSorterTest.DUMMY)
     void testClassSort() {
         final int testId = 2
 
@@ -36,7 +35,6 @@ class MethodSorterTest {
         assertTrue(actualSort == [testA1, testA2, testA3, testB1, testB2] || actualSort == [testB1, testB2, testA1, testA2, testA3])
     }
 
-    @Test(dependsOnGroups = MethodSorterTest.DUMMY)
     void test1Cycle() {
         final int testId = 3
 
@@ -48,7 +46,6 @@ class MethodSorterTest {
         }
     }
 
-    @Test(dependsOnGroups = MethodSorterTest.DUMMY)
     void test2Cycle() {
         final int testId = 4
 
@@ -60,7 +57,6 @@ class MethodSorterTest {
         }
     }
 
-    @Test(dependsOnGroups = MethodSorterTest.DUMMY)
     void testLargerCycle() {
         final int testId = 5
 
@@ -72,7 +68,6 @@ class MethodSorterTest {
         }
     }
 
-    @Test(dependsOnGroups = MethodSorterTest.DUMMY)
     void testLargerNonCycle() {
         // This example: https://www.cs.hmc.edu/~keller/courses/cs60/s98/examples/acyclic/image%20500.gif (plus some disconnected vertices)
         // Sorted order of the above is unique: 1, 2, 4, 5, 6, 3
@@ -97,7 +92,6 @@ class MethodSorterTest {
         assertTrue(actualResult == sortedComponents1 + sortedComponents2 || actualResult == sortedComponents2 + sortedComponents1)
     }
 
-    @Test(dependsOnGroups = MethodSorterTest.DUMMY)
     void testClass1Cycle() {
         final int testId = 7
 
@@ -109,7 +103,6 @@ class MethodSorterTest {
         }
     }
 
-    @Test(dependsOnGroups = MethodSorterTest.DUMMY)
     void testLargerClassNoncycle() {
         // Topological sort is unique: A -> B -> C -> E -> D
         final int testId = 8
@@ -123,7 +116,6 @@ class MethodSorterTest {
         assertEquals([testA, testB, testC, testE, testD], INTERCEPTOR.orderMethods(UnitTestFilter.getDummyTests(testId)))
     }
 
-    @Test(dependsOnGroups = MethodSorterTest.DUMMY)
     void testClassCycle() {
         final int testId = 9
 

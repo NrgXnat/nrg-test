@@ -6,9 +6,9 @@ import org.nrg.testing.tests.MethodSorterTest
 import org.testng.annotations.Test
 
 @SoftClassDependency(TestDummyNoncycleA)
+@Test(groups = MethodSorterTest.DUMMY)
 class TestDummyNoncycleB {
 
-    @Test(groups = MethodSorterTest.DUMMY)
     @UnitTestId(8)
     void testDummyNoncycleClassB() {}
 

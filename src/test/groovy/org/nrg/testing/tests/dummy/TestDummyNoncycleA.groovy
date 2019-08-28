@@ -4,9 +4,9 @@ import org.nrg.testing.unit.UnitTestId
 import org.nrg.testing.tests.MethodSorterTest
 import org.testng.annotations.Test
 
+@Test(groups = MethodSorterTest.DUMMY)
 class TestDummyNoncycleA {
 
-    @Test(groups = MethodSorterTest.DUMMY)
     @UnitTestId(8)
     void testDummyNoncycleClassA() {}
 

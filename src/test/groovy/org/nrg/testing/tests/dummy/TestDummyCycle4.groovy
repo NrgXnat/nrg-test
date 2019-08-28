@@ -5,10 +5,10 @@ import org.nrg.testing.annotations.SoftClassDependency
 import org.nrg.testing.tests.MethodSorterTest
 import org.testng.annotations.Test
 
-@SoftClassDependency([TestDummyCycle3])
+@SoftClassDependency(TestDummyCycle3)
+@Test(groups = MethodSorterTest.DUMMY)
 class TestDummyCycle4 {
 
-    @Test(groups = MethodSorterTest.DUMMY)
     @UnitTestId(9)
     void testDummyCycleClass4() {}
 
