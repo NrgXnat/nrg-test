@@ -1,6 +1,7 @@
 package org.nrg.testing.listeners.interceptors.filters
 
 import org.apache.log4j.Logger
+import org.nrg.testing.TestNgUtils
 import org.testng.IMethodInstance
 import org.testng.IMethodInterceptor
 import org.testng.ITestContext
@@ -25,11 +26,15 @@ abstract class TestFilterInterceptor implements IMethodInterceptor {
             LOGGER.info("${className} is not active. No tests will be filtered out by this class.")
             return methods
         }
-        final List<IMethodInstance> allowedTests
-        final List<IMethodInstance> prohibitedTests
+        final List<IMethodInstance> allowedTests = []
+        final List<String> prohibitedTests = []
 
-        (allowedTests, prohibitedTests) = methods.split { methodInstance ->
-            isTestAllowed(methodInstance)
+        methods.each { methodInstance ->
+            if (isTestAllowed(methodInstance)) {
+                allowedTests << methodInstance
+            } else {
+                prohibitedTests << "${TestNgUtils.getTestClass(methodInstance).simpleName}.${TestNgUtils.getTestName(methodInstance)}".toString()
+            }
         }
 
         if (prohibitedTests.isEmpty()) {
