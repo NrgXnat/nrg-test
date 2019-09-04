@@ -68,7 +68,7 @@ class BaseProperties {
         (providedValue != null) ? Integer.parseInt(providedValue) : defaultValue
     }
 
-    private String getCommandLineArgument(String property) {
+    protected String getCommandLineArgument(String property) {
         System.getProperty(property)
     }
 

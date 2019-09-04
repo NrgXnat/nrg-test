@@ -74,7 +74,8 @@ dependencies {
         exclude(group: 'ch.qos.logback', module: 'logback-classic')
     }
     compile('ome:formats-gpl') {
-        exclude(group: 'ch.qos.logback', module: 'logback-classic')
+        exclude(group: 'ch.systems.cisd', module: 'logback-classic')
+        exclude(group: 'ch.systems.cisd', module: 'jhdf5')
     }
 }
 

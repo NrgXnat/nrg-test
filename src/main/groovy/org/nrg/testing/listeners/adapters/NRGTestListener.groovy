@@ -1,6 +1,7 @@
 package org.nrg.testing.listeners.adapters
 
 import com.jayway.restassured.RestAssured
+import groovy.util.logging.Log4j
 import org.apache.log4j.Logger
 import org.nrg.jira.reporter.JiraCompiler
 import org.nrg.listeners.BaseTestListener
@@ -23,9 +24,9 @@ import org.testng.ITestContext
 import org.testng.ITestNGMethod
 import org.testng.ITestResult
 
+@Log4j
 class NRGTestListener extends BaseTestListener {
 
-    private static final Logger LOGGER = Logger.getLogger(NRGTestListener)
     private TestController testController
     private XnatRestDriver xnatRestDriver
     private final Map<ITestNGMethod, FailureCause> failureReasons = [:]
@@ -34,7 +35,7 @@ class NRGTestListener extends BaseTestListener {
     @Override
     void onConfigurationFailure(ITestResult itr) {
         super.onConfigurationFailure(itr)
-        LOGGER.warn("Configuration method ${itr.method.methodName} failed with stack trace:\n", itr.throwable)
+        log.warn("Configuration method ${itr.method.methodName} failed with stack trace:\n", itr.throwable)
         setFields(itr)
     }
 
@@ -117,7 +118,7 @@ class NRGTestListener extends BaseTestListener {
                         JIRATestListener.cycle.name
                 ).compileAndBuild(false)
             } catch (Exception e) {
-                LOGGER.warn('JIRA PDF export failed due to: ', e)
+                log.warn('JIRA PDF export failed due to: ', e)
             }
         }
         new SummaryEmail(getPassedTests(), failureReasons, getSkippedTests()).sendSummaryEmail()
@@ -140,7 +141,7 @@ class NRGTestListener extends BaseTestListener {
             testController = (testResult.instance as BaseTestCase).testController
         } catch (NullPointerException ignored) {
             final String nullEntity = (testResult == null) ? 'testResult' : 'testResult.instance'
-            LOGGER.debug("Could not set driver in NRGTestListener due to NPE (in ${nullEntity})")
+            log.debug("Could not set driver in NRGTestListener due to NPE (in ${nullEntity})")
         }
     }
 

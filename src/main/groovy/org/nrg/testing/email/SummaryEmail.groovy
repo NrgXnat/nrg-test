@@ -31,9 +31,9 @@ class SummaryEmail {
     private final String jenkinsUrl = Settings.JENKINS_BUILD_URL
     private final boolean gitlogSetting = Settings.GITLOGS_SETTING
     private final String baseUrl = Settings.BASEURL
-    private final Cycle cycle = JIRATestListener.getCycle()
-    private final String jiraUrl = JIRASettings.JIRA_URL
-    private final String jiraProject = JIRASettings.PROJECT
+    private final Cycle cycle = (Settings.JIRA_SETTING) ? JIRATestListener.getCycle() : null
+    private final String jiraUrl = (Settings.JIRA_SETTING) ? JIRASettings.JIRA_URL : null
+    private final String jiraProject = (Settings.JIRA_SETTING) ? JIRASettings.PROJECT : null
     private final List<ITestResult> passedTests
     private final Map<ITestNGMethod, FailureCause> failedTests
     private final List<ITestResult> skippedTests

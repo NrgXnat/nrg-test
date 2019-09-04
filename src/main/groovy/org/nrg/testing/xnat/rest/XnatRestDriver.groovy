@@ -136,7 +136,7 @@ abstract class XnatRestDriver {
     }
 
     void fixContentType(Response restResponse, ContentType type) {
-        (restResponse as RestAssuredResponseImpl).setContentType(type) // XNAT is returning the wrong content type in some cases
+        (restResponse as RestAssuredResponseImpl).setContentType(type.toString()) // XNAT is returning the wrong content type in some cases
     }
 
     File saveBinaryResponseToFile(Response response) {
@@ -209,7 +209,7 @@ abstract class XnatRestDriver {
     }
 
     void clearUnassignedPrearchiveSessions(User authUser, List<String> studyInstanceUIDs) {
-        clearPrearchiveSessionsMatchingFilter(authUser, formatRestUrl('/prearchive'), "ResultSet.Result.findAll { it.tag in ${studyInstanceUIDs} && it.project == 'Unassigned' }.url")
+        clearPrearchiveSessionsMatchingFilter(authUser, formatRestUrl('/prearchive'), "ResultSet.Result.findAll { it.tag in ${studyInstanceUIDs.collect { "'${it}'" }} && it.project == 'Unassigned' }.url")
     }
 
     void waitForPrearchiveEmpty(User authUser, Project project, int maximumWait) {

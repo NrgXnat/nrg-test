@@ -8,7 +8,7 @@ import org.nrg.testing.BaseTestCase
 import org.nrg.testing.FileIOUtils
 import org.nrg.testing.TestController
 import org.nrg.testing.TestNgUtils
-import org.nrg.testing.XnatFtpServerClient
+import org.nrg.testing.XnatDownloadServerClient
 import org.nrg.testing.annotations.JiraKey
 import org.nrg.testing.annotations.TestRequires
 import org.nrg.testing.annotations.XnatVersionLink
@@ -207,26 +207,27 @@ abstract class BaseXnatTest extends BaseTestCase {
             }
         }
         if (!testDataRequirements.isEmpty()) {
-            final XnatFtpServerClient ftpClient = new XnatFtpServerClient(Settings.EMAIL)
+            final XnatDownloadServerClient downloadServerClient = new XnatDownloadServerClient()
             testDataRequirements.each { testData ->
-                final String dataName = testData.zipName
-                final File testDataFile = Paths.get(Settings.DATA_LOCATION, dataName).toFile()
-                if (testDataFile.exists()) {
-                    if (testDataFile.length() < 1000) { // it's less than 1 KB (e.g. probably empty, no test data will be this small)
-                        assertTrue(testDataFile.delete())
-                    } else {
-                        log.info("I already have the ${dataName} test data. No need to download again!")
-                        return
+                if (testData != TestData.NONE) {
+                    final String dataName = testData.zipName
+                    final File testDataFile = Paths.get(Settings.DATA_LOCATION, dataName).toFile()
+                    if (testDataFile.exists()) {
+                        if (testDataFile.length() < 1000) { // it's less than 1 KB (e.g. probably empty, no test data will be this small)
+                            assertTrue(testDataFile.delete())
+                        } else {
+                            log.info("I already have the ${dataName} test data. No need to download again!")
+                            return
+                        }
                     }
+                    downloadServerClient.downloadToFile(dataName, testDataFile)
+                    FileIOUtils.unzip(testDataFile.parentFile, testDataFile, true)
                 }
-                ftpClient.downloadFile("/pub/data/${dataName}", testDataFile)
-                FileIOUtils.unzip(testDataFile.parentFile, testDataFile, true)
             }
-            ftpClient.closeFTP()
         }
     }
 
-    private List<XnatPlugin> installedPlugins() {
+    protected List<XnatPlugin> installedPlugins() {
         if (installedPlugins.isEmpty()) {
             installedPlugins.addAll(restDriver.readInstalledPlugins(mainAdminUser))
         }

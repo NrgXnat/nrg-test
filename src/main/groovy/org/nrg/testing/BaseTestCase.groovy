@@ -124,7 +124,7 @@ class BaseTestCase {
         }
         allRunningTests.keySet().findAll { test ->
             TestNgUtils.getTestClass(test) == testClass
-        }
+        } as List
     }
 
     protected File getDataFile(String filename) {

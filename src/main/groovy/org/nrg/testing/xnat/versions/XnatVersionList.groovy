@@ -44,6 +44,12 @@ class XnatVersionList {
                     follows.value().each { precedingXnatVersion ->
                         XNAT_VERSION_GRAPH.putEdge(precedingXnatVersion, xnatVersion)
                         versionStringGraph.putEdge(keysForClass[precedingXnatVersion][0], versionKeys[0])
+
+                        keysForClass[precedingXnatVersion].each { precedingKey ->
+                            versionKeys.each { versionKey ->
+                                versionStringGraph.putEdge(precedingKey, versionKey)
+                            }
+                        }
                     }
                 }
             }
