@@ -12,6 +12,7 @@ class SSHCommandResult {
     SSHCommandResult(Session.Command executedCommand) {
         setStdOut(IOUtils.toString(executedCommand.inputStream, 'UTF-8'))
         setStdErr(IOUtils.toString(executedCommand.errorStream, 'UTF-8'))
+        executedCommand.close()
         setErrorMessage(executedCommand.exitErrorMessage)
         setExitStatus(executedCommand.exitStatus)
     }
