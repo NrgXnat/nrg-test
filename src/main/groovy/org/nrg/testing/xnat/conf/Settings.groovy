@@ -48,6 +48,9 @@ class Settings {
     public static final boolean GITLOGS_SETTING = properties.gitlogSetting
     public static final boolean BASIC_MODE = properties.basicSetting
     public static final String GECKO_DRIVER_PATH = properties.geckoDriverPath
+    public static final String SMTP_HOST = properties.smtpHost
+    public static final int SMTP_PORT = properties.smtpPort
+    public static final Properties SMTP_PROPERTIES = composeSmtpProperties()
 
     // values that get fuzzy when multiple XNATs in play
     public static final String MAIN_USERNAME = properties.mainUser
@@ -85,6 +88,13 @@ class Settings {
 
     private static File getSshKey() {
         Paths.get(System.getProperty('user.home'), '.ssh', SSH_KEY_NAME).toFile()
+    }
+
+    private static Properties composeSmtpProperties() {
+        final Properties props = new Properties()
+        props.put('mail.smtp.host', SMTP_HOST)
+        props.put('mail.smtp.port', SMTP_PORT)
+        props
     }
 
     static RequestSpecification mainCredentials() {

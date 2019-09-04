@@ -48,6 +48,8 @@ class XNATProperties extends BaseProperties {
     public static final String GECKO_DRIVER_PATH = 'geckodriver.path'
     public static final String TOMCAT_VERSION = 'tomcat.version'
     public static final String XNAT_REQUIRED = 'xnat.required' // used to specify that additional XNATs will be needed
+    public static final String SMTP_HOST = 'mail.smtp.host'
+    public static final String SMTP_PORT = 'mail.smtp.port'
 
     XNATProperties() {
         super('xnat.config', 'local.properties')
@@ -208,6 +210,14 @@ class XNATProperties extends BaseProperties {
 
     String getTomcatVersion() {
         getStringProperty(false, TOMCAT_VERSION, 'tomcat7')
+    }
+
+    String getSmtpHost() {
+        getStringProperty(false, SMTP_HOST, 'localhost')
+    }
+
+    int getSmtpPort() {
+        getIntProperty(SMTP_PORT, 25)
     }
 
     boolean nthXnatRequired(int n) {

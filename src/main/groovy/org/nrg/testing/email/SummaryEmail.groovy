@@ -26,7 +26,6 @@ class SummaryEmail {
     private final boolean notificationSetting = Settings.NOTIFICATION_SETTING
     private final String[] notificationEmails = Settings.NOTIFICATION_EMAILS
     private final String emailAddress = Settings.EMAIL
-    private final String emailPassword = Settings.EMAIL_PASS
     private final String notificationTitle = Settings.NOTIFICATION_TITLE
     private final String jenkinsUrl = Settings.JENKINS_BUILD_URL
     private final boolean gitlogSetting = Settings.GITLOGS_SETTING
@@ -47,29 +46,10 @@ class SummaryEmail {
     void sendSummaryEmail() {
         final boolean allPassed = failedTests.isEmpty() && skippedTests.isEmpty()
         if (!notificationSetting && allPassed) return // if we don't want to send success emails AND all tests passed, return
-        if (notificationEmails == null || emailAddress == null || emailPassword == null || notificationTitle == null) return
+        if (notificationEmails == null || emailAddress == null || notificationTitle == null) return
         // If we don't have anywhere to send it, anywhere to send it from, or anything to call it, return
 
-        final Properties properties = new Properties()
-        properties.put('mail.smtp.auth', 'true')
-        properties.put('mail.smtp.starttls.enable', 'true')
-        properties.put('mail.smtp.host', 'smtp.gmail.com')
-        properties.put('mail.smtp.port', '587')
-        final Session session
-
-        try {
-            final Authenticator credentials = new Authenticator() {
-                PasswordAuthentication getPasswordAuthentication() {
-                    new PasswordAuthentication(emailAddress, emailPassword)
-                }
-            }
-            session = Session.getInstance(properties, credentials)
-        } catch (Exception mex) {
-            LOGGER.warn('Failed in connecting to gmail', mex)
-            return
-        }
-
-        final Message message = new MimeMessage(session)
+        final Message message = new MimeMessage(Session.getInstance(Settings.SMTP_PROPERTIES))
 
         try {
             message.setFrom(new InternetAddress(emailAddress))
