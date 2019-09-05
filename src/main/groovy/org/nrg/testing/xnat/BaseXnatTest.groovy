@@ -259,8 +259,7 @@ abstract class BaseXnatTest extends BaseTestCase {
         }
         if (Settings.NOTIFICATION_EMAILS != null) {
             checkConditionalProperties(XNATProperties.NOTIFICATION_EMAILS, [
-                    (XNATProperties.EMAIL) : Settings.EMAIL,
-                    (XNATProperties.EMAIL_PASS) : Settings.EMAIL_PASS
+                    (XNATProperties.EMAIL) : Settings.EMAIL
             ])
         }
         if (Settings.JIRA_SETTING) {

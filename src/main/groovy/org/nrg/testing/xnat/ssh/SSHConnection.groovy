@@ -93,7 +93,11 @@ class SSHConnection {
         while (true) {
             TimeUtils.checkStopWatch(stopWatch, 500, 'Tomcat didn\'t come back after restarting/starting it with SSH')
             log.info('Waiting for tomcat to start back up...')
-            if (Settings.mainCredentials().get(Settings.BASEURL).statusCode == 200) break
+            try {
+                if (Settings.mainCredentials().get(Settings.BASEURL).statusCode == 200) {
+                    break
+                }
+            } catch (ConnectException ignored) {}
             TimeUtils.sleep(10000)
         }
         TimeUtils.sleep(15000) // give it 15 extra seconds to just wait for tomcat to more fully be ready
