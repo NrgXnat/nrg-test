@@ -90,13 +90,11 @@ class EmailReader {
         // From http://www.oracle.com/technetwork/java/javamail/faq/index.html#mainbody
         if (p.isMimeType('text/*')) {
             return p.content as String
-        }
-
-        if (p.isMimeType('multipart/alternative')) {
+        } else if (p.isMimeType('multipart/alternative')) {
             // prefer html text over plain text
-            final Multipart mp = p.content as Multipart
             String text = null
-            (0 ..< mp.count).each { i ->
+            final Multipart mp = p.content as Multipart
+            return (0 ..< mp.count).findResult { i ->
                 final Part bp = mp.getBodyPart(i)
                 if (bp.isMimeType('text/plain') && text == null) {
                     text = getText(bp)
@@ -108,15 +106,12 @@ class EmailReader {
                 } else {
                     return getText(bp)
                 }
-            }
-            return text
+                null
+            } ?: text
         } else if (p.isMimeType('multipart/*')) {
             final Multipart mp = p.content as Multipart
-            (0 ..< mp.count).each { i ->
-                final String s = getText(mp.getBodyPart(i))
-                if (s != null) {
-                    return s
-                }
+            return (0 ..< mp.count).findResult { i ->
+                getText(mp.getBodyPart(i))
             }
         }
         null

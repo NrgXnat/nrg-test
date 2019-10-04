@@ -140,7 +140,7 @@ class SummaryEmail {
     }
 
     private String joinTests(List<String> testStringList) {
-        testStringList.join('<br />&emsp&emsp')
+        testStringList.join('<br />&emsp;&emsp;')
     }
 
     private String getLink(String url, String linkText) {
