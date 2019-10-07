@@ -29,7 +29,7 @@ class XnatDatabase {
         final Connection connection = getDBConnection()
         final PreparedStatement statement = connection.prepareStatement(sql)
         LOGGER.info("Attempting to execute DB command: ${sql}")
-        final Object result = (isQuery) ? statement.executeQuery() : statement
+        final Object result = (isQuery) ? statement.executeQuery() : statement.executeUpdate()
         connection.close()
         result
     }
