@@ -17,7 +17,7 @@ def vBom = '3.0-SNAPSHOT'
 def vTestUtils = '2.0-SNAPSHOT'
 def vMultiprocessor = '4.0-SNAPSHOT'
 def vTestListeners = '5.0-SNAPSHOT'
-def vGrxnat = '1.15-SNAPSHOT'
+def vGrxnat = '1.16-SNAPSHOT'
 
 description = 'Framework for testing of NRG applications.'
 
