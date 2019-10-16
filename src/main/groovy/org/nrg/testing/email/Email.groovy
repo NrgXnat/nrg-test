@@ -64,7 +64,7 @@ class Email {
     }
 
     String removeAmpersandEncoding(String string) {
-        string.replace('&amp', '&')
+        string.replace('&amp;', '&')
     }
 
     void assertEmailContains(String contained) {
