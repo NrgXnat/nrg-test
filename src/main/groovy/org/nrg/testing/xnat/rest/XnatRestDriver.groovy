@@ -9,8 +9,10 @@ import com.jayway.restassured.specification.RequestSender
 import com.jayway.restassured.specification.RequestSpecification
 import groovy.util.logging.Log4j
 import org.apache.commons.lang3.time.StopWatch
+import org.hamcrest.Matchers
 import org.nrg.jira.components.zephyr.TestStatus
 import org.nrg.testing.CommonStringUtils
+import org.nrg.testing.DicomUtils
 import org.nrg.testing.HttpUtils
 import org.nrg.testing.TestController
 import org.nrg.testing.TestNgUtils
@@ -320,6 +322,14 @@ abstract class XnatRestDriver {
                 (SiteConfig.AUTOARCHIVE_IDLE_TIME) : idleTime,
                 (SiteConfig.AUTOARCHIVE_IDLE_SCHEDULE) : idleSchedule
         ])
+    }
+
+    void setDicomProjectRules(User authUser, String ruleString) {
+        interfaceFor(authUser).setDicomProjectRules(ruleString)
+    }
+
+    void setDicomProjectRulesFrom(User authUser, int dicomElement, String regex) {
+        interfaceFor(authUser).setDicomProjectRulesFrom(dicomElement, regex)
     }
 
     String siteAnonScriptUrl() {
