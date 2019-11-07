@@ -9,10 +9,8 @@ import com.jayway.restassured.specification.RequestSender
 import com.jayway.restassured.specification.RequestSpecification
 import groovy.util.logging.Log4j
 import org.apache.commons.lang3.time.StopWatch
-import org.hamcrest.Matchers
 import org.nrg.jira.components.zephyr.TestStatus
 import org.nrg.testing.CommonStringUtils
-import org.nrg.testing.DicomUtils
 import org.nrg.testing.HttpUtils
 import org.nrg.testing.TestController
 import org.nrg.testing.TestNgUtils
