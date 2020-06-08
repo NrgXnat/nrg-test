@@ -19,8 +19,13 @@ class XnatConfig {
     User mainAdminUser
     User adminUser
     String xnatUrl
+    String hostName
     boolean init = true
-    
+
+    String getHostName() {
+        new URI(xnatUrl).host
+    }
+
     XnatConfig mainUsername(String user) {
         setMainUsername(user)
         this

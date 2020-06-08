@@ -1,6 +1,6 @@
 def groupName = 'org.nrg'
 def artifactName = 'nrg_test'
-def buildVersion = '2.0-SNAPSHOT'
+def buildVersion = '2.0'
 
 group groupName
 version buildVersion
@@ -13,11 +13,11 @@ apply plugin: 'idea'
 apply plugin: 'eclipse'
 apply plugin: 'io.spring.dependency-management'
 
-def vBom = '3.0-SNAPSHOT'
-def vTestUtils = '2.1'
-def vMultiprocessor = '4.0-SNAPSHOT'
-def vTestListeners = '5.0-SNAPSHOT'
-def vGrxnat = '1.16-SNAPSHOT'
+def vBom = '3.0'
+def vTestUtils = '2.3'
+def vMultiprocessor = '4.0'
+def vTestListeners = '5.0'
+def vGrxnat = '1.16'
 
 description = 'Framework for testing of NRG applications.'
 
