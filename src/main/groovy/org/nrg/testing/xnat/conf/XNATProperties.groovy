@@ -45,6 +45,7 @@ class XNATProperties extends BaseProperties {
     public static final String SSH_PRIVATE_KEY_NAME = 'xnat.ssh.key'
     public static final String PRODUCE_PDF = 'xnat.producePdf'
     public static final String DOM_SETTING = 'xnat.captureDom'
+    public static final String SETUP_MRSCAN = 'xnat.setupMrscan'
     public static final String GECKO_DRIVER_PATH = 'geckodriver.path'
     public static final String TOMCAT_VERSION = 'tomcat.version'
     public static final String XNAT_REQUIRED = 'xnat.required' // used to specify that additional XNATs will be needed
@@ -198,6 +199,10 @@ class XNATProperties extends BaseProperties {
 
     boolean getDomSetting() {
         getBooleanProperty(DOM_SETTING, false)
+    }
+
+    boolean getMrScanSetupSetting() {
+        getBooleanProperty(SETUP_MRSCAN, false)
     }
 
     Class<? extends XnatVersion> getXNATVersion() {

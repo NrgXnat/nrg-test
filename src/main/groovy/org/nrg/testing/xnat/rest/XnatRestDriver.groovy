@@ -40,6 +40,7 @@ import org.nrg.xnat.rest.XnatAliasToken
 
 import java.nio.file.Paths
 
+import static com.jayway.restassured.http.ContentType.JSON
 import static org.hamcrest.CoreMatchers.equalTo
 
 @SuppressWarnings('unused')
@@ -665,7 +666,7 @@ abstract class XnatRestDriver {
         if (initResponse.statusCode() == 200 && initResponse.as(Boolean)) {
             log.info('XNAT already initialized')
         } else {
-            postToSiteConfig(adminUser, ['initialized' : true])
+            interfaceFor(adminUser).queryBase().contentType(JSON).body(['initialized' : true]).post(formatXapiUrl('siteConfig')).then().assertThat().statusCode(200)
         }
     }
 

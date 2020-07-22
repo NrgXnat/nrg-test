@@ -35,6 +35,7 @@ class Settings {
     public static final String JENKINS_BUILD_URL = System.getenv('BUILD_URL')
     public static final boolean PRODUCE_PDF = properties.pdfSetting
     public static final boolean DOM_SETTING = properties.domSetting
+    public static final boolean SETUP_MR_SCAN = properties.mrScanSetupSetting
     public static final int DEFAULT_TIMEOUT = properties.defaultTimeout
     public static final String BROWSER = properties.browser
     public static final boolean JIRA_SETTING = properties.jiraSetting
