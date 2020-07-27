@@ -2,7 +2,7 @@ package org.nrg.testing.xnat.versions
 
 import org.nrg.testing.annotations.Follows
 
-@Follows(Xnat_1_7_6)
+@Follows(Xnat_1_7_7)
 class Xnat_1_7dev extends XnatVersion {
 
     @Override
