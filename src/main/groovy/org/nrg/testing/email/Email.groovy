@@ -44,7 +44,7 @@ class Email {
     }
 
     String extractFirstLink() {
-        return removeAmpersandEncoding(readLinks()[0].attr('abs:href'))
+        removeAmpersandEncoding(readLinks()[0].attr('abs:href'))
     }
 
     @SuppressWarnings('GroovyMissingReturnStatement')

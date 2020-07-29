@@ -88,17 +88,21 @@ class SearchTerms {
 
     static SearchTerm verificationEmail(User user) {
         bodyContainsAll([
-                "Dear ${user.firstName} ${user.lastName}",
+                "${user.firstName} ${user.lastName}",
                 (XnatVersionList.testedVersionFollows(Xnat_1_7_4)) ? 'If you would like to register, please confirm your email address' : 'Please click this link to verify your email address'
         ])
     }
 
     static SearchTerm projectAccessEmail(Project project, boolean approved) {
-        bodyContains(
-                XnatVersionList.testedVersionFollows(Xnat_1_7_4) ?
-                    (approved ? "You have been granted access to the ${project.title} project" : "request to access the ${project.title} project has been denied") :
-                    "${project.title} access ${approved ? 'granted' : 'denied'}"
-        )
+        final String search = {
+            if (XnatVersionList.testedVersionFollows(Xnat_1_7_4)) {
+                approved ? "You have been granted access to the ${project.title} project" : "request to access the ${project.title} project has been denied"
+            } else {
+                "${project.title} access ${approved ? 'granted' : 'denied'}"
+            }
+        }.call()
+
+        bodyContains(search)
     }
 
     private static SearchTerm[] containsArray(final List<String> stringList) {
