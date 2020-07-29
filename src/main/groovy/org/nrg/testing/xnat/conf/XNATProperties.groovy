@@ -264,7 +264,7 @@ class XNATProperties extends BaseProperties {
 
         final Class<? extends XnatVersion> versionClass = XnatVersionList.KNOWN_KEY_VERSION_MAP.get(version)
         if (versionClass == null) {
-            throw new RuntimeException("Could not find requested version of XNAT (${key}) in list of available versions.")
+            throw new RuntimeException("Could not find requested version of XNAT (${version}) in list of available versions.")
         }
         versionClass
     }
