@@ -9,6 +9,7 @@ import org.nrg.testing.TimeUtils
 import org.nrg.testing.util.ResourceLoader
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.conf.XNATProperties
+import org.nrg.testing.xnat.rest.XnatRestDriver
 import org.testng.AssertJUnit
 
 @Log4j
@@ -73,10 +74,12 @@ class SSHConnection {
     }
 
     void stopTomcat() {
+        XnatRestDriver.invalidateCachedCredentials()
         manageTomcat('stop')
     }
 
     void startTomcat() {
+        XnatRestDriver.invalidateCachedCredentials()
         manageTomcat('start')
         waitForTomcat()
     }

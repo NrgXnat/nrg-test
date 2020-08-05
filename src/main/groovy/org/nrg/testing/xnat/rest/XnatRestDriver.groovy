@@ -79,6 +79,12 @@ abstract class XnatRestDriver {
         getInstance(Settings.DEFAULT_XNAT_CONFIG)
     }
 
+    static invalidateCachedCredentials() {
+        xnatInterfaceMap.values().each { xnatInterface ->
+            xnatInterface.removeCachedAuth()
+        }
+    }
+
     XnatInterface interfaceFor(User user) {
         final XnatInterface xnatInterface = xnatInterfaceMap[user]
         if (xnatInterface != null) {
