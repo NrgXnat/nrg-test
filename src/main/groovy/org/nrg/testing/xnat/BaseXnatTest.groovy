@@ -148,6 +148,9 @@ abstract class BaseXnatTest extends BaseTestCase {
             } else if (testRequires.openXnat()) {
                 restDriver.openXnat(mainAdminUser)
             }
+            if (testRequires.csSwarmCanEnable()) {
+                TestNgUtils.assumeTrue(Settings.CS_SWARM_CAN_ENABLE, "Docker swarm is required for test: ${testName}")
+            }
         }
     }
 

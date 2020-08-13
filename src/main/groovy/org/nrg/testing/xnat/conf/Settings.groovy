@@ -52,6 +52,7 @@ class Settings {
     public static final String SMTP_HOST = properties.smtpHost
     public static final int SMTP_PORT = properties.smtpPort
     public static final Properties SMTP_PROPERTIES = composeSmtpProperties()
+    public static final boolean CS_SWARM_CAN_ENABLE = properties.csSwarmCanEnable
 
     // values that get fuzzy when multiple XNATs in play
     public static final String MAIN_USERNAME = properties.mainUser

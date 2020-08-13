@@ -51,6 +51,7 @@ class XNATProperties extends BaseProperties {
     public static final String XNAT_REQUIRED = 'xnat.required' // used to specify that additional XNATs will be needed
     public static final String SMTP_HOST = 'mail.smtp.host'
     public static final String SMTP_PORT = 'mail.smtp.port'
+    public static final String CS_SWARM_CAN_ENABLE = 'cs.swarm.canEnable'
 
     XNATProperties() {
         super('xnat.config', 'local.properties')
@@ -203,6 +204,10 @@ class XNATProperties extends BaseProperties {
 
     boolean getMrScanSetupSetting() {
         getBooleanProperty(SETUP_MRSCAN, false)
+    }
+
+    boolean getCsSwarmCanEnable() {
+        getBooleanProperty(CS_SWARM_CAN_ENABLE, false);
     }
 
     Class<? extends XnatVersion> getXNATVersion() {
