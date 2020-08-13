@@ -46,7 +46,8 @@ class XNATProperties extends BaseProperties {
     public static final String PRODUCE_PDF = 'xnat.producePdf'
     public static final String DOM_SETTING = 'xnat.captureDom'
     public static final String SETUP_MRSCAN = 'xnat.setupMrscan'
-    public static final String GECKO_DRIVER_PATH = 'geckodriver.path'
+    public static final String SKIP_EXPECTED_FAILURE = 'xnat.skipExpectedFailures'
+    public static final String FIREFOX_BINARY_PATH = 'firefox.path'
     public static final String TOMCAT_VERSION = 'tomcat.version'
     public static final String XNAT_REQUIRED = 'xnat.required' // used to specify that additional XNATs will be needed
     public static final String SMTP_HOST = 'mail.smtp.host'
@@ -206,20 +207,24 @@ class XNATProperties extends BaseProperties {
         getBooleanProperty(SETUP_MRSCAN, false)
     }
 
+    boolean getSkipExpectedFailureSetting() {
+        getBooleanProperty(SKIP_EXPECTED_FAILURE, true)
+    }
+
     boolean getCsSwarmCanEnable() {
-        getBooleanProperty(CS_SWARM_CAN_ENABLE, false);
+        getBooleanProperty(CS_SWARM_CAN_ENABLE, false)
     }
 
     Class<? extends XnatVersion> getXNATVersion() {
         parseVersion(XNAT_VERSION)
     }
 
-    String getGeckoDriverPath() {
-        getPropertyFromAnywhere(GECKO_DRIVER_PATH)
-    }
-
     String getTomcatVersion() {
         getStringProperty(false, TOMCAT_VERSION, 'tomcat7')
+    }
+
+    String getFirefoxPath() {
+        getStringProperty(false, FIREFOX_BINARY_PATH, null)
     }
 
     String getSmtpHost() {

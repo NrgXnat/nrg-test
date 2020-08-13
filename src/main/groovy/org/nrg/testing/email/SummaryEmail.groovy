@@ -2,15 +2,15 @@ package org.nrg.testing.email
 
 import org.apache.log4j.Logger
 import org.nrg.jira.components.zephyr.Cycle
-import org.nrg.listeners.jira.JIRATest
-import org.nrg.listeners.jira.JIRATestListener
-import org.nrg.listeners.jira.failure.FailureCause
 import org.nrg.testing.CommonStringUtils
 import org.nrg.testing.TestNgUtils
 import org.nrg.testing.TimeUtils
 import org.nrg.testing.annotations.TestedApiSpec
 import org.nrg.testing.annotations.TestedApiSpecs
 import org.nrg.testing.jira.JIRASettings
+import org.nrg.testing.listeners.adapters.jira.JIRATest
+import org.nrg.testing.listeners.adapters.jira.JIRATestListener
+import org.nrg.testing.listeners.adapters.jira.failure.FailureCause
 import org.nrg.testing.xnat.conf.Settings
 import org.testng.ITestNGMethod
 import org.testng.ITestResult
@@ -35,9 +35,9 @@ class SummaryEmail {
     private final String jiraProject = (Settings.JIRA_SETTING) ? JIRASettings.PROJECT : null
     private final List<ITestResult> passedTests
     private final Map<ITestNGMethod, FailureCause> failedTests
-    private final List<ITestResult> skippedTests
+    private final Map<ITestNGMethod, FailureCause> skippedTests
 
-    SummaryEmail(List<ITestResult> passedTests, Map<ITestNGMethod, FailureCause> failedTests, List<ITestResult> skippedTests) {
+    SummaryEmail(List<ITestResult> passedTests, Map<ITestNGMethod, FailureCause> failedTests, Map<ITestNGMethod, FailureCause> skippedTests) {
         this.passedTests = passedTests
         this.failedTests = failedTests
         this.skippedTests = skippedTests
@@ -114,7 +114,7 @@ class SummaryEmail {
     }
 
     private String formatTestString(ITestNGMethod testMethod) {
-        final JIRATest jiraTest = JIRATestListener.getCurrentTest(testMethod)
+        final JIRATest jiraTest = JIRATestListener.getJiraTest(testMethod)
         final String testName = TestNgUtils.getTestName(testMethod)
         final String testLink = (jiraTest.executionUrl == null) ? testName : getLink(jiraTest.executionUrl, testName)
         testLink + readApiSpecs(testMethod)

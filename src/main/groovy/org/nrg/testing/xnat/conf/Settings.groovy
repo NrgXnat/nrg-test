@@ -36,6 +36,7 @@ class Settings {
     public static final boolean PRODUCE_PDF = properties.pdfSetting
     public static final boolean DOM_SETTING = properties.domSetting
     public static final boolean SETUP_MR_SCAN = properties.mrScanSetupSetting
+    public static final boolean SKIP_EXPECTED_FAILURE = properties.skipExpectedFailureSetting
     public static final int DEFAULT_TIMEOUT = properties.defaultTimeout
     public static final String BROWSER = properties.browser
     public static final boolean JIRA_SETTING = properties.jiraSetting
@@ -48,7 +49,7 @@ class Settings {
     public static final boolean TIMELOG_SETTING = properties.timelogSetting
     public static final boolean GITLOGS_SETTING = properties.gitlogSetting
     public static final boolean BASIC_MODE = properties.basicSetting
-    public static final String GECKO_DRIVER_PATH = properties.geckoDriverPath
+    public static final String FIREFOX_PATH = properties.firefoxPath
     public static final String SMTP_HOST = properties.smtpHost
     public static final int SMTP_PORT = properties.smtpPort
     public static final Properties SMTP_PROPERTIES = composeSmtpProperties()

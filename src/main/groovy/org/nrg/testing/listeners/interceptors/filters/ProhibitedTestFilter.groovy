@@ -34,16 +34,12 @@ class ProhibitedTestFilter extends TestFilterInterceptor {
         final ITestNGMethod method = testInstance.method
         final Class<?> testClass = TestNgUtils.getTestClass(method)
 
-        return !(
-                violatesXnatVersionConstraint(testClass.getAnnotation(RequireXnatVersion), versionClass) ||
-                violatesXnatVersionConstraint(testClass.getAnnotation(DisallowXnatVersion), versionClass) ||
-                violatesXnatVersionConstraint(testClass.getAnnotation(AddedIn), versionClass) ||
-                violatesXnatVersionConstraint(testClass.getAnnotation(DeprecatedIn), versionClass) ||
-                violatesXnatVersionConstraint(TestNgUtils.getAnnotation(method, RequireXnatVersion), versionClass) ||
-                violatesXnatVersionConstraint(TestNgUtils.getAnnotation(method, DisallowXnatVersion), versionClass) ||
-                violatesXnatVersionConstraint(TestNgUtils.getAnnotation(method, AddedIn), versionClass) ||
-                violatesXnatVersionConstraint(TestNgUtils.getAnnotation(method, DeprecatedIn), versionClass)
-        )
+        return ([RequireXnatVersion, DisallowXnatVersion, AddedIn, DeprecatedIn] as List<Class<? extends Annotation>>).every { annotationClass ->
+            !(
+                    violatesXnatVersionConstraint(testClass.getAnnotation(annotationClass), versionClass) ||
+                    violatesXnatVersionConstraint(TestNgUtils.getAnnotation(method, annotationClass), versionClass)
+            )
+        }
     }
 
     private boolean violatesXnatVersionConstraint(Annotation annotation, Class <? extends XnatVersion> xnatVersion) {

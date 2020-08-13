@@ -17,6 +17,8 @@ import static com.jayway.restassured.config.ObjectMapperConfig.objectMapperConfi
 
 class BaseXnatRestTest extends BaseXnatTest {
 
+
+
     @BeforeSuite
     protected void addXnatSerializers() {
         RestAssured.config = RestAssuredConfig.config().objectMapperConfig(objectMapperConfig().jackson2ObjectMapperFactory(

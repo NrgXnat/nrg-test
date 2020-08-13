@@ -5,11 +5,11 @@ import groovy.util.logging.Log4j
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.mutable.MutableInt
-import org.nrg.listeners.git.GitLogListener
-import org.nrg.listeners.jira.JIRATestListener
 import org.nrg.testing.annotations.JiraKey
 import org.nrg.testing.jira.JIRASettings
 import org.nrg.testing.listeners.adapters.NRGTestListener
+import org.nrg.testing.listeners.adapters.git.GitLogListener
+import org.nrg.testing.listeners.adapters.jira.JIRATestListener
 import org.nrg.testing.listeners.interceptors.sorters.DefaultMethodSorter
 import org.nrg.testing.listeners.interceptors.filters.BasicTestFilter
 import org.nrg.testing.listeners.interceptors.filters.ProhibitedTestFilter

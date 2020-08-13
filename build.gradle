@@ -16,7 +16,7 @@ apply plugin: 'io.spring.dependency-management'
 def vBom = '3.0'
 def vTestUtils = '2.3'
 def vMultiprocessor = '4.0'
-def vTestListeners = '5.0'
+def vJiraZephyr = '2.0'
 def vGrxnat = '1.17.1-SNAPSHOT'
 
 description = 'Framework for testing of NRG applications.'
@@ -53,8 +53,8 @@ targetCompatibility = 1.8
 dependencies {
     compile('org.codehaus.groovy:groovy-all')
     compile("org.nrg:test_utils:${vTestUtils}")
+    compile("org.nrg:jira-zephyr:${vJiraZephyr}")
     compile("org.nrg:multiprocessor-scheduling:${vMultiprocessor}")
-    compile("org.nrg:test_listeners:${vTestListeners}")
     compile("org.nrg:grxnat:${vGrxnat}")
     compile('org.testng:testng')
     compile('com.fasterxml.jackson.core:jackson-databind')

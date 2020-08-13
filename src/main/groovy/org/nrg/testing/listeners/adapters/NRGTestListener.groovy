@@ -2,12 +2,7 @@ package org.nrg.testing.listeners.adapters
 
 import com.jayway.restassured.RestAssured
 import groovy.util.logging.Log4j
-import org.apache.log4j.Logger
 import org.nrg.jira.reporter.JiraCompiler
-import org.nrg.listeners.BaseTestListener
-import org.nrg.listeners.jira.JIRATest
-import org.nrg.listeners.jira.JIRATestListener
-import org.nrg.listeners.jira.failure.FailureCause
 import org.nrg.testing.BaseTestCase
 import org.nrg.testing.FileIOUtils
 import org.nrg.testing.TestController
@@ -16,6 +11,9 @@ import org.nrg.testing.annotations.HardDependency
 import org.nrg.testing.annotations.PipelineCheckParams
 import org.nrg.testing.email.SummaryEmail
 import org.nrg.testing.jira.JIRASettings
+import org.nrg.testing.listeners.adapters.jira.JIRATest
+import org.nrg.testing.listeners.adapters.jira.JIRATestListener
+import org.nrg.testing.listeners.adapters.jira.failure.FailureCause
 import org.nrg.testing.util.TimeLog
 import org.nrg.testing.xnat.BaseXnatTest
 import org.nrg.testing.xnat.conf.Settings
@@ -30,6 +28,7 @@ class NRGTestListener extends BaseTestListener {
     private TestController testController
     private XnatRestDriver xnatRestDriver
     private final Map<ITestNGMethod, FailureCause> failureReasons = [:]
+    private final Map<ITestNGMethod, FailureCause> skipReasons = [:]
     private final TimeLog timeLog = new TimeLog()
 
     @Override
@@ -94,6 +93,8 @@ class NRGTestListener extends BaseTestListener {
 
     @Override
     void onSkipped(ITestResult testResult) {
+        skipReasons.put(testResult.method, testController.currentTest.skipReason)
+
         testCleanup(testResult)
     }
 
@@ -121,7 +122,7 @@ class NRGTestListener extends BaseTestListener {
                 log.warn('JIRA PDF export failed due to: ', e)
             }
         }
-        new SummaryEmail(getPassedTests(), failureReasons, getSkippedTests()).sendSummaryEmail()
+        new SummaryEmail(getPassedTests(), failureReasons, skipReasons).sendSummaryEmail()
     }
 
     private void testCleanup(ITestResult testResult) {

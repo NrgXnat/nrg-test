@@ -2,19 +2,20 @@ package org.nrg.testing.xnat
 
 import groovy.util.logging.Log4j
 import org.apache.commons.lang3.StringUtils
-import org.nrg.listeners.git.GitLogListener
-import org.nrg.listeners.jira.JIRATestListener
 import org.nrg.testing.BaseTestCase
 import org.nrg.testing.FileIOUtils
 import org.nrg.testing.TestController
 import org.nrg.testing.TestNgUtils
 import org.nrg.testing.XnatDownloadServerClient
+import org.nrg.testing.annotations.ExpectedFailure
 import org.nrg.testing.annotations.JiraKey
 import org.nrg.testing.annotations.TestRequires
 import org.nrg.testing.annotations.XnatVersionLink
 import org.nrg.testing.enums.TestData
 import org.nrg.testing.jira.JIRAProperties
 import org.nrg.testing.jira.JIRASettings
+import org.nrg.testing.listeners.adapters.git.GitLogListener
+import org.nrg.testing.listeners.adapters.jira.JIRATestListener
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.conf.XNATProperties
 import org.nrg.testing.xnat.conf.XnatConfig
@@ -27,6 +28,7 @@ import org.nrg.xnat.pogo.XnatPlugin
 import org.nrg.xnat.pogo.users.User
 import org.testng.ITestContext
 import org.testng.ITestNGMethod
+import org.testng.SkipException
 import org.testng.annotations.BeforeClass
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.BeforeSuite
@@ -74,15 +76,23 @@ abstract class BaseXnatTest extends BaseTestCase {
 
         final Class<? extends BaseTestCase> testClass = this.class as Class<? extends BaseTestCase>
         final String testClassName = testClass.simpleName
+        final TestRequires classRequires = testClass.getAnnotation(TestRequires)
+        final ExpectedFailure classExpectedFailure = testClass.getAnnotation(ExpectedFailure)
 
         (getTestsByClass(testClass) ?: []).each { test ->
             final TestRequires requires = TestNgUtils.getAnnotation(test, TestRequires)
             if (requires != null) {
                 requiredUsers += requires.users()
             }
+            if (Settings.SKIP_EXPECTED_FAILURE && classExpectedFailure != null) {
+                JIRATestListener.getJiraTest(test).setSkipReason(classExpectedFailure.jiraIssue())
+            }
         }
 
-        final TestRequires classRequires = testClass.getAnnotation(TestRequires)
+        if (Settings.SKIP_EXPECTED_FAILURE && classExpectedFailure != null) {
+            throw new SkipException("Tests all skipped due to expected failure in class: ${testClassName}")
+        }
+
         if (classRequires != null) {
             requiredUsers += classRequires.users()
             if (classRequires.db()) {
@@ -105,6 +115,9 @@ abstract class BaseXnatTest extends BaseTestCase {
             } else if (classRequires.openXnat()) {
                 restDriver.openXnat(mainAdminUser)
             }
+            if (classRequires.csSwarmCanEnable()) {
+                TestNgUtils.assumeTrue(Settings.CS_SWARM_CAN_ENABLE, "Docker swarm is required for all tests in class: ${testClassName}")
+            }
         }
 
         if (requiredUsers > 0) {
@@ -126,6 +139,8 @@ abstract class BaseXnatTest extends BaseTestCase {
 
     protected void checkTestRequirements(Method method) {
         final TestRequires testRequires = method.getAnnotation(TestRequires)
+        final ExpectedFailure testExpectedFailure = method.getAnnotation(ExpectedFailure)
+
         if (testRequires != null) {
             final String testName = method.name
             if (testRequires.db()) {
@@ -151,6 +166,11 @@ abstract class BaseXnatTest extends BaseTestCase {
             if (testRequires.csSwarmCanEnable()) {
                 TestNgUtils.assumeTrue(Settings.CS_SWARM_CAN_ENABLE, "Docker swarm is required for test: ${testName}")
             }
+        }
+
+        if (Settings.SKIP_EXPECTED_FAILURE && testExpectedFailure != null) {
+            testController.currentTest.setSkipReason(testExpectedFailure.jiraIssue())
+            throw new SkipException("Test skipped due to expected failure: ${testExpectedFailure.jiraIssue()}")
         }
     }
 
