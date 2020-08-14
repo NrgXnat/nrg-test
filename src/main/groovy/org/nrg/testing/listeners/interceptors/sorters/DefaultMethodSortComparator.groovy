@@ -7,9 +7,12 @@ import org.nrg.testing.TestNgUtils
 import org.nrg.testing.annotations.HardDependency
 import org.nrg.testing.annotations.SoftClassDependency
 import org.nrg.testing.annotations.SoftDependency
+import org.nrg.testing.annotations.SortLast
 import org.nrg.testing.util.GraphUtils
 import org.testng.IMethodInstance
 import org.testng.ITestNGMethod
+
+import java.lang.annotation.Annotation
 
 class DefaultMethodSortComparator implements Comparator<IMethodInstance> {
 
@@ -45,7 +48,7 @@ class DefaultMethodSortComparator implements Comparator<IMethodInstance> {
             TestNgUtils.getTestClass(method)
         }.unique()
         final Map<Class, Collection<Class>> unsortedClasses = allClasses.collectEntries { testClass ->
-            final SoftClassDependency dependency = testClass.getAnnotation(SoftClassDependency)
+            final SoftClassDependency dependency = testClass.getAnnotation(SoftClassDependency) as SoftClassDependency
             final List<Class> classes = (dependency == null) ? [] : dependency.value() as List<Class>
             [(testClass) : classes]
         }
@@ -62,7 +65,9 @@ class DefaultMethodSortComparator implements Comparator<IMethodInstance> {
                 TestNgUtils.getTestClass(method) == testClass
             }
             if (instancesForClass.any { instance ->
-                TestNgUtils.getAnnotation(instance.method, SoftDependency) != null || TestNgUtils.getAnnotation(instance.method, HardDependency) != null
+                [SoftDependency, HardDependency, SortLast].any { annotation ->
+                    TestNgUtils.getAnnotation(instance.method, annotation as Class<? extends Annotation>) != null
+                }
             }) {
                 classesWithMethodDependencies << testClass
             }
@@ -71,28 +76,37 @@ class DefaultMethodSortComparator implements Comparator<IMethodInstance> {
     }
 
     private List<IMethodInstance> topologicallySortMethodSubgraph(Collection<IMethodInstance> methods) {
+        final List<IMethodInstance> methodsSortedLast, otherMethods
+        (methodsSortedLast, otherMethods) = methods.split {methodInstance ->
+            TestNgUtils.getAnnotation(methodInstance.method, SortLast) != null
+        }
+        final Map<IMethodInstance, Collection<IMethodInstance>> dependencyMap = methods.collectEntries { methodInstance ->
+            final ITestNGMethod testMethod = methodInstance.method
+            final List<String> dependencies = []
+            final List<IMethodInstance> dependencyMethods = []
+            final SoftDependency softDependencies = TestNgUtils.getAnnotation(testMethod, SoftDependency)
+            final HardDependency hardDependencies = TestNgUtils.getAnnotation(testMethod, HardDependency)
+            if (softDependencies != null) {
+                dependencies.addAll(softDependencies.value())
+            }
+            if (hardDependencies != null) {
+                dependencies.addAll(hardDependencies.value())
+            }
+            if (methodsSortedLast.contains(methodInstance)) {
+                dependencyMethods.addAll(otherMethods)
+            }
+            if (!dependencies.isEmpty()) {
+                dependencies.each { dependency ->
+                    dependencyMethods << methods.find { method ->
+                        TestNgUtils.getTestName(method) == dependency
+                    }
+                }
+            }
+            [(methodInstance): dependencyMethods]
+        }
+
         try {
-            GraphUtils.topologicalSort(methods.collectEntries { methodInstance ->
-                final ITestNGMethod testMethod = methodInstance.method
-                final List<String> dependencies = []
-                final SoftDependency softDependencies = TestNgUtils.getAnnotation(testMethod, SoftDependency)
-                final HardDependency hardDependencies = TestNgUtils.getAnnotation(testMethod, HardDependency)
-                if (softDependencies != null) {
-                    dependencies.addAll(softDependencies.value())
-                }
-                if (hardDependencies != null) {
-                    dependencies.addAll(hardDependencies.value())
-                }
-                if (dependencies.isEmpty()) {
-                    [(methodInstance): []]
-                } else {
-                    [(methodInstance): dependencies.findResults { dependency ->
-                        methods.find { method ->
-                            TestNgUtils.getTestName(method) == dependency
-                        }
-                    }]
-                }
-            })
+            GraphUtils.topologicalSort(dependencyMap)
         } catch (GraphUtils.CyclicGraphException cge) {
             throw new RuntimeException("Test methods had a cyclic dependency: ${cge.cycle}")
         }

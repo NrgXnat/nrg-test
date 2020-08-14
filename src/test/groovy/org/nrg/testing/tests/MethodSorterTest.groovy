@@ -1,7 +1,9 @@
 package org.nrg.testing.tests
 
+import org.nrg.testing.annotations.SortLast
 import org.nrg.testing.unit.UnitTestFilter
 import org.nrg.testing.listeners.interceptors.sorters.DefaultMethodSorter
+import org.nrg.testing.unit.UnitTestId
 import org.testng.*
 import org.testng.annotations.Listeners
 import org.testng.annotations.Test
@@ -125,6 +127,24 @@ class MethodSorterTest {
         } catch (Exception e) {
             assertTrue(e.getMessage().contains('cyclic dependency'))
         }
+    }
+
+    void testOrderingWithLastMethods() {
+        final int testId = 10
+
+        final IMethodInstance freeLastTest = UnitTestFilter.getInstance('testDummyLast')
+        final IMethodInstance lastTestWithDepdendency = UnitTestFilter.getInstance('testDummyLastWithDependency')
+        final IMethodInstance genericTest = UnitTestFilter.getInstance('testDummyGeneric')
+        assertEquals([genericTest, freeLastTest, lastTestWithDepdendency], INTERCEPTOR.orderMethods(UnitTestFilter.getDummyTests(testId)))
+    }
+
+    void testOrderingWithLastMethodInterdependencies() {
+        final int testId = 11
+
+        try {
+            INTERCEPTOR.orderMethods(UnitTestFilter.getDummyTests(testId))
+            fail('No exception was thrown by non-@SortLast method having a dependency on a @SortLast method.')
+        } catch (Exception ignored) {}
     }
 
 }
