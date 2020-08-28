@@ -23,12 +23,14 @@ import org.nrg.testing.xnat.rest.XnatRestDriver
 import org.nrg.testing.xnat.ssh.SSHConnection
 import org.nrg.testing.xnat.versions.XnatVersionList
 import org.nrg.xnat.pogo.Project
+import org.nrg.xnat.pogo.SiteConfig
 import org.nrg.xnat.pogo.Subject
 import org.nrg.xnat.pogo.XnatPlugin
 import org.nrg.xnat.pogo.users.User
 import org.testng.ITestContext
 import org.testng.ITestNGMethod
 import org.testng.SkipException
+import org.testng.annotations.AfterClass
 import org.testng.annotations.BeforeClass
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.BeforeSuite
@@ -49,6 +51,7 @@ abstract class BaseXnatTest extends BaseTestCase {
     protected final User mainUser = Settings.DEFAULT_XNAT_CONFIG.mainUser
     protected final User mainAdminUser = Settings.DEFAULT_XNAT_CONFIG.mainAdminUser
     private final List<XnatPlugin> installedPlugins = []
+    private final Map<String, ?> siteConfigRestoration = [:]
 
     @BeforeSuite
     void setupXnatTests(ITestContext testContext) {
@@ -72,6 +75,8 @@ abstract class BaseXnatTest extends BaseTestCase {
      */
     @BeforeClass
     void handleClassRequirements() {
+        noteInitialConfigSettings()
+
         int requiredUsers = 0
 
         final Class<? extends BaseTestCase> testClass = this.class as Class<? extends BaseTestCase>
@@ -130,6 +135,13 @@ abstract class BaseXnatTest extends BaseTestCase {
     void setupXnatTest(Method m, ITestContext testContext) {
         initializeTestRandomVariables()
         checkTestRequirements(m)
+    }
+
+    @AfterClass(alwaysRun = true)
+    void restoreSiteConfig() {
+        if (!siteConfigRestoration.isEmpty()) {
+            restDriver.postToSiteConfig(mainAdminUser, siteConfigRestoration)
+        }
     }
 
     protected void initializeTestRandomVariables() {
@@ -205,6 +217,20 @@ abstract class BaseXnatTest extends BaseTestCase {
         links.any { link ->
             link.xnatVersions().any { xnatVersion ->
                 xnatVersion == Settings.XNAT_VERSION
+            }
+        }
+    }
+
+    private void noteInitialConfigSettings() {
+        if (Settings.ADMIN_AVAILABLE) {
+            final Map existingConfig = restDriver.queryBaseFor(mainAdminUser).get(restDriver.formatXapiUrl('/siteConfig')).as(Map)
+            final Boolean mergeSetting = existingConfig.get(SiteConfig.PREVENT_CROSS_MODALITY_MERGE)
+            if (mergeSetting != null) {
+                siteConfigRestoration.put(SiteConfig.PREVENT_CROSS_MODALITY_MERGE, mergeSetting)
+            }
+            final Map configReference = siteConfigRestoration // private variable without getter not accessible w/in closure
+            [SiteConfig.LOGIN_REQUIRED, SiteConfig.REQUIRE_EMAIL_VERIFICATION, SiteConfig.AUTO_ENABLE].each { setting ->
+                configReference.put(setting, existingConfig.get(setting))
             }
         }
     }
