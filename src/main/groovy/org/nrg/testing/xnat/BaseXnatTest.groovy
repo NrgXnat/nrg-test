@@ -11,6 +11,7 @@ import org.nrg.testing.annotations.ExpectedFailure
 import org.nrg.testing.annotations.JiraKey
 import org.nrg.testing.annotations.TestRequires
 import org.nrg.testing.annotations.XnatVersionLink
+import org.nrg.testing.enums.TestBehavior
 import org.nrg.testing.enums.TestData
 import org.nrg.testing.jira.JIRAProperties
 import org.nrg.testing.jira.JIRASettings
@@ -112,8 +113,10 @@ abstract class BaseXnatTest extends BaseTestCase {
             if (classRequires.admin()) {
                 TestNgUtils.assumeTrue(Settings.ADMIN_AVAILABLE, "XNAT admin account is required for all tests in class: ${testClassName}")
             }
-            classRequires.plugins().each { pluginId ->
-                TestNgUtils.assumeTrue(pluginId in installedPlugins()*.id, "XNAT plugin with id ${pluginId} is required for all tests in class: ${testClassName}")
+            if (Settings.BEHAVIOR_FOR_MISSING_PLUGIN == TestBehavior.SKIP) {
+                classRequires.plugins().each { pluginId ->
+                    TestNgUtils.assumeTrue(pluginId in installedPlugins()*.id, "XNAT plugin with id ${pluginId} is required for all tests in class: ${testClassName}")
+                }
             }
             if (classRequires.closedXnat()) {
                 restDriver.closeXnat(mainAdminUser)
@@ -167,8 +170,10 @@ abstract class BaseXnatTest extends BaseTestCase {
             if (testRequires.admin()) {
                 TestNgUtils.assumeTrue(Settings.ADMIN_AVAILABLE, "XNAT admin account is required for test: ${testName}")
             }
-            testRequires.plugins().each { pluginId ->
-                TestNgUtils.assumeTrue(pluginId in installedPlugins()*.id, "XNAT plugin with id ${pluginId} is required for test: ${testName}")
+            if (Settings.BEHAVIOR_FOR_MISSING_PLUGIN == TestBehavior.SKIP) {
+                testRequires.plugins().each { pluginId ->
+                    TestNgUtils.assumeTrue(pluginId in installedPlugins()*.id, "XNAT plugin with id ${pluginId} is required for test: ${testName}")
+                }
             }
             if (testRequires.closedXnat()) {
                 restDriver.closeXnat(mainAdminUser)

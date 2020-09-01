@@ -6,12 +6,16 @@ import org.testng.IMethodInstance
 import org.testng.IMethodInterceptor
 import org.testng.ITestContext
 
+import java.lang.annotation.Annotation
+
 abstract class TestFilterInterceptor implements IMethodInterceptor {
 
     private static final Logger LOGGER = Logger.getLogger(TestFilterInterceptor)
 
     TestFilterInterceptor() {
-        TestFilterInterceptors.registerListener(this)
+        if (isActive()) {
+            TestFilterInterceptors.registerListener(this)
+        }
     }
 
     abstract boolean isTestAllowed(IMethodInstance testInstance)
@@ -44,6 +48,10 @@ abstract class TestFilterInterceptor implements IMethodInterceptor {
         }
 
         allowedTests
+    }
+
+    protected boolean testOrClassHasAnnotation(IMethodInstance testInstance, Class<? extends Annotation> annotationClass) {
+        TestNgUtils.getAnnotation(testInstance.method, annotationClass) != null || testInstance.method.realClass.getAnnotation(annotationClass) != null
     }
 
 }

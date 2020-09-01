@@ -3,6 +3,7 @@ package org.nrg.testing.xnat.conf
 import org.apache.commons.lang3.StringUtils
 import org.apache.log4j.Logger
 import org.nrg.testing.CommonStringUtils
+import org.nrg.testing.enums.TestBehavior
 import org.nrg.testing.util.BaseProperties
 import org.nrg.testing.xnat.versions.XnatVersion
 import org.nrg.testing.xnat.versions.XnatVersionList
@@ -46,7 +47,8 @@ class XNATProperties extends BaseProperties {
     public static final String PRODUCE_PDF = 'xnat.producePdf'
     public static final String DOM_SETTING = 'xnat.captureDom'
     public static final String SETUP_MRSCAN = 'xnat.setupMrscan'
-    public static final String SKIP_EXPECTED_FAILURE = 'xnat.skipExpectedFailures'
+    public static final String EXPECTED_FAILURE_BEHAVIOR = 'xnat.testBehavior.expectedFailures'
+    public static final String MISSING_PLUGIN_BEHAVIOR = 'xnat.testBehavior.missingPlugins'
     public static final String FIREFOX_BINARY_PATH = 'firefox.path'
     public static final String TOMCAT_VERSION = 'tomcat.version'
     public static final String XNAT_REQUIRED = 'xnat.required' // used to specify that additional XNATs will be needed
@@ -208,8 +210,24 @@ class XNATProperties extends BaseProperties {
         getBooleanProperty(SETUP_MRSCAN, false)
     }
 
-    boolean getSkipExpectedFailureSetting() {
-        getBooleanProperty(SKIP_EXPECTED_FAILURE, true)
+    TestBehavior getExpectedFailureTestBehavior() {
+        final String propertyValue = getStringProperty(false, EXPECTED_FAILURE_BEHAVIOR, TestBehavior.SKIP.identifier)
+        final TestBehavior behavior = TestBehavior.get(propertyValue)
+        if (behavior == null) {
+            throw new RuntimeException("Unknown value '${propertyValue}' for ${EXPECTED_FAILURE_BEHAVIOR}. Supported values: ${TestBehavior.values()*.identifier}.")
+        } else {
+            behavior
+        }
+    }
+
+    TestBehavior getMissingPluginTestBehavior() {
+        final String propertyValue = getStringProperty(false, MISSING_PLUGIN_BEHAVIOR, TestBehavior.IGNORE.identifier)
+        final TestBehavior behavior = TestBehavior.get(propertyValue)
+        if (behavior == null || behavior == TestBehavior.RUN) {
+            throw new RuntimeException("Unknown value '${propertyValue}' for ${MISSING_PLUGIN_BEHAVIOR}. Supported values: [${TestBehavior.IGNORE.identifier}, ${TestBehavior.SKIP.identifier}].")
+        } else {
+            behavior
+        }
     }
 
     boolean getCsSwarmCanEnable() {
@@ -217,7 +235,7 @@ class XNATProperties extends BaseProperties {
     }
 
     int getCsSwarmTimeout() {
-        getIntProperty(CS_SWARM_TIMEOUT, 5);
+        getIntProperty(CS_SWARM_TIMEOUT, 5)
     }
 
     Class<? extends XnatVersion> getXNATVersion() {

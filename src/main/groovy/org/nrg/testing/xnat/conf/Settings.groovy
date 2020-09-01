@@ -5,6 +5,7 @@ import org.apache.log4j.Logger
 import org.nrg.testing.CommonStringUtils
 import org.nrg.testing.FileIOUtils
 import org.nrg.testing.TimeUtils
+import org.nrg.testing.enums.TestBehavior
 import org.nrg.testing.file.FileLocation
 import org.nrg.testing.util.RandomHelper
 import org.nrg.testing.xnat.ssh.SSHConnection
@@ -36,7 +37,9 @@ class Settings {
     public static final boolean PRODUCE_PDF = properties.pdfSetting
     public static final boolean DOM_SETTING = properties.domSetting
     public static final boolean SETUP_MR_SCAN = properties.mrScanSetupSetting
-    public static final boolean SKIP_EXPECTED_FAILURE = properties.skipExpectedFailureSetting
+    public static final TestBehavior BEHAVIOR_FOR_EXPECTED_FAILURES = properties.expectedFailureTestBehavior
+    public static final boolean SKIP_EXPECTED_FAILURE = BEHAVIOR_FOR_EXPECTED_FAILURES == TestBehavior.SKIP
+    public static final TestBehavior BEHAVIOR_FOR_MISSING_PLUGIN = properties.missingPluginTestBehavior
     public static final int DEFAULT_TIMEOUT = properties.defaultTimeout
     public static final String BROWSER = properties.browser
     public static final boolean JIRA_SETTING = properties.jiraSetting
