@@ -66,6 +66,10 @@ abstract class XnatRestDriver {
     protected static final Map<User, XnatInterface> xnatInterfaceMap = [:]
     public static final ObjectMapper XNAT_REST_MAPPER = XnatInterface.XNAT_REST_MAPPER
 
+    public static final projectRoutingConfigPath = "projectRules";
+    public static final subjectRoutingConfigPath = "subjectRules";
+    public static final sessionRoutingConfigPath = "sessionRules";
+
     abstract List<Class<? extends XnatVersion>> getHandledVersions()
 
     static XnatRestDriver getInstance(XnatConfig xnatConfig) {
@@ -329,6 +333,39 @@ abstract class XnatRestDriver {
         ])
     }
 
+    void setDicomRoutingConfig(String path, String contents) {
+        interfaceFor(adminUser).setDicomRoutingConfig(path, contents)
+    }
+
+    void disableDicomRoutingConfig(String path) {
+        interfaceFor(adminUser).disableDicomRoutingConfig(path)
+    }
+
+    void setProjectDicomRoutingConfig(String contents) {
+        setDicomRoutingConfig(projectRoutingConfigPath, contents)
+    }
+
+    void setSubjectDicomRoutingConfig(String contents) {
+        setDicomRoutingConfig(subjectRoutingConfigPath, contents)
+    }
+
+    void setSessionDicomRoutingConfig(String contents) {
+        setDicomRoutingConfig(sessionRoutingConfigPath, contents)
+    }
+
+    void disableProjectDicomRoutingConfig() {
+        disableDicomRoutingConfig(projectRoutingConfigPath)
+    }
+
+    void disableSubjectDicomRoutingConfig() {
+        disableDicomRoutingConfig(subjectRoutingConfigPath)
+    }
+
+    void disableSessionDicomRoutingConfig() {
+        disableDicomRoutingConfig(sessionRoutingConfigPath)
+    }
+
+    @Deprecated
     void setDicomProjectRules(User authUser, String ruleString) {
         interfaceFor(authUser).setDicomProjectRules(ruleString)
     }
