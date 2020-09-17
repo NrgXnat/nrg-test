@@ -33,7 +33,7 @@ Each specific configuration setting may be done as a command line argument, or f
 * xnat.notifyOnSuccess: (Optional) - Should summary email be sent when all tests pass? Defaults to false (as long as prerequisite properties are set).
 * xnat.notificationTitle: (Optional) - What name should be used for the test suite in the summary email? This is optional for running tests in general, but required for the summary email to be sent.
 * xnat.dependencies: (Optional) - Can be set to false to disable dependency checks between certain tests. Defaults to true.
-* xnat.pipeline.useDynamicOrdering*: (Optional) - For use in pipeline tests only: if set to true, uses a [Multiprocessor scheduling](https://bitbucket.org/xnatdev/jobshop) algorithm to order tests. Otherwise uses the order in which methods are defined in class. Defaults to false.
+* xnat.pipeline.useDynamicOrdering*: (Optional) - For use in pipeline tests only: if set to true, uses a [Multiprocessor scheduling](https://bitbucket.org/xnatdev/multiprocessor-scheduling) algorithm to order tests. Otherwise uses the order in which methods are defined in class. Defaults to false.
 * xnat.pipeline.slots*: (Optional) - Number of pipeline queue slots. Used only in pipeline tests. Required if xnat.pipeline.useDynamicOrdering is true.
 * xnat.timelogs: (Optional) - Can be set to true to generate summary CSVs of tests with runtimes and simple statistics. Defaults to false.
 * xnat.gitLogs: (Optional) - Can be set to true to turn XNAT and tomcat logs into git repos (requires test_logger XNAT plugin). Defaults to false.

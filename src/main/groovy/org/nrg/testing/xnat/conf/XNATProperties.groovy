@@ -51,6 +51,7 @@ class XNATProperties extends BaseProperties {
     public static final String MISSING_PLUGIN_BEHAVIOR = 'xnat.testBehavior.missingPlugins'
     public static final String FIREFOX_BINARY_PATH = 'firefox.path'
     public static final String TOMCAT_VERSION = 'tomcat.version'
+    public static final String SELENIUM_HEADLESS = 'selenium.headless'
     public static final String XNAT_REQUIRED = 'xnat.required' // used to specify that additional XNATs will be needed
     public static final String SMTP_HOST = 'mail.smtp.host'
     public static final String SMTP_PORT = 'mail.smtp.port'
@@ -256,6 +257,10 @@ class XNATProperties extends BaseProperties {
 
     int getSmtpPort() {
         getIntProperty(SMTP_PORT, 25)
+    }
+
+    boolean getHeadlessSetting() {
+        getBooleanProperty(SELENIUM_HEADLESS, true)
     }
 
     boolean nthXnatRequired(int n) {
