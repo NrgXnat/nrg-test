@@ -1,5 +1,6 @@
 package org.nrg.testing.listeners.interceptors.sorters
 
+import groovy.util.logging.Log4j
 import javassist.ClassPool
 import javassist.CtClass
 import javassist.CtMethod
@@ -14,6 +15,7 @@ import org.testng.ITestNGMethod
 
 import java.lang.annotation.Annotation
 
+@Log4j
 class DefaultMethodSortComparator implements Comparator<IMethodInstance> {
 
     private final List<Class> topologicallySortedClasses = []
@@ -97,8 +99,13 @@ class DefaultMethodSortComparator implements Comparator<IMethodInstance> {
             }
             if (!dependencies.isEmpty()) {
                 dependencies.each { dependency ->
-                    dependencyMethods << methods.find { method ->
+                    final IMethodInstance dependencyMethod = methods.find { method ->
                         TestNgUtils.getTestName(method) == dependency
+                    }
+                    if (dependencyMethod == null) {
+                        log.warn("Test ${TestNgUtils.getTestName(methodInstance)} has a dependency on a test method called '${dependency}'. However, ${this.class.simpleName} can't find such a test, meaning it was likely already removed from unsatisfied version and/or plugin dependencies, or the test name was spelled incorrectly.")
+                    } else {
+                        dependencyMethods << dependencyMethod
                     }
                 }
             }

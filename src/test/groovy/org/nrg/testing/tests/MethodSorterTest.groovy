@@ -147,4 +147,10 @@ class MethodSorterTest {
         } catch (Exception ignored) {}
     }
 
+    void testSortingWithMissingDependencies() {
+        final int testId = 12
+
+        assertEquals([UnitTestFilter.getInstance('testDummyMethodWithMissingDep')], INTERCEPTOR.orderMethods(UnitTestFilter.getDummyTests(testId)))
+    }
+
 }
