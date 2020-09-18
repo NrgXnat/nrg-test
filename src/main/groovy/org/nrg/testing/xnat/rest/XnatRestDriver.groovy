@@ -25,6 +25,7 @@ import org.nrg.testing.xnat.versions.XnatVersionList
 import org.nrg.xnat.enums.Accessibility
 import org.nrg.xnat.enums.DicomEditVersion
 import org.nrg.xnat.enums.PrearchiveCode
+import org.nrg.xnat.enums.RoutingRulesType
 import org.nrg.xnat.interfaces.XnatInterface
 import org.nrg.xnat.pogo.*
 import org.nrg.xnat.pogo.experiments.*
@@ -65,10 +66,6 @@ abstract class XnatRestDriver {
     TestController testController
     protected static final Map<User, XnatInterface> xnatInterfaceMap = [:]
     public static final ObjectMapper XNAT_REST_MAPPER = XnatInterface.XNAT_REST_MAPPER
-
-    public static final projectRoutingConfigPath = "projectRules";
-    public static final subjectRoutingConfigPath = "subjectRules";
-    public static final sessionRoutingConfigPath = "sessionRules";
 
     abstract List<Class<? extends XnatVersion>> getHandledVersions()
 
@@ -142,7 +139,7 @@ abstract class XnatRestDriver {
     Response getJson(RequestSender request, String url) {
         // request should be a RequestSpecification if it's just credentials or a ResponseSpecification if it's credentials appended with expected response behavior
         final Response response = request.get(url)
-        fixContentType(response, ContentType.JSON)
+        fixContentType(response, JSON)
         response
     }
 
@@ -227,7 +224,7 @@ abstract class XnatRestDriver {
         final StopWatch stopWatch = TimeUtils.launchStopWatch()
         while (true) {
             TimeUtils.checkStopWatch(stopWatch, maximumWait, "Prearchive did not empty for project ${project}")
-            if (interfaceFor(authUser).jsonQuery().get(formatRestUrl("/prearchive/projects/${project.id}")).jsonPath().getInt('ResultSet.Result.size()') == 0){
+            if (interfaceFor(authUser).jsonQuery().get(formatRestUrl("/prearchive/projects/${project.id}")).jsonPath().getInt('ResultSet.Result.size()') == 0) {
                 return
             } else {
                 TimeUtils.sleep(1000)
@@ -333,36 +330,36 @@ abstract class XnatRestDriver {
         ])
     }
 
-    void setDicomRoutingConfig(String path, String contents) {
-        interfaceFor(adminUser).setDicomRoutingConfig(path, contents)
+    void setDicomRoutingConfig(RoutingRulesType routingType, String contents) {
+        interfaceFor(mainAdminUser).setDicomRoutingConfig(routingType, contents)
     }
 
-    void disableDicomRoutingConfig(String path) {
-        interfaceFor(adminUser).disableDicomRoutingConfig(path)
+    void disableDicomRoutingConfig(RoutingRulesType routingType) {
+        interfaceFor(mainAdminUser).disableDicomRoutingConfig(routingType)
     }
 
     void setProjectDicomRoutingConfig(String contents) {
-        setDicomRoutingConfig(projectRoutingConfigPath, contents)
+        setDicomRoutingConfig(RoutingRulesType.PROJECT_RULES, contents)
     }
 
     void setSubjectDicomRoutingConfig(String contents) {
-        setDicomRoutingConfig(subjectRoutingConfigPath, contents)
+        setDicomRoutingConfig(RoutingRulesType.SUBJECT_RULES, contents)
     }
 
     void setSessionDicomRoutingConfig(String contents) {
-        setDicomRoutingConfig(sessionRoutingConfigPath, contents)
+        setDicomRoutingConfig(RoutingRulesType.SESSION_RULES, contents)
     }
 
     void disableProjectDicomRoutingConfig() {
-        disableDicomRoutingConfig(projectRoutingConfigPath)
+        disableDicomRoutingConfig(RoutingRulesType.PROJECT_RULES)
     }
 
     void disableSubjectDicomRoutingConfig() {
-        disableDicomRoutingConfig(subjectRoutingConfigPath)
+        disableDicomRoutingConfig(RoutingRulesType.SUBJECT_RULES)
     }
 
     void disableSessionDicomRoutingConfig() {
-        disableDicomRoutingConfig(sessionRoutingConfigPath)
+        disableDicomRoutingConfig(RoutingRulesType.SESSION_RULES)
     }
 
     @Deprecated
