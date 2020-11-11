@@ -23,6 +23,7 @@ import org.nrg.testing.xnat.conf.XnatConfig
 import org.nrg.testing.xnat.rest.XnatRestDriver
 import org.nrg.testing.xnat.ssh.SSHConnection
 import org.nrg.testing.xnat.versions.XnatVersionList
+import org.nrg.xnat.interfaces.XnatInterface
 import org.nrg.xnat.pogo.Project
 import org.nrg.xnat.pogo.SiteConfig
 import org.nrg.xnat.pogo.Subject
@@ -261,7 +262,13 @@ abstract class BaseXnatTest extends BaseTestCase {
             }
         }
         if (!testDataRequirements.isEmpty()) {
-            final XnatDownloadServerClient downloadServerClient = new XnatDownloadServerClient()
+            XnatDownloadServerClient downloadServerClient
+            final Closure<XnatDownloadServerClient> cacheClient = {
+                if (downloadServerClient == null) {
+                    downloadServerClient = new XnatDownloadServerClient()
+                }
+                downloadServerClient
+            }
             testDataRequirements.each { testData ->
                 if (testData != TestData.NONE) {
                     final String dataName = testData.zipName
@@ -274,7 +281,7 @@ abstract class BaseXnatTest extends BaseTestCase {
                             return
                         }
                     }
-                    downloadServerClient.downloadToFile(dataName, testDataFile)
+                    cacheClient().downloadToFile(dataName, testDataFile)
                     FileIOUtils.unzip(testDataFile.parentFile, testDataFile, true)
                 }
             }
@@ -371,6 +378,18 @@ abstract class BaseXnatTest extends BaseTestCase {
             testController = new TestController()
         }
         restDriver.setTestController(testController)
+    }
+
+    protected XnatInterface mainInterface() {
+        restDriver.mainInterface()
+    }
+
+    protected XnatInterface mainAdminInterface() {
+        restDriver.interfaceFor(mainAdminUser)
+    }
+
+    protected XnatInterface interfaceFor(User user) {
+        restDriver.interfaceFor(user)
     }
 
     private XnatRestDriver initRestDriver() { // Just to guarantee restDriver object is properly initialized if subclasses want to use it via instance variables

@@ -17,6 +17,7 @@ class XnatVersionList {
     public static final Map<String, Class<? extends XnatVersion>> KNOWN_KEY_VERSION_MAP = [:]
     public static final Map<Class<? extends XnatVersion>, Class<? extends XnatRestDriver>> KNOWN_VERSION_CLASS_REST_DRIVER_MAP = [:]
     public static final MutableGraph<Class<? extends XnatVersion>> XNAT_VERSION_GRAPH = GraphBuilder.directed().allowsSelfLoops(false).build()
+    public static final List<Class<? extends XnatVersion>> VERSIONS_BEFORE_1_8 = [Xnat_1_7dev, Xnat_1_7_7, Xnat_1_7_6, Xnat_1_7_5_2, Xnat_1_7_5, Xnat_1_7_4, Xnat_1_7_3, Xnat_1_7_2, Xnat_1_6dev]
 
     static void readXnatVersions(Collection<Class<? extends XnatVersion>> xnatVersions, Collection<Class<? extends XnatRestDriver>> restDrivers) {
         if (KNOWN_KEY_VERSION_MAP.isEmpty()) {
