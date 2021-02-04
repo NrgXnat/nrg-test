@@ -16,6 +16,8 @@ import org.testng.AssertJUnit
 class SSHConnection {
 
     private SSHClient sshClient
+    private static final TOMCAT_SCRIPT = 'manage_tomcat.sh'
+    private static final RELATIVE_TOMCAT_SCRIPT_PATH = "bin/${TOMCAT_SCRIPT}"
 
     private void initiateConnection() {
         sshClient = new SSHClient()
@@ -51,9 +53,9 @@ class SSHConnection {
     void pushScripts() {
         initiateConnection()
         executeCommandWithCurrentConnection('mkdir -p ~/bin')
-        final File script = ResourceLoader.copyAndGetResource("manage_${Settings.TOMCAT_VERSION}.sh")
+        final File script = ResourceLoader.copyAndGetResource(TOMCAT_SCRIPT)
         sshClient.newSCPFileTransfer().upload(new FileSystemFile(script), 'bin/')
-        executeCommandWithCurrentConnection("chmod +x bin/${script.name}")
+        executeCommandWithCurrentConnection("chmod +x ${RELATIVE_TOMCAT_SCRIPT_PATH}")
         disconnect()
     }
 
@@ -86,8 +88,9 @@ class SSHConnection {
 
     private void manageTomcat(String command) {
         log.info("Sending command to tomcat: ${command}...")
-        final SSHCommandResult results = executeSingleCommand("bin/manage_${Settings.TOMCAT_VERSION}.sh ${command}")
+        final SSHCommandResult results = executeSingleCommand("${RELATIVE_TOMCAT_SCRIPT_PATH} ${command} ${Settings.TOMCAT_VERSION}")
         log.info(results.stdOut)
+        log.error(results.stdErr)
         AssertJUnit.assertEquals(0, results.exitStatus)
     }
 
