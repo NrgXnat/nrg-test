@@ -161,10 +161,12 @@ abstract class XnatRestDriver {
         mainInterface().issueAliasTokenUrl()
     }
 
+    @Deprecated
     XnatAliasToken generateAliasToken(User user) {
         interfaceFor(user).generateAliasToken()
     }
 
+    @Deprecated
     List<XnatPlugin> readInstalledPlugins(User user) {
         interfaceFor(user).readInstalledPlugins()
     }
@@ -177,6 +179,7 @@ abstract class XnatRestDriver {
         mainInterface().projectExperimentsUrl(project)
     }
 
+    @Deprecated
     String getAccessionNumber(User authUser, SubjectAssessor subjectAssessor) {
         interfaceFor(authUser).getAccessionNumber(subjectAssessor)
     }
@@ -185,14 +188,17 @@ abstract class XnatRestDriver {
         getAccessionNumber(mainUser, session)
     }
 
+    @Deprecated
     Subject readSubject(User authUser, String accessionNumber) {
         interfaceFor(authUser).readSubject(accessionNumber)
     }
 
+    @Deprecated
     def <T extends Experiment> T readExperiment(User authUser, String accessionNumber, Class<T> tClass) {
         interfaceFor(authUser).readExperiment(accessionNumber, tClass)
     }
 
+    @Deprecated
     void waitForAutoRun(User authUser, int maximumTime, ImagingSession session) {
         interfaceFor(authUser).waitForAutoRun(session, maximumTime)
     }
@@ -232,6 +238,7 @@ abstract class XnatRestDriver {
         }
     }
 
+    @Deprecated
     void clearProject(User authUser, Project project) {
         interfaceFor(authUser).deleteAllProjectData(project)
     }
@@ -259,14 +266,17 @@ abstract class XnatRestDriver {
         mainInterface().userSessionsRestUrl(user)
     }
 
+    @Deprecated
     void expireAllActiveSessions(User authUser, User targetUser) {
         interfaceFor(authUser).expireAllActiveSessions(targetUser)
     }
 
+    @Deprecated
     int getNumberActiveSessions(User user) {
         interfaceFor(user).numberActiveSessions
     }
 
+    @Deprecated
     User readUser(User authUser, String username) {
         interfaceFor(authUser).readUser(username)
     }
@@ -275,50 +285,62 @@ abstract class XnatRestDriver {
         createUser(adminUser, targetUser)
     }
 
+    @Deprecated
     void createUser(User authUser, User user) {
         interfaceFor(authUser).createUser(user)
     }
 
+    @Deprecated
     void updateUser(User authUser, User targetUser) {
         interfaceFor(authUser).updateUser(targetUser)
     }
 
+    @Deprecated
     void assignUserToRoles(User authUser, User targetUser, String... roles) {
         interfaceFor(authUser).assignUserToRoles(targetUser, roles)
     }
 
+    @Deprecated
     void addUserToGroups(User authUser, User targetUser, String... groups) {
         interfaceFor(authUser).addUserToGroups(targetUser, groups)
     }
 
+    @Deprecated
     void removeUserFromGroups(User authUser, User targetUser, String... groups) {
         interfaceFor(authUser).removeUserFromGroups(targetUser, groups)
     }
 
+    @Deprecated
     void verifyUser(User authUser, User targetUser) {
         interfaceFor(authUser).verifyUser(targetUser)
     }
 
+    @Deprecated
     void enableUser(User authUser, User targetUser) {
         interfaceFor(authUser).enableUser(targetUser)
     }
 
+    @Deprecated
     void makeUserAdmin(User authUser, User targetUser) {
         interfaceFor(authUser).makeUserAdmin(targetUser)
     }
 
+    @Deprecated
     void postToSiteConfig(User authUser, Map configSettings) {
         interfaceFor(authUser).postToSiteConfig(configSettings)
     }
 
+    @Deprecated
     void setLoginRequirement(User authUser, boolean loginRequired) {
         interfaceFor(authUser).setLoginRequirement(loginRequired)
     }
 
+    @Deprecated
     void openXnat(User authUser) {
         interfaceFor(authUser).openXnat()
     }
 
+    @Deprecated
     void closeXnat(User authUser) {
         interfaceFor(authUser).closeXnat()
     }
@@ -367,6 +389,7 @@ abstract class XnatRestDriver {
         interfaceFor(authUser).setDicomProjectRules(ruleString)
     }
 
+    @Deprecated
     void setDicomProjectRulesFrom(User authUser, int dicomElement, String regex) {
         interfaceFor(authUser).setDicomProjectRulesFrom(dicomElement, regex)
     }
@@ -375,22 +398,27 @@ abstract class XnatRestDriver {
         mainInterface().legacySiteAnonScriptUrl()
     }
 
+    @Deprecated
     AnonScript getSiteAnonScript(User authUser) {
         interfaceFor(authUser).readSiteAnonScript()
     }
 
+    @Deprecated
     void setSiteAnonScriptStatus(User authUser, boolean status) {
         interfaceFor(authUser).setSiteAnonScriptStatus(status)
     }
 
+    @Deprecated
     void setSiteAnonScript(User authUser, AnonScript script) {
         interfaceFor(authUser).setSiteAnonScript(script)
     }
 
+    @Deprecated
     void disableSiteAnonScript(User authUser) {
         setSiteAnonScriptStatus(authUser, false)
     }
 
+    @Deprecated
     void enableSiteAnonScript(User authUser) {
         setSiteAnonScriptStatus(authUser, true)
     }
@@ -399,52 +427,64 @@ abstract class XnatRestDriver {
         mainInterface().projectAnonScriptUrl(project)
     }
 
+    @Deprecated
     AnonScript getProjectAnonScript(User authUser, Project project) {
         interfaceFor(authUser).readProjectAnonScript(project)
     }
 
+    @Deprecated
     void setProjectAnonScript(User authUser, Project project, AnonScript script) {
         interfaceFor(authUser).setProjectAnonScript(project, script)
     }
 
+    @Deprecated
     void setProjectAnonScriptStatus(User authUser, Project project, boolean status) {
         interfaceFor(authUser).setProjectAnonScriptStatus(project, status)
     }
 
+    @Deprecated
     void disableProjectAnonScript(User authUser, Project project) {
         setProjectAnonScriptStatus(authUser, project, false)
     }
 
+    @Deprecated
     void enableProjectAnonScript(User authUser, Project project) {
         setProjectAnonScriptStatus(authUser, project, true)
     }
 
+    @Deprecated
     List<Investigator> readInvestigators(User authUser) {
         interfaceFor(authUser).readInvestigators()
     }
 
+    @Deprecated
     void createInvestigators(User authUser, List<Investigator> investigators) {
         interfaceFor(authUser).createInvestigators(investigators)
     }
 
+    @Deprecated
     void createInvestigator(User authUser, Investigator investigator) {
         interfaceFor(authUser).createInvestigator(investigator)
     }
 
+    @Deprecated
     void addUserToProject(User authUser, User addedUser, Project project, UserGroup userGroup) {
         interfaceFor(authUser).addUserToProject(addedUser, project, userGroup)
     }
 
+    @Deprecated
     void uploadResources(User authUser, List<Resource> resources) {
         resources.each { resource ->
             uploadResource(authUser, resource)
         }
     }
 
+    @Deprecated
     void uploadResource(User authUser, Resource resource) {
         interfaceFor(authUser).uploadResource(resource)
     }
 
+    @Deprecated
     void deleteResource(User authUser, Resource resource) {
         interfaceFor(authUser).deleteResource(resource)
     }
@@ -469,30 +509,37 @@ abstract class XnatRestDriver {
         }
     }
 
+    @Deprecated
     Project readProject(User authUser, String projectId) {
         interfaceFor(authUser).readProject(projectId)
     }
 
+    @Deprecated
     List<Subject> readSubjects(User authUser, Project project) {
         interfaceFor(authUser).readSubjects(project)
     }
 
+    @Deprecated
     List<SubjectAssessor> readSubjectAssesssors(User authUser, Project project, Subject subject) {
         interfaceFor(authUser).readSubjectAssessors(project, subject)
     }
 
+    @Deprecated
     List<Scan> readScans(User authUser, Project project, Subject subject, ImagingSession session) {
         interfaceFor(authUser).readScans(project, subject, session)
     }
 
+    @Deprecated
     List<SessionAssessor> readSessionAssessors(User authUser, Project project, Subject subject, ImagingSession session) {
         interfaceFor(authUser).readSessionAssessors(project, subject, session)
     }
 
+    @Deprecated
     void populateAdditionalScanMetadata(User authUser, Project project, Subject subject, ImagingSession session) {
         interfaceFor(authUser).populateAdditionalScanMetadata(project, subject, session)
     }
 
+    @Deprecated
     Scan readAdditionalScanMetadata(User authUser, Project project, Subject subject, ImagingSession session, Scan scan) {
         interfaceFor(authUser).readAdditionalScanMetadata(project, subject, session, scan)
     }
@@ -509,6 +556,7 @@ abstract class XnatRestDriver {
         mainInterface().accessibilityRestUrl(project, accessibility)
     }
 
+    @Deprecated
     void updateAccessibility(User authUser, Project project, Accessibility accessibility) {
         interfaceFor(authUser).updateAccessibility(project, accessibility)
     }
@@ -529,14 +577,17 @@ abstract class XnatRestDriver {
         interfaceFor(authUser).createProject(project)
     }
 
+    @Deprecated
     void setPrearchiveSetting(User authUser, Project project, PrearchiveCode code) {
         interfaceFor(authUser).setPrearchiveSetting(project, code)
     }
 
+    @Deprecated
     void createSubject(User authUser, Project project, Subject subject) {
         interfaceFor(authUser).createSubject(project, subject)
     }
 
+    @Deprecated
     void createSubject(User authUser, Subject subject) {
         interfaceFor(authUser).createSubject(subject)
     }
@@ -547,22 +598,27 @@ abstract class XnatRestDriver {
         extension.parentObject
     }
 
+    @Deprecated
     void relabelSubject(User authUser, Project project, Subject subject, String newLabel) {
         interfaceFor(authUser).relabelSubject(project, subject, newLabel)
     }
 
+    @Deprecated
     void relabelSubject(User authUser, Subject subject, String newLabel) {
         interfaceFor(authUser).relabelSubject(subject, newLabel)
     }
 
+    @Deprecated
     void shareSubject(User authUser, Project sourceProject, Subject subject, Share share) {
         interfaceFor(authUser).shareSubject(sourceProject, subject, share)
     }
 
+    @Deprecated
     void deleteSubject(User authUser, Project project, Subject subject) {
         interfaceFor(authUser).deleteSubject(project, subject)
     }
 
+    @Deprecated
     void deleteSubject(User authUser, Subject subject) {
         interfaceFor(authUser).deleteSubject(subject)
     }
@@ -575,30 +631,37 @@ abstract class XnatRestDriver {
         mainInterface().subjectUrl(subject)
     }
 
+    @Deprecated
     void createSubjectAssessor(User authUser, Project project, Subject subject, SubjectAssessor subjectAssessor) {
         interfaceFor(authUser).createSubjectAssessor(project, subject, subjectAssessor)
     }
 
+    @Deprecated
     void createSubjectAssessor(User authUser, SubjectAssessor subjectAssessor) {
         interfaceFor(authUser).createSubjectAssessor(subjectAssessor)
     }
 
+    @Deprecated
     void relabelSubjectAssessor(User authUser, Project project, Subject subject, SubjectAssessor subjectAssessor, String newLabel) {
         interfaceFor(authUser).relabelSubjectAssessor(project, subject, subjectAssessor, newLabel)
     }
 
+    @Deprecated
     void relabelSubjectAssessor(User authUser, SubjectAssessor subjectAssessor, String newLabel) {
         interfaceFor(authUser).relabelSubjectAssessor(subjectAssessor, newLabel)
     }
 
+    @Deprecated
     void shareSubjectAssessor(User authUser, SubjectAssessor subjectAssessor, Share share) {
         interfaceFor(authUser).shareSubjectAssessor(subjectAssessor, share)
     }
 
+    @Deprecated
     void deleteSubjectAssessor(User authUser, Project project, Subject subject, SubjectAssessor subjectAssessor) {
         interfaceFor(authUser).deleteSubjectAssessor(project, subject, subjectAssessor)
     }
 
+    @Deprecated
     void deleteSubjectAssessor(User authUser, SubjectAssessor subjectAssessor) {
         interfaceFor(authUser).deleteSubjectAssessor(subjectAssessor)
     }
@@ -619,22 +682,27 @@ abstract class XnatRestDriver {
         mainInterface().sessionScansUrl(session)
     }
 
+    @Deprecated
     void createScan(User authUser, Project project, Subject subject, ImagingSession session, Scan scan) {
         interfaceFor(authUser).createScan(project, subject, session, scan)
     }
 
+    @Deprecated
     void deleteScan(User authUser, Project project, Subject subject, ImagingSession session, Scan scan) {
         interfaceFor(authUser).deleteScan(project, subject, session, scan)
     }
 
+    @Deprecated
     void deleteScan(User authUser, Scan scan) {
         interfaceFor(authUser).deleteScan(scan)
     }
 
+    @Deprecated
     void updateScan(User authUser, Project project, Subject subject, ImagingSession session, Scan scan) {
         interfaceFor(authUser).updateScan(project, subject, session, scan)
     }
 
+    @Deprecated
     void updateScan(User authUser, Scan scan) {
         interfaceFor(authUser).updateScan(scan)
     }
@@ -651,18 +719,22 @@ abstract class XnatRestDriver {
         mainInterface().assessorsUrl(project, subject, session)
     }
 
+    @Deprecated
     void createSessionAssessor(User authUser, Project project, Subject subject, ImagingSession session, SessionAssessor assessor) {
         interfaceFor(authUser).createSessionAssessor(project, subject, session, assessor)
     }
 
+    @Deprecated
     void createSessionAssessor(User authUser, SessionAssessor assessor) {
         interfaceFor(authUser).createSessionAssessor(assessor)
     }
 
+    @Deprecated
     void deleteSessionAssessor(User authUser, Project project, Subject subject, ImagingSession session, SessionAssessor sessionAssessor) {
         interfaceFor(authUser).deleteSessionAssessor(project, subject, session, sessionAssessor)
     }
 
+    @Deprecated
     void deleteSessionAssessor(User authUser, SessionAssessor sessionAssessor) {
         interfaceFor(authUser).deleteSessionAssessor(sessionAssessor)
     }
@@ -683,6 +755,7 @@ abstract class XnatRestDriver {
         mainInterface().reconstructionUrl(reconstruction)
     }
 
+    @Deprecated
     void deleteProject(User authUser, Project project) {
         interfaceFor(authUser).deleteProject(project)
     }
