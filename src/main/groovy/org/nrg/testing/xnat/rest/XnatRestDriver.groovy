@@ -573,6 +573,7 @@ abstract class XnatRestDriver {
         new ProjectXMLPutExtension(interfaceFor(authUser), project, projectXmlFile).create()
     }
 
+    @Deprecated
     void createProject(User authUser, Project project) {
         interfaceFor(authUser).createProject(project)
     }

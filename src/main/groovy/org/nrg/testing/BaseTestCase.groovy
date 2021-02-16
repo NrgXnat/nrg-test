@@ -56,7 +56,7 @@ class BaseTestCase {
 
     @BeforeSuite
     void setupAllTests(ITestContext testContext) {
-        RestAssured.useRelaxedHTTPSValidation()
+        // RestAssured.useRelaxedHTTPSValidation()
         allRunningTests = constructTestMap(testContext.getAllTestMethods())
         log.info("${allRunningTests.size()} tests are scheduled to run.")
         setupJira()

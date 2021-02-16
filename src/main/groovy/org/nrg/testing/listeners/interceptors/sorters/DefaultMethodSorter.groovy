@@ -31,7 +31,9 @@ class DefaultMethodSorter implements IMethodInterceptor {
             methods
         } else {
             LOGGER.debug("Method instance ordering intercepted in ${this.class.simpleName}")
-            orderMethods(methods)
+            final List<IMethodInstance> sorted = orderMethods(methods)
+            LOGGER.debug("Method instance sorting complete im ${this.class.simpleName}")
+            sorted
         }
     }
 
