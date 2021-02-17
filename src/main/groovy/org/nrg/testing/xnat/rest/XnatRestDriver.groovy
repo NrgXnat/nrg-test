@@ -20,8 +20,7 @@ import org.nrg.testing.util.RandomHelper
 import org.nrg.testing.xnat.XnatObjectUtils
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.conf.XnatConfig
-import org.nrg.testing.xnat.versions.XnatVersion
-import org.nrg.testing.xnat.versions.XnatVersionList
+import org.nrg.testing.xnat.versions.XnatTestingVersionManager
 import org.nrg.xnat.enums.Accessibility
 import org.nrg.xnat.enums.DicomEditVersion
 import org.nrg.xnat.enums.PrearchiveCode
@@ -38,6 +37,7 @@ import org.nrg.xnat.pogo.users.User
 import org.nrg.xnat.pogo.users.UserGroup
 import org.nrg.xnat.rest.Credentials
 import org.nrg.xnat.rest.XnatAliasToken
+import org.nrg.xnat.versions.XnatVersion
 
 import java.nio.file.Paths
 
@@ -71,7 +71,7 @@ abstract class XnatRestDriver {
 
     static XnatRestDriver getInstance(XnatConfig xnatConfig) {
         final XnatConfig config = xnatConfig ?: Settings.DEFAULT_XNAT_CONFIG
-        final XnatRestDriver restDriver = XnatVersionList.lookupDriverClass(config.xnatVersion).newInstance()
+        final XnatRestDriver restDriver = XnatTestingVersionManager.lookupDriverClass(config.xnatVersion).newInstance()
         restDriver.setXnatConfig(config)
         restDriver
     }
@@ -91,7 +91,7 @@ abstract class XnatRestDriver {
         if (xnatInterface != null) {
             xnatInterface
         } else {
-            final XnatInterface newInterface = XnatInterface.authenticate(xnatConfig.xnatUrl, user, true)
+            final XnatInterface newInterface = XnatInterface.authenticate(xnatConfig.xnatUrl, user, null, false)
             xnatInterfaceMap.put(user, newInterface)
             newInterface
         }

@@ -3,8 +3,8 @@ package org.nrg.testing.email
 import org.apache.commons.lang3.time.StopWatch
 import org.nrg.testing.TimeUtils
 import org.nrg.testing.xnat.conf.Settings
-import org.nrg.testing.xnat.versions.XnatVersionList
-import org.nrg.testing.xnat.versions.Xnat_1_7_4
+import org.nrg.testing.xnat.versions.XnatTestingVersionManager
+import org.nrg.xnat.versions.Xnat_1_7_4
 import org.nrg.xnat.pogo.users.User
 
 import javax.mail.*
@@ -54,7 +54,7 @@ class EmailReader {
 
     String readVerificationEmailLink(User user) {
         searchTerm = SearchTerms.verificationEmail(user)
-        XnatVersionList.testedVersionFollows(Xnat_1_7_4) ? getEmail().extractFirstLink() : getEmail().extractSingleLink()
+        XnatTestingVersionManager.testedVersionFollows(Xnat_1_7_4) ? getEmail().extractFirstLink() : getEmail().extractSingleLink()
     }
 
     List<Email> getEmails() {

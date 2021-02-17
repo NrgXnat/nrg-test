@@ -1,6 +1,6 @@
 package org.nrg.testing.annotations
 
-import org.nrg.testing.xnat.versions.XnatVersion
+import org.nrg.xnat.versions.XnatVersion
 
 import java.lang.annotation.ElementType
 import java.lang.annotation.Retention

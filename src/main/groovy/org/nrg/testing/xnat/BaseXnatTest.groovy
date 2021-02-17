@@ -22,7 +22,7 @@ import org.nrg.testing.xnat.conf.XNATProperties
 import org.nrg.testing.xnat.conf.XnatConfig
 import org.nrg.testing.xnat.rest.XnatRestDriver
 import org.nrg.testing.xnat.ssh.SSHConnection
-import org.nrg.testing.xnat.versions.XnatVersionList
+import org.nrg.testing.xnat.versions.XnatTestingVersionManager
 import org.nrg.xnat.interfaces.XnatInterface
 import org.nrg.xnat.pogo.Project
 import org.nrg.xnat.pogo.SiteConfig
@@ -57,7 +57,6 @@ abstract class BaseXnatTest extends BaseTestCase {
 
     @BeforeSuite
     void setupXnatTests(ITestContext testContext) {
-        XnatVersionList.readXnatVersions()
         validateSettings()
         constructRestDriver()
         if (Settings.INIT_SETTING) {

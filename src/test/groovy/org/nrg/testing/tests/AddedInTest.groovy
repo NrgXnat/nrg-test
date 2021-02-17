@@ -3,7 +3,7 @@ package org.nrg.testing.tests
 import org.nrg.testing.unit.UnitTestFilter
 import org.nrg.testing.annotations.AddedIn
 import org.nrg.testing.listeners.interceptors.filters.ProhibitedTestFilter
-import org.nrg.testing.xnat.versions.*
+import org.nrg.xnat.versions.*
 import org.testng.IMethodInstance
 import org.testng.annotations.Listeners
 import org.testng.annotations.Test
@@ -22,7 +22,6 @@ class AddedInTest {
     void addedInTestClassLevel() {
         final IMethodInstance thisTest = UnitTestFilter.getInstance('addedInTestClassLevel')
 
-        assertTrue (testFilter.isTestAllowed(thisTest, Xnat_1_7dev))
         assertTrue (testFilter.isTestAllowed(thisTest, Xnat_1_7_5))
         assertTrue (testFilter.isTestAllowed(thisTest, Xnat_1_7_4))
         assertTrue (testFilter.isTestAllowed(thisTest, Xnat_1_7_3))
@@ -35,7 +34,6 @@ class AddedInTest {
     void addedInTestTwoLevels() {
         final IMethodInstance thisTest = UnitTestFilter.getInstance('addedInTestTwoLevels')
 
-        assertTrue (testFilter.isTestAllowed(thisTest, Xnat_1_7dev))
         assertTrue (testFilter.isTestAllowed(thisTest, Xnat_1_7_5))
         assertTrue (testFilter.isTestAllowed(thisTest, Xnat_1_7_4))
         assertTrue (testFilter.isTestAllowed(thisTest, Xnat_1_7_3))

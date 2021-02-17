@@ -9,7 +9,7 @@ import org.nrg.testing.enums.TestBehavior
 import org.nrg.testing.file.FileLocation
 import org.nrg.testing.util.RandomHelper
 import org.nrg.testing.xnat.ssh.SSHConnection
-import org.nrg.testing.xnat.versions.XnatVersion
+import org.nrg.xnat.versions.XnatVersion
 import org.nrg.xnat.pogo.dicom.DicomScpReceiver
 import org.nrg.xnat.rest.Credentials
 

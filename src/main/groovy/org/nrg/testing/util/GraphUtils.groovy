@@ -10,6 +10,7 @@ import com.google.common.graph.MutableGraph
  * @author Charlie Moore
  * Originally written by Kevin, taken from NRG framework and modified here.
  */
+@Deprecated
 final class GraphUtils {
     private GraphUtils() {} // prevent instantiation
 

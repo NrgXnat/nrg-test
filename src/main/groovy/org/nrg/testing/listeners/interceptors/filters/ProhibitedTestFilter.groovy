@@ -6,8 +6,8 @@ import org.nrg.testing.annotations.DeprecatedIn
 import org.nrg.testing.annotations.DisallowXnatVersion
 import org.nrg.testing.annotations.RequireXnatVersion
 import org.nrg.testing.xnat.conf.Settings
-import org.nrg.testing.xnat.versions.XnatVersion
-import org.nrg.testing.xnat.versions.XnatVersionList
+import org.nrg.xnat.versions.XnatVersion
+import org.nrg.xnat.versions.XnatVersionList
 import org.testng.IMethodInstance
 import org.testng.ITestNGMethod
 
@@ -17,7 +17,6 @@ class ProhibitedTestFilter extends TestFilterInterceptor {
 
     ProhibitedTestFilter() {
         super()
-        XnatVersionList.readXnatVersions()
     }
 
     @Override

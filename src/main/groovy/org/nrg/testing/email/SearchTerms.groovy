@@ -1,7 +1,7 @@
 package org.nrg.testing.email
 
-import org.nrg.testing.xnat.versions.XnatVersionList
-import org.nrg.testing.xnat.versions.Xnat_1_7_4
+import org.nrg.testing.xnat.versions.XnatTestingVersionManager
+import org.nrg.xnat.versions.Xnat_1_7_4
 import org.nrg.xnat.pogo.Project
 import org.nrg.xnat.pogo.users.User
 
@@ -89,13 +89,13 @@ class SearchTerms {
     static SearchTerm verificationEmail(User user) {
         bodyContainsAll([
                 "${user.firstName} ${user.lastName}",
-                (XnatVersionList.testedVersionFollows(Xnat_1_7_4)) ? 'If you would like to register, please confirm your email address' : 'Please click this link to verify your email address'
+                (XnatTestingVersionManager.testedVersionFollows(Xnat_1_7_4)) ? 'If you would like to register, please confirm your email address' : 'Please click this link to verify your email address'
         ])
     }
 
     static SearchTerm projectAccessEmail(Project project, boolean approved) {
         final String search = {
-            if (XnatVersionList.testedVersionFollows(Xnat_1_7_4)) {
+            if (XnatTestingVersionManager.testedVersionFollows(Xnat_1_7_4)) {
                 approved ? "You have been granted access to the ${project.title} project" : "request to access the ${project.title} project has been denied"
             } else {
                 "${project.title} access ${approved ? 'granted' : 'denied'}"

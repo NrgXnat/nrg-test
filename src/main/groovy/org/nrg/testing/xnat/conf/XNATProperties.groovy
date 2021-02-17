@@ -5,8 +5,9 @@ import org.apache.log4j.Logger
 import org.nrg.testing.CommonStringUtils
 import org.nrg.testing.enums.TestBehavior
 import org.nrg.testing.util.BaseProperties
-import org.nrg.testing.xnat.versions.XnatVersion
-import org.nrg.testing.xnat.versions.XnatVersionList
+import org.nrg.xnat.versions.XnatVersion
+import org.nrg.testing.xnat.versions.XnatTestingVersionManager
+import org.nrg.xnat.versions.XnatVersionList
 
 class XNATProperties extends BaseProperties {
 
@@ -292,19 +293,13 @@ class XNATProperties extends BaseProperties {
     }
 
     private Class<? extends XnatVersion> parseVersion(String key) {
-        XnatVersionList.readXnatVersions()
-
         final String version = getPropertyFromAnywhere(key)
         if (version == null) {
             LOGGER.fatal("Required setting ${key} was not set.")
             throw new RuntimeException("Required setting ${key} was not set.")
         }
 
-        final Class<? extends XnatVersion> versionClass = XnatVersionList.KNOWN_KEY_VERSION_MAP.get(version)
-        if (versionClass == null) {
-            throw new RuntimeException("Could not find requested version of XNAT (${version}) in list of available versions.")
-        }
-        versionClass
+        XnatVersionList.lookup(version)
     }
 
 }

@@ -4,10 +4,7 @@ import org.nrg.testing.unit.UnitTestFilter
 import org.nrg.testing.annotations.DisallowXnatVersion
 import org.nrg.testing.annotations.RequireXnatVersion
 import org.nrg.testing.listeners.interceptors.filters.ProhibitedTestFilter
-import org.nrg.testing.xnat.versions.Xnat_1_6dev
-import org.nrg.testing.xnat.versions.Xnat_1_7_2
-import org.nrg.testing.xnat.versions.Xnat_1_7_3
-import org.nrg.testing.xnat.versions.Xnat_1_7dev
+import org.nrg.xnat.versions.*
 import org.testng.IMethodInstance
 import org.testng.annotations.Listeners
 import org.testng.annotations.Test
@@ -26,7 +23,7 @@ class DisallowXnatVersionTest {
     void disallowedClassAndMethod() {
         final IMethodInstance thisTest = UnitTestFilter.getInstance('disallowedClassAndMethod')
 
-        assertTrue (testFilter.isTestAllowed(thisTest, Xnat_1_7dev))
+        assertTrue (testFilter.isTestAllowed(thisTest, Xnat_1_7_5))
         assertFalse(testFilter.isTestAllowed(thisTest, Xnat_1_6dev))
         assertFalse(testFilter.isTestAllowed(thisTest, Xnat_1_7_2))
         assertFalse(testFilter.isTestAllowed(thisTest, Xnat_1_7_3))
@@ -39,7 +36,7 @@ class DisallowXnatVersionTest {
 
         assertTrue (testFilter.isTestAllowed(thisTest, Xnat_1_7_3))
         assertFalse(testFilter.isTestAllowed(thisTest, Xnat_1_7_2))
-        assertFalse(testFilter.isTestAllowed(thisTest, Xnat_1_7dev))
+        assertFalse(testFilter.isTestAllowed(thisTest, Xnat_1_7_5))
         assertFalse(testFilter.isTestAllowed(thisTest, Xnat_1_6dev))
     }
 

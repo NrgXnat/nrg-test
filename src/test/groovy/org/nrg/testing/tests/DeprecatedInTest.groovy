@@ -3,7 +3,7 @@ package org.nrg.testing.tests
 import org.nrg.testing.unit.UnitTestFilter
 import org.nrg.testing.annotations.DeprecatedIn
 import org.nrg.testing.listeners.interceptors.filters.ProhibitedTestFilter
-import org.nrg.testing.xnat.versions.*
+import org.nrg.xnat.versions.*
 import org.testng.IMethodInstance
 import org.testng.annotations.Listeners
 import org.testng.annotations.Test
@@ -22,7 +22,6 @@ class DeprecatedInTest {
     void deprecatedInTestClassLevel() {
         final IMethodInstance thisTest = UnitTestFilter.getInstance('deprecatedInTestClassLevel')
 
-        assertFalse(testFilter.isTestAllowed(thisTest, Xnat_1_7dev))
         assertFalse(testFilter.isTestAllowed(thisTest, Xnat_1_7_5))
         assertFalse(testFilter.isTestAllowed(thisTest, Xnat_1_7_4))
         assertFalse(testFilter.isTestAllowed(thisTest, Xnat_1_7_3))
@@ -35,7 +34,6 @@ class DeprecatedInTest {
     void deprecatedInTestTwoLevels() {
         final IMethodInstance thisTest = UnitTestFilter.getInstance('deprecatedInTestTwoLevels')
 
-        assertFalse(testFilter.isTestAllowed(thisTest, Xnat_1_7dev))
         assertFalse(testFilter.isTestAllowed(thisTest, Xnat_1_7_5))
         assertFalse(testFilter.isTestAllowed(thisTest, Xnat_1_7_4))
         assertFalse(testFilter.isTestAllowed(thisTest, Xnat_1_7_3))
