@@ -9,7 +9,7 @@ import org.nrg.testing.annotations.HardDependency
 import org.nrg.testing.annotations.SoftClassDependency
 import org.nrg.testing.annotations.SoftDependency
 import org.nrg.testing.annotations.SortLast
-import org.nrg.testing.util.GraphUtils
+import org.nrg.xnat.util.GraphUtils
 import org.testng.IMethodInstance
 import org.testng.ITestNGMethod
 

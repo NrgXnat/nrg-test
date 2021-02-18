@@ -119,9 +119,9 @@ abstract class BaseXnatTest extends BaseTestCase {
                 }
             }
             if (classRequires.closedXnat()) {
-                restDriver.closeXnat(mainAdminUser)
+                mainAdminInterface().closeXnat()
             } else if (classRequires.openXnat()) {
-                restDriver.openXnat(mainAdminUser)
+                mainAdminInterface().openXnat()
             }
             if (classRequires.csSwarmCanEnable()) {
                 TestNgUtils.assumeTrue(Settings.CS_SWARM_CAN_ENABLE, "Docker swarm is required for all tests in class: ${testClassName}")
@@ -143,7 +143,7 @@ abstract class BaseXnatTest extends BaseTestCase {
     @AfterClass(alwaysRun = true)
     void restoreSiteConfig() {
         if (!siteConfigRestoration.isEmpty()) {
-            restDriver.postToSiteConfig(mainAdminUser, siteConfigRestoration)
+            mainAdminInterface().postToSiteConfig(siteConfigRestoration)
         }
     }
 
@@ -176,9 +176,10 @@ abstract class BaseXnatTest extends BaseTestCase {
                 }
             }
             if (testRequires.closedXnat()) {
-                restDriver.closeXnat(mainAdminUser)
+                mainAdminInterface().closeXnat()
             } else if (testRequires.openXnat()) {
-                restDriver.openXnat(mainAdminUser)
+                mainAdminInterface().openXnat()
+
             }
             if (testRequires.csSwarmCanEnable()) {
                 TestNgUtils.assumeTrue(Settings.CS_SWARM_CAN_ENABLE, "Docker swarm is required for test: ${testName}")
@@ -289,7 +290,7 @@ abstract class BaseXnatTest extends BaseTestCase {
 
     protected List<XnatPlugin> installedPlugins() {
         if (installedPlugins.isEmpty()) {
-            installedPlugins.addAll(restDriver.readInstalledPlugins(mainAdminUser))
+            installedPlugins.addAll(mainAdminInterface().readInstalledPlugins())
         }
         installedPlugins
     }

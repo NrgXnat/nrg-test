@@ -42,7 +42,7 @@ class BaseXnatRestTest extends BaseXnatTest {
     protected List<User> createGenericUsers(int numUsers) {
         (0 ..< numUsers).collect {
             final User user = Users.genericAccount()
-            restDriver.createUser(user)
+            mainAdminInterface().createUser(user)
             user
         }
     }

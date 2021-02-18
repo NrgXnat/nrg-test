@@ -7,10 +7,10 @@ import groovy.util.logging.Log4j
 import ij.ImagePlus
 import org.nrg.testing.CollectionUtils
 import org.nrg.testing.enums.ImageType
-import org.nrg.testing.util.GraphUtils
 import org.nrg.testing.xnat.processing.exceptions.ImageProcessingException
 import org.nrg.testing.xnat.processing.files.comparators.imaging.metrics.Metric
 import org.nrg.testing.xnat.processing.files.comparators.imaging.metrics.Metrics
+import org.nrg.xnat.util.GraphUtils
 
 @Log4j
 class DiffedImage {

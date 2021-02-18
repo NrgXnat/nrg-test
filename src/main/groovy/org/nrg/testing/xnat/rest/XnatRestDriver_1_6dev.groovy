@@ -33,9 +33,4 @@ class XnatRestDriver_1_6dev extends XnatRestDriver_1_7_2 {
         log.info('No XNAT initialization method available in 1.6')
     }
 
-    @Override
-    void createUser(User user) {
-        log.info('No user creation method available in 1.6')
-    }
-
 }
