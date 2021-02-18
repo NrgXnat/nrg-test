@@ -26,7 +26,7 @@ class BaseXnatRestTest extends BaseXnatTest {
                         XnatRestDriver.XNAT_REST_MAPPER
                     }
                 }
-        )).sslConfig(SSLConfig.sslConfig().relaxedHTTPSValidation('SSL'))
+        ))
     }
 
     @Override
