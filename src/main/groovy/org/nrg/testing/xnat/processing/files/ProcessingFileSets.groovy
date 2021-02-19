@@ -19,6 +19,7 @@ import org.nrg.testing.xnat.processing.files.resources.GenericResource
 import org.nrg.testing.xnat.processing.files.resources.ProcessingResource
 import org.nrg.testing.xnat.processing.files.resources.ProcessingResourceFile
 import org.nrg.testing.xnat.rest.XnatRestDriver
+import org.nrg.xnat.interfaces.XnatInterface
 import org.nrg.xnat.pogo.experiments.ImagingSession
 import org.nrg.xnat.pogo.resources.Resource
 import org.nrg.xnat.pogo.resources.ResourceFile
@@ -106,9 +107,10 @@ abstract class ProcessingFileSets {
     }
 
     private File handleDownload(XnatRestDriver restDriver, Resource resource, int numSubdirs) {
+        final XnatInterface mainInterface = restDriver.mainInterface()
         final String folderName = RandomHelper.randomID(20)
         final File zip = Paths.get(Settings.TEMP_SUBDIR, "${folderName}.zip").toFile()
-        HttpUtils.saveBinaryResponseToFile(restDriver.mainInterface().queryBase().queryParam('format', 'zip').queryParam('structure', 'simplified').get(restDriver.resourceFilesUrl(resource)), zip)
+        HttpUtils.saveBinaryResponseToFile(mainInterface.queryBase().queryParam('format', 'zip').queryParam('structure', 'simplified').get(mainInterface.resourceFilesUrl(resource)), zip)
         final File baseLocalDir = Paths.get(Settings.TEMP_SUBDIR, folderName).toFile()
         FileIOUtils.unzip(baseLocalDir, zip, false)
         iterateSubdirs(baseLocalDir, numSubdirs).toPath().resolve(resource.folder).toFile()

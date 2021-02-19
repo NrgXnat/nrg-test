@@ -31,7 +31,6 @@ import org.nrg.xnat.pogo.extensions.project.ProjectXMLPutExtension
 import org.nrg.xnat.pogo.extensions.subject.SubjectExtension
 import org.nrg.xnat.pogo.extensions.subject.SubjectXMLPutExtension
 import org.nrg.xnat.pogo.resources.Resource
-import org.nrg.xnat.pogo.resources.ResourceFile
 import org.nrg.xnat.pogo.users.User
 import org.nrg.xnat.rest.Credentials
 import org.nrg.xnat.versions.XnatVersion
@@ -154,28 +153,8 @@ abstract class XnatRestDriver {
         Credentials.build(RandomHelper.randomLetters(12), RandomHelper.randomLetters(12)) // randomly generating this is fine. Probability of collision is astronomically small with 12 letters
     }
 
-    @Deprecated
-    String aliasTokenUrl() {
-        mainInterface().issueAliasTokenUrl()
-    }
-
     AnonScript getDefaultXnatAnonScript() {
         XnatObjectUtils.anonScriptFromURL(DicomEditVersion.UNSPECIFIED, formatXapiUrl('anonymize/default'), Settings.DEFAULT_XNAT_CONFIG.adminUser)
-    }
-
-    @Deprecated
-    String projectExperimentsUrl(Project project) {
-        mainInterface().projectExperimentsUrl(project)
-    }
-
-    @Deprecated
-    String getAccessionNumber(SubjectAssessor experiment) {
-        mainInterface().getAccessionNumber(experiment)
-    }
-
-    @Deprecated
-    void waitForAutoRun(ImagingSession session) {
-        mainInterface().waitForAutoRun(session, 60)
     }
 
     String getBuildInfo() {
@@ -275,21 +254,6 @@ abstract class XnatRestDriver {
         mainInterface().legacySiteAnonScriptUrl()
     }
 
-    @Deprecated
-    String projectAnonScriptUrl(Project project) {
-        mainInterface().projectAnonScriptUrl(project)
-    }
-
-    @Deprecated
-    String resourceFilesUrl(Resource resource) {
-        mainInterface().resourceFilesUrl(resource)
-    }
-
-    @Deprecated
-    String resourceFileUrl(Resource resource, ResourceFile file) {
-        mainInterface().resourceFileUrl(resource, file)
-    }
-
     void validateUpload(User authUser, String fileUrl, File localFile) {
         TestNgUtils.assertBinaryFilesEqual(
                 localFile,
@@ -298,32 +262,12 @@ abstract class XnatRestDriver {
 
     void validateResource(User authUser, Resource resource) {
         resource.resourceFiles.each { resourceFile ->
-            validateUpload(authUser, resourceFileUrl(resource, resourceFile), resourceFile.extension.javaFile)
+            validateUpload(authUser, mainInterface().resourceFileUrl(resource, resourceFile), resourceFile.extension.javaFile)
         }
     }
 
-    @Deprecated
-    Resource findResource(List<Resource> resources, String label) {
-        mainInterface().findResource(resources, label)
-    }
-
-    @Deprecated
-    String accessibilityRestUrl(Project project) {
-        mainInterface().accessibilityRestUrl(project)
-    }
-
-    @Deprecated
-    String accessibilityRestUrl(Project project, Accessibility accessibility) {
-        mainInterface().accessibilityRestUrl(project, accessibility)
-    }
-
     void assertProjectAccessibility(User authUser, Project project, Accessibility accessibility) {
-        interfaceFor(authUser).xmlQuery().get(accessibilityRestUrl(project)).then().assertThat().statusCode(200).and().body(equalTo(accessibility.toString()))
-    }
-
-    @Deprecated
-    String projectUrl(Project project) {
-        mainInterface().projectUrl(project)
+        interfaceFor(authUser).xmlQuery().get(mainInterface().accessibilityRestUrl(project)).then().assertThat().statusCode(200).and().body(equalTo(accessibility.toString()))
     }
 
     void createProject(User authUser, Project project, File projectXmlFile) {
@@ -336,85 +280,10 @@ abstract class XnatRestDriver {
         extension.parentObject
     }
 
-    @Deprecated
-    String subjectUrl(Project project, Subject subject) {
-        mainInterface().subjectUrl(project, subject)
-    }
-
-    @Deprecated
-    String subjectUrl(Subject subject) {
-        mainInterface().subjectUrl(subject)
-    }
-
-    @Deprecated
-    String subjectAssessorUrl(Project project, Subject subject, SubjectAssessor assessor) {
-        mainInterface().subjectAssessorUrl(project, subject, assessor)
-    }
-
-    @Deprecated
-    String subjectAssessorUrl(SubjectAssessor assessor) {
-        mainInterface().subjectAssessorUrl(assessor)
-    }
-
-    @Deprecated
-    String sessionScansUrl(Project project, Subject subject, ImagingSession session) {
-        mainInterface().sessionScansUrl(project, subject, session)
-    }
-
-    @Deprecated
-    String sessionScansUrl(ImagingSession session) {
-        mainInterface().sessionScansUrl(session)
-    }
-
-    @Deprecated
-    String scanUrl(Project project, Subject subject, ImagingSession session, Scan scan) {
-        mainInterface().scanUrl(project, subject, session, scan)
-    }
-
-    @Deprecated
-    String scanUrl(Scan scan) {
-        mainInterface().scanUrl(scan)
-    }
-
-    @Deprecated
-    String assessorsUrl(Project project, Subject subject, ImagingSession session) {
-        mainInterface().assessorsUrl(project, subject, session)
-    }
-
-    @Deprecated
-    String sessionAssessorUrl(Project project, Subject subject, ImagingSession session, SessionAssessor sessionAssessor) {
-        mainInterface().sessionAssessorUrl(project, subject, session, sessionAssessor)
-    }
-
-    @Deprecated
-    String sessionAssessorUrl(SessionAssessor assessor) {
-        mainInterface().sessionAssessorUrl(assessor)
-    }
-
-    @Deprecated
-    String reconstructionUrl(Project project, Subject subject, ImagingSession session, Reconstruction reconstruction) {
-        mainInterface().reconstructionUrl(project, subject, session, reconstruction)
-    }
-
-    @Deprecated
-    String reconstructionUrl(Reconstruction reconstruction) {
-        mainInterface().reconstructionUrl(reconstruction)
-    }
-
     void deleteProjectSilently(User authUser, Project project) {
         try {
             interfaceFor(authUser).deleteProject(project)
         } catch (Exception | Error ignored) {}
-    }
-
-    @Deprecated
-    String assessorsByAccessionNumber(ImagingSession session) {
-        mainInterface().assessorsUrlByAccessionNumber(session)
-    }
-
-    @Deprecated
-    String assessorByAccessionNumber(ImagingSession session, SessionAssessor assessor) {
-        mainInterface().assessorUrlByAccessionNumber(session, assessor)
     }
 
     void initializeXnat() {
