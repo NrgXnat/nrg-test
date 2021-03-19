@@ -22,7 +22,6 @@ import org.nrg.testing.xnat.conf.XNATProperties
 import org.nrg.testing.xnat.conf.XnatConfig
 import org.nrg.testing.xnat.rest.XnatRestDriver
 import org.nrg.testing.xnat.ssh.SSHConnection
-import org.nrg.testing.xnat.versions.XnatTestingVersionManager
 import org.nrg.xnat.interfaces.XnatInterface
 import org.nrg.xnat.pogo.Project
 import org.nrg.xnat.pogo.SiteConfig
@@ -53,7 +52,7 @@ abstract class BaseXnatTest extends BaseTestCase {
     protected final User mainUser = Settings.DEFAULT_XNAT_CONFIG.mainUser
     protected final User mainAdminUser = Settings.DEFAULT_XNAT_CONFIG.mainAdminUser
     private final List<XnatPlugin> installedPlugins = []
-    private final Map<String, ?> siteConfigRestoration = [:]
+    private SiteConfig siteConfigRestoration
 
     @BeforeSuite
     void setupXnatTests(ITestContext testContext) {
@@ -142,9 +141,7 @@ abstract class BaseXnatTest extends BaseTestCase {
 
     @AfterClass(alwaysRun = true)
     void restoreSiteConfig() {
-        if (!siteConfigRestoration.isEmpty()) {
-            mainAdminInterface().postToSiteConfig(siteConfigRestoration)
-        }
+        mainAdminInterface().postToSiteConfig(siteConfigRestoration)
     }
 
     protected void initializeTestRandomVariables() {
@@ -229,15 +226,13 @@ abstract class BaseXnatTest extends BaseTestCase {
 
     private void noteInitialConfigSettings() {
         if (Settings.ADMIN_AVAILABLE) {
-            final Map existingConfig = restDriver.queryBaseFor(mainAdminUser).get(restDriver.formatXapiUrl('/siteConfig')).as(Map)
-            final Boolean mergeSetting = existingConfig.get(SiteConfig.PREVENT_CROSS_MODALITY_MERGE)
-            if (mergeSetting != null) {
-                siteConfigRestoration.put(SiteConfig.PREVENT_CROSS_MODALITY_MERGE, mergeSetting)
-            }
-            final Map configReference = siteConfigRestoration // private variable without getter not accessible w/in closure
-            [SiteConfig.LOGIN_REQUIRED, SiteConfig.REQUIRE_EMAIL_VERIFICATION, SiteConfig.AUTO_ENABLE].each { setting ->
-                configReference.put(setting, existingConfig.get(setting))
-            }
+            final SiteConfig existingConfig = mainAdminInterface().readSiteConfig()
+            siteConfigRestoration = new SiteConfig(
+                    requireLogin: existingConfig.requireLogin,
+                    requireEmailVerification: existingConfig.requireEmailVerification,
+                    autoEnableUsers: existingConfig.autoEnableUsers,
+                    preventCrossModalityMerge: existingConfig.preventCrossModalityMerge
+            )
         }
     }
 

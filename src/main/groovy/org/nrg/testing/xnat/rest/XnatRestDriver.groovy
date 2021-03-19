@@ -10,7 +10,6 @@ import com.jayway.restassured.specification.RequestSpecification
 import groovy.util.logging.Log4j
 import org.apache.commons.lang3.time.StopWatch
 import org.nrg.jira.components.zephyr.TestStatus
-import org.nrg.testing.CommonStringUtils
 import org.nrg.testing.HttpUtils
 import org.nrg.testing.TestController
 import org.nrg.testing.TestNgUtils
@@ -21,9 +20,9 @@ import org.nrg.testing.xnat.XnatObjectUtils
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.conf.XnatConfig
 import org.nrg.testing.xnat.versions.XnatTestingVersionManager
+import org.nrg.xnat.XnatConnectionConfig
 import org.nrg.xnat.enums.Accessibility
 import org.nrg.xnat.enums.DicomEditVersion
-import org.nrg.xnat.enums.RoutingRulesType
 import org.nrg.xnat.interfaces.XnatInterface
 import org.nrg.xnat.pogo.*
 import org.nrg.xnat.pogo.experiments.*
@@ -87,7 +86,7 @@ abstract class XnatRestDriver {
         if (xnatInterface != null) {
             xnatInterface
         } else {
-            final XnatInterface newInterface = XnatInterface.authenticate(xnatConfig.xnatUrl, user, xnatConfig.xnatVersion)
+            final XnatInterface newInterface = XnatInterface.authenticate(xnatConfig.xnatUrl, user, new XnatConnectionConfig(versionClass: xnatConfig.xnatVersion))
             xnatInterfaceMap.put(user, newInterface)
             newInterface
         }
@@ -120,18 +119,6 @@ abstract class XnatRestDriver {
         passStep(null)
     }
 
-    String formatXnatUrl(String... components) {
-        CommonStringUtils.formatUrl(xnatConfig.xnatUrl, CommonStringUtils.formatUrl(components))
-    }
-
-    String formatRestUrl(String... components) {
-        formatXnatUrl('data', CommonStringUtils.formatUrl(components))
-    }
-
-    String formatXapiUrl(String... components) {
-        formatXnatUrl('xapi', CommonStringUtils.formatUrl(components))
-    }
-
     Response getJson(RequestSender request, String url) {
         // request should be a RequestSpecification if it's just credentials or a ResponseSpecification if it's credentials appended with expected response behavior
         final Response response = request.get(url)
@@ -154,7 +141,7 @@ abstract class XnatRestDriver {
     }
 
     AnonScript getDefaultXnatAnonScript() {
-        XnatObjectUtils.anonScriptFromURL(DicomEditVersion.UNSPECIFIED, formatXapiUrl('anonymize/default'), Settings.DEFAULT_XNAT_CONFIG.adminUser)
+        XnatObjectUtils.anonScriptFromURL(DicomEditVersion.UNSPECIFIED, mainInterface().formatXapiUrl('anonymize/default'), Settings.DEFAULT_XNAT_CONFIG.adminUser)
     }
 
     String getBuildInfo() {
@@ -169,18 +156,18 @@ abstract class XnatRestDriver {
     }
 
     void clearPrearchiveSessions(User authUser, Project project) {
-        clearPrearchiveSessionsMatchingFilter(authUser, formatRestUrl("/prearchive/projects/${project.id}"), 'ResultSet.Result.collect { it.url }')
+        clearPrearchiveSessionsMatchingFilter(authUser, mainInterface().formatRestUrl("/prearchive/projects/${project.id}"), 'ResultSet.Result.collect { it.url }')
     }
 
     void clearUnassignedPrearchiveSessions(User authUser, List<String> studyInstanceUIDs) {
-        clearPrearchiveSessionsMatchingFilter(authUser, formatRestUrl('/prearchive'), "ResultSet.Result.findAll { it.tag in ${studyInstanceUIDs.collect { "'${it}'" }} && it.project == 'Unassigned' }.url")
+        clearPrearchiveSessionsMatchingFilter(authUser, mainInterface().formatRestUrl('/prearchive'), "ResultSet.Result.findAll { it.tag in ${studyInstanceUIDs.collect { "'${it}'" }} && it.project == 'Unassigned' }.url")
     }
 
     void waitForPrearchiveEmpty(User authUser, Project project, int maximumWait) {
         final StopWatch stopWatch = TimeUtils.launchStopWatch()
         while (true) {
             TimeUtils.checkStopWatch(stopWatch, maximumWait, "Prearchive did not empty for project ${project}")
-            if (interfaceFor(authUser).jsonQuery().get(formatRestUrl("/prearchive/projects/${project.id}")).jsonPath().getInt('ResultSet.Result.size()') == 0) {
+            if (interfaceFor(authUser).jsonQuery().get(mainInterface().formatRestUrl("/prearchive/projects/${project.id}")).jsonPath().getInt('ResultSet.Result.size()') == 0) {
                 return
             } else {
                 TimeUtils.sleep(1000)
@@ -207,47 +194,9 @@ abstract class XnatRestDriver {
         uploadToSessionZipImporter(null, sessionZip, session.primaryProject, session.subject, session)
     }
 
+    @Deprecated
     String getUserSessionsRestUrl(User user) {
         mainInterface().userSessionsRestUrl(user)
-    }
-
-    void setAutoArchiveTimings(User authUser, int idleTime, int idleSchedule) {
-        interfaceFor(authUser).postToSiteConfig([
-                (SiteConfig.AUTOARCHIVE_IDLE_TIME) : idleTime,
-                (SiteConfig.AUTOARCHIVE_IDLE_SCHEDULE) : idleSchedule
-        ])
-    }
-
-    void setDicomRoutingConfig(RoutingRulesType routingType, String contents) {
-        interfaceFor(mainAdminUser).setDicomRoutingConfig(routingType, contents)
-    }
-
-    void disableDicomRoutingConfig(RoutingRulesType routingType) {
-        interfaceFor(mainAdminUser).disableDicomRoutingConfig(routingType)
-    }
-
-    void setProjectDicomRoutingConfig(String contents) {
-        setDicomRoutingConfig(RoutingRulesType.PROJECT_RULES, contents)
-    }
-
-    void setSubjectDicomRoutingConfig(String contents) {
-        setDicomRoutingConfig(RoutingRulesType.SUBJECT_RULES, contents)
-    }
-
-    void setSessionDicomRoutingConfig(String contents) {
-        setDicomRoutingConfig(RoutingRulesType.SESSION_RULES, contents)
-    }
-
-    void disableProjectDicomRoutingConfig() {
-        disableDicomRoutingConfig(RoutingRulesType.PROJECT_RULES)
-    }
-
-    void disableSubjectDicomRoutingConfig() {
-        disableDicomRoutingConfig(RoutingRulesType.SUBJECT_RULES)
-    }
-
-    void disableSessionDicomRoutingConfig() {
-        disableDicomRoutingConfig(RoutingRulesType.SESSION_RULES)
     }
 
     String siteAnonScriptUrl() {
@@ -271,12 +220,12 @@ abstract class XnatRestDriver {
     }
 
     void createProject(User authUser, Project project, File projectXmlFile) {
-        new ProjectXMLPutExtension(interfaceFor(authUser), project, projectXmlFile).create()
+        new ProjectXMLPutExtension(project, projectXmlFile).create(interfaceFor(authUser))
     }
 
     Subject createSubject(User authUser, Project project, File subjectXML) {
-        final SubjectExtension extension = new SubjectXMLPutExtension(interfaceFor(authUser), subjectXML)
-        extension.create(project)
+        final SubjectExtension extension = new SubjectXMLPutExtension(subjectXML)
+        extension.create(interfaceFor(authUser), project)
         extension.parentObject
     }
 
@@ -287,17 +236,17 @@ abstract class XnatRestDriver {
     }
 
     void initializeXnat() {
-        final Response initResponse = adminCredentials.get(formatXapiUrl('/siteConfig/initialized'))
+        final Response initResponse = adminCredentials.get(interfaceFor(adminUser).formatXapiUrl('/siteConfig/initialized'))
         if (initResponse.statusCode() == 200 && initResponse.as(Boolean)) {
             log.info('XNAT already initialized')
         } else {
-            interfaceFor(adminUser).queryBase().contentType(JSON).body(['initialized' : true]).post(formatXapiUrl('siteConfig')).then().assertThat().statusCode(200)
+            interfaceFor(adminUser).initializeXnat()
         }
     }
 
     void setupTestUsers() {
-        final List<String> allUsers = adminCredentials.get(formatXapiUrl('/users')).path('')
         final XnatInterface adminInterface = interfaceFor(adminUser)
+        final List<String> allUsers = adminCredentials.get(adminInterface.formatXapiUrl('/users')).path('')
 
         if (mainUser.username in allUsers) {
             adminInterface.verifyUser(mainUser)
@@ -318,7 +267,7 @@ abstract class XnatRestDriver {
 
     private void clearPrearchiveSessionsMatchingFilter(User authUser, String prearchiveQueryUrl, String jsonPathFilter) {
         interfaceFor(authUser).jsonQuery().get(prearchiveQueryUrl).then().assertThat().statusCode(200).and().extract().jsonPath().getList(jsonPathFilter).each { deleteUrl ->
-            queryBaseFor(authUser).delete(formatRestUrl(deleteUrl as String)).then().assertThat().statusCode(200)
+            queryBaseFor(authUser).delete(mainInterface().formatRestUrl(deleteUrl as String)).then().assertThat().statusCode(200)
         }
     }
 

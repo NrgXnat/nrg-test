@@ -25,7 +25,7 @@ class ProcessingResource extends Resource {
 
     Resource findActualResources(XnatRestDriver driver, ImagingSession session) {
         if (isRegex) {
-            final String actualLabel = driver.mainInterface().jsonQuery().get(driver.formatRestUrl("/experiments/${session.accessionNumber}/resources")).jsonPath().getList("ResultSet.Result.label").find { label ->
+            final String actualLabel = driver.mainInterface().jsonQuery().get(driver.mainInterface().formatRestUrl("/experiments/${session.accessionNumber}/resources")).jsonPath().getList("ResultSet.Result.label").find { label ->
                 (label as String).matches(folder)
             }
             if (actualLabel == null) {

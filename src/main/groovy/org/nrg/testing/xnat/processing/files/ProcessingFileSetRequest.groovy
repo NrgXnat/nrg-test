@@ -24,7 +24,7 @@ class ProcessingFileSetRequest implements ProcessingCheckable {
 
     List<String> checkFilesMatch(ImagingSession session, XnatRestDriver xnatRestDriver, SessionRenewer sessionRenewer) {
         final IgnoreNullList<String> verificationErrors = new IgnoreNullList<>()
-        final Response validationFileResponse = xnatRestDriver.mainCredentials.get(xnatRestDriver.formatRestUrl("/experiments/${session.accessionNumber}/resources/validation/files/${fileName}"))
+        final Response validationFileResponse = xnatRestDriver.mainCredentials.get(xnatRestDriver.mainInterface().formatRestUrl("/experiments/${session.accessionNumber}/resources/validation/files/${fileName}"))
         if (validationFileResponse.statusCode != 200) {
             return ['REST call to retrieve specification for file verification failed']
         }

@@ -47,10 +47,12 @@ class BaseXnatRestTest extends BaseXnatTest {
         }
     }
 
+    @Deprecated
     protected RequestSpecification mainCredentials() {
         Credentials.build(mainUser)
     }
 
+    @Deprecated
     protected RequestSpecification mainAdminCredentials() {
         Credentials.build(mainAdminUser)
     }
@@ -59,8 +61,20 @@ class BaseXnatRestTest extends BaseXnatTest {
         restDriver.mainQueryBase()
     }
 
+    protected RequestSpecification mainAdminQueryBase() {
+        mainAdminInterface().queryBase()
+    }
+
     protected String formatRestUrl(String... objects) {
-        restDriver.formatRestUrl(objects)
+        mainInterface().formatRestUrl(objects)
+    }
+
+    protected String formatXnatUrl(String... objects) {
+        mainInterface().formatXnatUrl(objects)
+    }
+
+    protected String formatXapiUrl(String... objects) {
+        mainInterface().formatXapiUrl(objects)
     }
 
 }
