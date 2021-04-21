@@ -40,7 +40,7 @@ class DicomValidationTest {
         sequenceItem1.putExistenceChecks(ReferencedSOPClassUID)
         sequenceItem1.putNonexistenceChecks(CodeValue)
 
-        final DicomSequence sequence = new DicomSequence(sequenceItem0, sequenceItem1)
+        final DicomSequence sequence = new DicomSequence(sequenceItem0, sequenceItem1).disableSizeCheck()
         dicomObject.putSequenceCheck(ReferencedImageSequence, sequence)
         validator.validate(sampleFile, dicomObject)
 
@@ -103,8 +103,10 @@ class DicomValidationTest {
     private void expectValidationFailure(DicomObject dicomObject) {
         try {
             validator.validate(sampleFile, dicomObject)
-            fail('DICOM validation should have thrown an exception.')
-        } catch (Exception | Error ignored) {}
+        } catch (Exception | Error ignored) {
+            return
+        }
+        fail('DICOM validation should have thrown an exception.')
     }
 
 }

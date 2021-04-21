@@ -44,7 +44,7 @@ class DicomFileValidator extends DicomValidator {
     void checkTagDoesntHaveValue(DicomTag tag, String value) {
         checkTagPresent(tag)
         final String actual = expectedLocation(tag).getString(tag.asInt()) ?: ''
-        assertFalse("Found value '${actual}' (but it should have been changed) for DicomElement:\n%${tag.fullScopeStringRepresentation}", value == actual)
+        assertFalse("Found value '${actual}' (but it should have been changed) for DicomElement:\n${tag.fullScopeStringRepresentation}", value == actual)
     }
 
     @Override

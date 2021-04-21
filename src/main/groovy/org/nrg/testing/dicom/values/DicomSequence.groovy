@@ -7,7 +7,7 @@ import org.nrg.testing.dicom.SequenceItem
 class DicomSequence extends DicomValue {
 
     private final List<SequenceItem> items = []
-    private boolean requestSizeCheck = false
+    private boolean requestSizeCheck = true
 
     DicomSequence(DicomObject... objects) {
         objects.each { object ->
