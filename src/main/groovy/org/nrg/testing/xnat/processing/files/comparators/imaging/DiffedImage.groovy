@@ -16,8 +16,8 @@ import org.nrg.xnat.util.GraphUtils
 class DiffedImage {
 
     boolean isColor
-    private ComparisonPixel[][][] signedComparisonPixels // z, x, y so we can iterate over "pages"/"slices" (z)
-    private ImageType type
+    protected ComparisonPixel[][][] signedComparisonPixels // z, x, y so we can iterate over "pages"/"slices" (z)
+    protected ImageType type
 
     DiffedImage(File originalImageFile, File generatedImageFile, ImageType type) throws ImageProcessingException {
         this.type = type
@@ -189,16 +189,15 @@ class DiffedImage {
             generated.setSliceWithoutUpdate(z + 1)
             (0 ..< width).each { x ->
                 (0 ..< height).each { y ->
-                    final int[] originalPixel = original.getPixel(x, y)
-                    final int[] generatedPixel = generated.getPixel(x, y)
-                    if (isColor) {
-                        signedComparisonPixels[z][x][y] = PixelFactory.getPixel(originalPixel[0], originalPixel[1], originalPixel[2], generatedPixel[0], generatedPixel[1], generatedPixel[2])
-                    } else {
-                        signedComparisonPixels[z][x][y] = PixelFactory.getPixel(originalPixel[0], generatedPixel[0])
-                    }
+                    signedComparisonPixels[z][x][y] = readComparisonPixel(x, y, original.getPixel(x, y), generated.getPixel(x, y))
                 }
             }
         }
+    }
+
+    // x and y are pointless here, but used in xnat_rest_tests to override this method
+    protected ComparisonPixel readComparisonPixel(int x, int y, int[] original, int[] generated) {
+        isColor ? PixelFactory.getPixel(original[0], original[1], original[2], generated[0], generated[1], generated[2]) : PixelFactory.getPixel(original[0], generated[0])
     }
 
 }
