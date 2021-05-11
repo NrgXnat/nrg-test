@@ -1,5 +1,6 @@
 package org.nrg.testing.dicom
 
+import org.dcm4che3.data.VR
 import org.nrg.testing.dicom.values.DicomSequence
 
 abstract class DicomValidator {
@@ -20,6 +21,10 @@ abstract class DicomValidator {
     abstract void checkTagNotPresent(DicomTag tag)
 
     abstract void checkTagHasValue(DicomTag tag, String value)
+
+    abstract void checkTagHasValue(DicomTag tag, String value, VR expectedVr)
+
+    abstract void checkTagHasValue(DicomTag tag, DicomTag otherTag)
 
     abstract void checkTagDoesntHaveValue(DicomTag tag, String value)
 

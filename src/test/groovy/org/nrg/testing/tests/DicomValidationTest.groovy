@@ -1,5 +1,6 @@
 package org.nrg.testing.tests
 
+import org.dcm4che3.data.VR
 import org.nrg.testing.UnitTestUtils
 import org.nrg.testing.dicom.DicomFileValidator
 import org.nrg.testing.dicom.DicomObject
@@ -97,6 +98,34 @@ class DicomValidationTest {
         sequenceItem0.putValueEqualCheck(ReferencedSOPClassUID, org.dcm4che3.data.UID.MRImageStorage)
         sequenceItem0.putValueNotEqualCheck(ReferencedSOPInstanceUID, org.dcm4che3.data.UID.MRImageStorage)
         dicomObject.putSequenceCheck(ReferencedImageSequence, new DicomSequence(sequenceItem0).disableSizeCheck())
+        validator.validate(sampleFile, dicomObject)
+    }
+
+    @Test
+    void testBadVrCheck() {
+        final DicomObject dicomObject = new RootDicomObject()
+        dicomObject.putValueEqualCheck(SOPClassUID, org.dcm4che3.data.UID.MRImageStorage, VR.CS)
+        expectValidationFailure(dicomObject)
+    }
+
+    @Test
+    void testVrCheck() {
+        final DicomObject dicomObject = new RootDicomObject()
+        dicomObject.putValueEqualCheck(SOPClassUID, org.dcm4che3.data.UID.MRImageStorage, VR.UI)
+        validator.validate(sampleFile, dicomObject)
+    }
+
+    @Test
+    void testBadValuesEqualCheck() {
+        final DicomObject dicomObject = new RootDicomObject()
+        dicomObject.putValueEqualCheck("(0018,0093)", dicomObject.getTagElement("(0018,0095"))
+        expectValidationFailure(dicomObject)
+    }
+
+    @Test
+    void testValuesEqualCheck() {
+        final DicomObject dicomObject = new RootDicomObject()
+        dicomObject.putValueEqualCheck("(0018,0093)", dicomObject.getTagElement("(0018,0094)"))
         validator.validate(sampleFile, dicomObject)
     }
 

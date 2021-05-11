@@ -1,5 +1,6 @@
 package org.nrg.testing.dicom
 
+import org.dcm4che3.data.VR
 import org.nrg.testing.dicom.values.*
 
 import static org.nrg.testing.DicomUtils.stringHeaderToHexInt
@@ -7,9 +8,15 @@ import static org.nrg.testing.DicomUtils.stringHeaderToHexInt
 class DicomObject extends DicomScopable {
 
     Map<DicomTag, DicomValue> dicomMap = [:]
+    List<DicomTag> tagReferences = []
+
+    DicomObject(Map<DicomTag, DicomValue> dicomMap, List<DicomTag> tagReferences) {
+        setDicomMap(dicomMap)
+        setTagReferences(tagReferences)
+    }
 
     DicomObject(Map<DicomTag, DicomValue> dicomMap) {
-        setDicomMap(dicomMap)
+        this(dicomMap, [])
     }
 
     DicomObject() {}
@@ -21,6 +28,15 @@ class DicomObject extends DicomScopable {
             value.setParent(tag)
             value.markChildren()
         }
+        tagReferences.each { tag ->
+            tag.setParent(this)
+        }
+    }
+
+    DicomTag getTagElement(String dicomElement) {
+        final DicomTag dicomTag = new DicomTag(stringHeaderToHexInt(dicomElement))
+        tagReferences << dicomTag
+        dicomTag
     }
 
     protected void put(int dicomHexTag, DicomValue dicomValue) {
@@ -63,6 +79,22 @@ class DicomObject extends DicomScopable {
 
     void putValueEqualCheck(String dicomElement, String value) {
         putValueEqualCheck(stringHeaderToHexInt(dicomElement), value)
+    }
+
+    void putValueEqualCheck(int dicomElement, String value, VR expectedVr) {
+        put(dicomElement, new DicomTagHasValue(value, expectedVr))
+    }
+
+    void putValueEqualCheck(String dicomElement, String value, VR expectedVr) {
+        putValueEqualCheck(stringHeaderToHexInt(dicomElement), value, expectedVr)
+    }
+
+    void putValueEqualCheck(int dicomElement, DicomTag dicomTag) {
+        put(dicomElement, new DicomTagHasValue(dicomTag))
+    }
+
+    void putValueEqualCheck(String dicomElement, DicomTag dicomTag) {
+        putValueEqualCheck(stringHeaderToHexInt(dicomElement), dicomTag)
     }
 
     void putValueNotEqualCheck(int dicomElement, String value) {

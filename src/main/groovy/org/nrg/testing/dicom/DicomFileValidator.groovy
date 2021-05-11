@@ -2,6 +2,7 @@ package org.nrg.testing.dicom
 
 import org.dcm4che3.data.Attributes
 import org.dcm4che3.data.DatasetWithFMI
+import org.dcm4che3.data.VR
 import org.nrg.testing.DicomUtils
 import org.nrg.testing.dicom.values.DicomSequence
 
@@ -33,11 +34,26 @@ class DicomFileValidator extends DicomValidator {
     @Override
     void checkTagHasValue(DicomTag tag, String value) {
         checkTagPresent(tag)
-        final String actual = expectedLocation(tag).getStrings(tag.asInt()).join('\\')
+        final String actual = readTag(tag)
         assertEquals("Found value '${actual}' instead of '${value}' for DicomElement:\n${tag.fullScopeStringRepresentation}",
                 value,
                 actual ?: ''
         )
+    }
+
+    @Override
+    void checkTagHasValue(DicomTag tag, String value, VR expectedVr) {
+        checkTagHasValue(tag, value)
+        final VR actualVr = expectedLocation(tag).getVR(tag.asInt())
+        assertEquals("Found VR '${actualVr}' instead of '${expectedVr}' for DicomElement:\n${tag.fullScopeStringRepresentation}",
+                expectedVr,
+                actualVr
+        )
+    }
+
+    @Override
+    void checkTagHasValue(DicomTag tag, DicomTag otherTag) {
+        checkTagHasValue(tag, readTag(otherTag))
     }
 
     @Override
@@ -50,7 +66,7 @@ class DicomFileValidator extends DicomValidator {
     @Override
     void checkTagStartsWith(DicomTag tag, String value) {
         checkTagPresent(tag)
-        final String actual = expectedLocation(tag).getStrings(tag.asInt()).join('\\')
+        final String actual = readTag(tag)
         assertTrue("Found value '${actual}' instead of value beginning with '${value}' for DicomElement:\n${tag.fullScopeStringRepresentation}", actual.startsWith(value))
     }
 
@@ -68,6 +84,10 @@ class DicomFileValidator extends DicomValidator {
                 dicomValue.assertValuesSatisfied(this)
             }
         }
+    }
+
+    private String readTag(DicomTag tag) {
+        expectedLocation(tag).getStrings(tag.asInt()).join('\\')
     }
 
     private boolean tagPresentInCorrectLocation(DicomTag tag) {
