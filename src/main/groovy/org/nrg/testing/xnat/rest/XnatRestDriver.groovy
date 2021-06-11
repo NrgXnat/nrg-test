@@ -25,6 +25,7 @@ import org.nrg.xnat.enums.Accessibility
 import org.nrg.xnat.enums.DicomEditVersion
 import org.nrg.xnat.interfaces.XnatInterface
 import org.nrg.xnat.pogo.*
+import org.nrg.xnat.pogo.dicom.SessionData
 import org.nrg.xnat.pogo.experiments.*
 import org.nrg.xnat.pogo.extensions.project.ProjectXMLPutExtension
 import org.nrg.xnat.pogo.extensions.subject.SubjectExtension
@@ -167,7 +168,20 @@ abstract class XnatRestDriver {
         final StopWatch stopWatch = TimeUtils.launchStopWatch()
         while (true) {
             TimeUtils.checkStopWatch(stopWatch, maximumWait, "Prearchive did not empty for project ${project}")
-            if (interfaceFor(authUser).jsonQuery().get(mainInterface().formatRestUrl("/prearchive/projects/${project.id}")).jsonPath().getInt('ResultSet.Result.size()') == 0) {
+            if (mainInterface().getPrearchiveEntryCountForProject(project) == 0) {
+                return
+            } else {
+                TimeUtils.sleep(1000)
+            }
+        }
+    }
+
+    void waitForDirectArchiveEmpty(User authUser, Project project, int maximumWait) {
+        final StopWatch stopWatch = TimeUtils.launchStopWatch()
+        while (true) {
+            TimeUtils.checkStopWatch(stopWatch, maximumWait, "Direct archive did not empty for project ${project}")
+            SessionData[] results = mainInterface().getDirectArchiveEntriesForProject(project)
+            if (results.length == 0) {
                 return
             } else {
                 TimeUtils.sleep(1000)
