@@ -87,7 +87,8 @@ abstract class XnatRestDriver {
         if (xnatInterface != null) {
             xnatInterface
         } else {
-            final XnatInterface newInterface = XnatInterface.authenticate(xnatConfig.xnatUrl, user, new XnatConnectionConfig(versionClass: xnatConfig.xnatVersion))
+            final XnatInterface newInterface = XnatInterface.authenticate(xnatConfig.xnatUrl, user,
+                    new XnatConnectionConfig(versionClass: xnatConfig.xnatVersion, logOnValidationFailure: Settings.LOGGING_ALLOWED))
             xnatInterfaceMap.put(user, newInterface)
             newInterface
         }
