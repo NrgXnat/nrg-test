@@ -6,7 +6,6 @@ import org.nrg.testing.CommonStringUtils
 import org.nrg.testing.enums.TestBehavior
 import org.nrg.testing.util.BaseProperties
 import org.nrg.xnat.versions.XnatVersion
-import org.nrg.testing.xnat.versions.XnatTestingVersionManager
 import org.nrg.xnat.versions.XnatVersionList
 
 class XNATProperties extends BaseProperties {
@@ -52,7 +51,7 @@ class XNATProperties extends BaseProperties {
     public static final String EXPECTED_FAILURE_BEHAVIOR = 'xnat.testBehavior.expectedFailures'
     public static final String MISSING_PLUGIN_BEHAVIOR = 'xnat.testBehavior.missingPlugins'
     public static final String FIREFOX_BINARY_PATH = 'firefox.path'
-    public static final String TOMCAT_VERSION = 'tomcat.version'
+    public static final String TOMCAT_CONTROL_SCRIPT = 'tomcat.control'
     public static final String SELENIUM_HEADLESS = 'selenium.headless'
     public static final String XNAT_REQUIRED = 'xnat.required' // used to specify that additional XNATs will be needed
     public static final String SMTP_HOST = 'mail.smtp.host'
@@ -249,8 +248,8 @@ class XNATProperties extends BaseProperties {
         parseVersion(XNAT_VERSION)
     }
 
-    String getTomcatVersion() {
-        getStringProperty(false, TOMCAT_VERSION, 'tomcat7')
+    String getTomcatControlScriptKey() {
+        getStringProperty(false, TOMCAT_CONTROL_SCRIPT, null)
     }
 
     String getFirefoxPath() {

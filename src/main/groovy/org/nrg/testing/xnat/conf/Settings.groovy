@@ -9,6 +9,8 @@ import org.nrg.testing.enums.TestBehavior
 import org.nrg.testing.file.FileLocation
 import org.nrg.testing.util.RandomHelper
 import org.nrg.testing.xnat.ssh.SSHConnection
+import org.nrg.testing.xnat.ssh.TomcatController
+import org.nrg.testing.xnat.ssh.TomcatControllerLookup
 import org.nrg.xnat.versions.XnatVersion
 import org.nrg.xnat.pogo.dicom.DicomScpReceiver
 import org.nrg.xnat.rest.Credentials
@@ -88,7 +90,7 @@ class Settings {
     public static final String SSH_KEY_NAME = properties.sshPrivateKeyName
     public static final File SSH_KEY = getSshKey()
     public static final boolean HEADLESS = properties.headlessSetting
-    public static final String TOMCAT_VERSION = properties.tomcatVersion
+    public static final TomcatController TOMCAT_CONTROLLER = TomcatControllerLookup.lookup(properties.tomcatControlScriptKey)
     public static final boolean SSH_FUNCTIONS = new SSHConnection().testSSH() // needs to come after TEMP_SUBDIR
 
     private static File getSshKey() {

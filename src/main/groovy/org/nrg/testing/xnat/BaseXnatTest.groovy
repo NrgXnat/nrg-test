@@ -240,19 +240,12 @@ abstract class BaseXnatTest extends BaseTestCase {
      * Takes care of all requirements that may be needed for individual tests/classes but that can be satisfied on startup
      */
     private void handleSetupAnnotationRequirements() {
-        boolean scriptsPushed = false
         final Set<TestData> testDataRequirements = []
         allTests.each { test ->
             final List<TestRequires> requirements = [TestNgUtils.getAnnotation(test, TestRequires), test.realClass.getAnnotation(TestRequires)]
             requirements.each { requirement ->
                 if (requirement != null) {
                     testDataRequirements.addAll(requirement.data())
-                }
-            }
-            if (!scriptsPushed) {
-                if (requirements.any { it != null && it.ssh() }) {
-                    new SSHConnection().pushScripts()
-                    scriptsPushed = true
                 }
             }
         }

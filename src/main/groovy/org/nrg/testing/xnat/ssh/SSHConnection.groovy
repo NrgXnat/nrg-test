@@ -3,10 +3,8 @@ package org.nrg.testing.xnat.ssh
 import groovy.util.logging.Log4j
 import net.schmizz.sshj.SSHClient
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier
-import net.schmizz.sshj.xfer.FileSystemFile
 import org.apache.commons.lang3.time.StopWatch
 import org.nrg.testing.TimeUtils
-import org.nrg.testing.util.ResourceLoader
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.conf.XNATProperties
 import org.nrg.testing.xnat.rest.XnatRestDriver
@@ -16,8 +14,6 @@ import org.testng.AssertJUnit
 class SSHConnection {
 
     private SSHClient sshClient
-    private static final TOMCAT_SCRIPT = 'manage_tomcat.sh'
-    private static final RELATIVE_TOMCAT_SCRIPT_PATH = "bin/${TOMCAT_SCRIPT}"
 
     private void initiateConnection() {
         sshClient = new SSHClient()
@@ -50,15 +46,6 @@ class SSHConnection {
         false
     }
 
-    void pushScripts() {
-        initiateConnection()
-        executeCommandWithCurrentConnection('mkdir -p ~/bin')
-        final File script = ResourceLoader.copyAndGetResource(TOMCAT_SCRIPT)
-        sshClient.newSCPFileTransfer().upload(new FileSystemFile(script), 'bin/')
-        executeCommandWithCurrentConnection("chmod +x ${RELATIVE_TOMCAT_SCRIPT_PATH}")
-        disconnect()
-    }
-
     SSHCommandResult executeCommandWithCurrentConnection(String command) {
         new SSHCommandResult(sshClient.startSession().exec(command))
     }
@@ -71,24 +58,24 @@ class SSHConnection {
     }
 
     void restartTomcat() {
-        manageTomcat('restart')
+        manageTomcat('restart', Settings.TOMCAT_CONTROLLER.restartCommand)
         waitForTomcat()
     }
 
     void stopTomcat() {
         XnatRestDriver.invalidateCachedCredentials()
-        manageTomcat('stop')
+        manageTomcat('stop', Settings.TOMCAT_CONTROLLER.stopCommand)
     }
 
     void startTomcat() {
         XnatRestDriver.invalidateCachedCredentials()
-        manageTomcat('start')
+        manageTomcat('start', Settings.TOMCAT_CONTROLLER.startCommand)
         waitForTomcat()
     }
 
-    private void manageTomcat(String command) {
-        log.info("Sending command to tomcat: ${command}...")
-        final SSHCommandResult results = executeSingleCommand("${RELATIVE_TOMCAT_SCRIPT_PATH} ${command} ${Settings.TOMCAT_VERSION}")
+    private void manageTomcat(String commandName, String commandString) {
+        log.info("Sending command to tomcat: ${commandName}...")
+        final SSHCommandResult results = executeSingleCommand(commandString)
         log.info(results.stdOut)
         log.error(results.stdErr)
         AssertJUnit.assertEquals(0, results.exitStatus)
