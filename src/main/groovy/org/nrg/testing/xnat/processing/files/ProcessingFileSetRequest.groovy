@@ -1,7 +1,7 @@
 package org.nrg.testing.xnat.processing.files
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.jayway.restassured.response.Response
+import io.restassured.response.Response
 import org.apache.log4j.Logger
 import org.nrg.jira.components.zephyr.TestStatus
 import org.nrg.testing.util.IgnoreNullList

@@ -78,7 +78,7 @@ class DefaultMethodSortComparator implements Comparator<IMethodInstance> {
     }
 
     private List<IMethodInstance> topologicallySortMethodSubgraph(Collection<IMethodInstance> methods) {
-        final List<IMethodInstance> methodsSortedLast, otherMethods
+        List<IMethodInstance> methodsSortedLast, otherMethods
         (methodsSortedLast, otherMethods) = methods.split {methodInstance ->
             TestNgUtils.getAnnotation(methodInstance.method, SortLast) != null
         }

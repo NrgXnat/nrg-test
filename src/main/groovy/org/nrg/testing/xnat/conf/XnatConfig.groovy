@@ -1,6 +1,6 @@
 package org.nrg.testing.xnat.conf
 
-import com.jayway.restassured.specification.RequestSpecification
+import io.restassured.specification.RequestSpecification
 import org.nrg.testing.xnat.Users
 import org.nrg.xnat.versions.XnatVersion
 import org.nrg.xnat.pogo.users.User

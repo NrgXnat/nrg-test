@@ -1,13 +1,13 @@
 package org.nrg.testing.xnat.rest
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.jayway.restassured.http.ContentType
-import com.jayway.restassured.internal.RestAssuredResponseImpl
-import com.jayway.restassured.path.json.exception.JsonPathException
-import com.jayway.restassured.response.Response
-import com.jayway.restassured.specification.RequestSender
-import com.jayway.restassured.specification.RequestSpecification
 import groovy.util.logging.Log4j
+import io.restassured.http.ContentType
+import io.restassured.internal.RestAssuredResponseImpl
+import io.restassured.path.json.exception.JsonPathException
+import io.restassured.response.Response
+import io.restassured.specification.RequestSender
+import io.restassured.specification.RequestSpecification
 import org.apache.commons.lang3.time.StopWatch
 import org.nrg.jira.components.zephyr.TestStatus
 import org.nrg.testing.HttpUtils
@@ -25,19 +25,18 @@ import org.nrg.xnat.enums.Accessibility
 import org.nrg.xnat.enums.DicomEditVersion
 import org.nrg.xnat.interfaces.XnatInterface
 import org.nrg.xnat.pogo.*
-import org.nrg.xnat.pogo.dicom.SessionData
 import org.nrg.xnat.pogo.experiments.*
 import org.nrg.xnat.pogo.extensions.project.ProjectXMLPutExtension
 import org.nrg.xnat.pogo.extensions.subject.SubjectExtension
 import org.nrg.xnat.pogo.extensions.subject.SubjectXMLPutExtension
 import org.nrg.xnat.pogo.resources.Resource
 import org.nrg.xnat.pogo.users.User
+import org.nrg.xnat.prearchive.SessionData
 import org.nrg.xnat.rest.Credentials
 import org.nrg.xnat.versions.XnatVersion
 
 import java.nio.file.Paths
 
-import static com.jayway.restassured.http.ContentType.JSON
 import static org.hamcrest.CoreMatchers.equalTo
 
 @SuppressWarnings('unused')
@@ -124,7 +123,7 @@ abstract class XnatRestDriver {
     Response getJson(RequestSender request, String url) {
         // request should be a RequestSpecification if it's just credentials or a ResponseSpecification if it's credentials appended with expected response behavior
         final Response response = request.get(url)
-        fixContentType(response, JSON)
+        fixContentType(response, ContentType.JSON)
         response
     }
 

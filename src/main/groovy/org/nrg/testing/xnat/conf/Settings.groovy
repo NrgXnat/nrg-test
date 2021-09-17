@@ -1,6 +1,6 @@
 package org.nrg.testing.xnat.conf
 
-import com.jayway.restassured.specification.RequestSpecification
+import io.restassured.specification.RequestSpecification
 import org.apache.log4j.Logger
 import org.nrg.testing.CommonStringUtils
 import org.nrg.testing.FileIOUtils

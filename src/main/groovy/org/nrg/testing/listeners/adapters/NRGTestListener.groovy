@@ -1,6 +1,6 @@
 package org.nrg.testing.listeners.adapters
 
-import com.jayway.restassured.RestAssured
+import io.restassured.RestAssured
 import groovy.util.logging.Log4j
 import org.nrg.jira.reporter.JiraCompiler
 import org.nrg.testing.BaseTestCase

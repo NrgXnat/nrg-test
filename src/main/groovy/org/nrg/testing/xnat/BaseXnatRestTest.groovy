@@ -1,11 +1,10 @@
 package org.nrg.testing.xnat
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.jayway.restassured.RestAssured
-import com.jayway.restassured.config.RestAssuredConfig
-import com.jayway.restassured.config.SSLConfig
-import com.jayway.restassured.mapper.factory.Jackson2ObjectMapperFactory
-import com.jayway.restassured.specification.RequestSpecification
+import io.restassured.RestAssured
+import io.restassured.config.RestAssuredConfig
+import io.restassured.path.json.mapper.factory.Jackson2ObjectMapperFactory
+import io.restassured.specification.RequestSpecification
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.rest.XnatRestDriver
 import org.nrg.xnat.pogo.DataType
@@ -13,7 +12,9 @@ import org.nrg.xnat.pogo.users.User
 import org.nrg.xnat.rest.Credentials
 import org.testng.annotations.BeforeSuite
 
-import static com.jayway.restassured.config.ObjectMapperConfig.objectMapperConfig
+import java.lang.reflect.Type
+
+import static io.restassured.config.ObjectMapperConfig.objectMapperConfig
 
 class BaseXnatRestTest extends BaseXnatTest {
 
@@ -22,7 +23,7 @@ class BaseXnatRestTest extends BaseXnatTest {
         RestAssured.config = RestAssuredConfig.config().objectMapperConfig(objectMapperConfig().jackson2ObjectMapperFactory(
                 new Jackson2ObjectMapperFactory() {
                     @Override
-                    ObjectMapper create(Class aClass, String s) {
+                    ObjectMapper create(Type type, String s) {
                         XnatRestDriver.XNAT_REST_MAPPER
                     }
                 }

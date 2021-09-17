@@ -50,8 +50,12 @@ repositories {
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
+configurations.compile {
+    exclude(group: 'ch.qos.logback', module: 'logback-classic')
+}
+
 dependencies {
-    compile('org.codehaus.groovy:groovy-all')
+    compile(group: 'org.codehaus.groovy', name: 'groovy-all', version: dependencyManagement.importedProperties['vGroovy'], ext: 'pom')
     compile("org.nrg:test_utils:${vTestUtils}")
     compile("org.nrg:jira-zephyr:${vJiraZephyr}")
     compile("org.nrg:multiprocessor-scheduling:${vMultiprocessor}")
@@ -70,9 +74,7 @@ dependencies {
     compile('net.imagej:imagej') {
         exclude(group: 'com.miglayout', module: 'miglayout')
     }
-    compile('ome:bio-formats_plugins') {
-        exclude(group: 'ch.qos.logback', module: 'logback-classic')
-    }
+    compile('ome:bio-formats_plugins')
     compile('ome:formats-gpl') {
         exclude(group: 'ch.systems.cisd', module: 'logback-classic')
         exclude(group: 'ch.systems.cisd', module: 'jhdf5')

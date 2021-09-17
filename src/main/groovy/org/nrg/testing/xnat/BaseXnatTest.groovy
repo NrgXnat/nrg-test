@@ -21,7 +21,6 @@ import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.conf.XNATProperties
 import org.nrg.testing.xnat.conf.XnatConfig
 import org.nrg.testing.xnat.rest.XnatRestDriver
-import org.nrg.testing.xnat.ssh.SSHConnection
 import org.nrg.xnat.interfaces.XnatInterface
 import org.nrg.xnat.pogo.Project
 import org.nrg.xnat.pogo.SiteConfig

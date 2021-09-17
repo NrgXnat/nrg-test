@@ -1,6 +1,6 @@
 package org.nrg.testing.annotations
 
-import com.jayway.restassured.internal.http.Method
+import io.restassured.http.Method
 
 import java.lang.annotation.ElementType
 import java.lang.annotation.Retention
