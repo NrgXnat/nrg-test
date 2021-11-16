@@ -27,6 +27,7 @@ import org.nrg.xnat.pogo.SiteConfig
 import org.nrg.xnat.pogo.Subject
 import org.nrg.xnat.pogo.XnatPlugin
 import org.nrg.xnat.pogo.users.User
+import org.nrg.xnat.subinterfaces.XnatFunctionalitySubinterface
 import org.testng.ITestContext
 import org.testng.ITestNGMethod
 import org.testng.SkipException
@@ -368,15 +369,23 @@ abstract class BaseXnatTest extends BaseTestCase {
     }
 
     protected XnatInterface mainInterface() {
-        restDriver.mainInterface()
+        interfaceFor(mainUser)
     }
 
     protected XnatInterface mainAdminInterface() {
-        restDriver.interfaceFor(mainAdminUser)
+        interfaceFor(mainAdminUser)
     }
 
     protected XnatInterface interfaceFor(User user) {
-        restDriver.interfaceFor(user)
+        final XnatInterface xnatInterface = restDriver.interfaceFor(user)
+        additionalRegisteredSubinterfaces().each { subinterfaceClass ->
+            xnatInterface.registerExternalSubinterface(subinterfaceClass)
+        }
+        xnatInterface
+    }
+
+    protected List<Class<? extends XnatFunctionalitySubinterface>> additionalRegisteredSubinterfaces() {
+        []
     }
 
     private XnatRestDriver initRestDriver() { // Just to guarantee restDriver object is properly initialized if subclasses want to use it via instance variables
