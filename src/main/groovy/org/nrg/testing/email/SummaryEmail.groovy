@@ -5,12 +5,14 @@ import org.nrg.jira.components.zephyr.Cycle
 import org.nrg.testing.CommonStringUtils
 import org.nrg.testing.TestNgUtils
 import org.nrg.testing.TimeUtils
+import org.nrg.testing.annotations.ExpectedFailure
 import org.nrg.testing.annotations.TestedApiSpec
 import org.nrg.testing.annotations.TestedApiSpecs
 import org.nrg.testing.jira.JIRASettings
 import org.nrg.testing.listeners.adapters.jira.JIRATest
 import org.nrg.testing.listeners.adapters.jira.JIRATestListener
 import org.nrg.testing.listeners.adapters.jira.failure.FailureCause
+import org.nrg.testing.listeners.adapters.jira.failure.FailureWithExistingBug
 import org.nrg.testing.xnat.conf.Settings
 import org.testng.ITestNGMethod
 import org.testng.ITestResult
@@ -102,8 +104,13 @@ class SummaryEmail {
         } else {
             tests.collect { method, cause ->
                 String testString = formatTestString(method)
-                if (cause != null) {
-                    testString += " - ${cause.getHTMLReason()}"
+                FailureCause effectiveCause = cause
+                final ExpectedFailure expectedFailure = TestNgUtils.getAnnotation(method, ExpectedFailure)
+                if (cause == null && expectedFailure != null) {
+                    effectiveCause = new FailureWithExistingBug('Expected Failure', expectedFailure.jiraIssue(), null)
+                }
+                if (effectiveCause != null) {
+                    testString += " - ${effectiveCause.getHTMLReason()}"
                 }
                 if (gitlogSetting) {
                     testString += " (${getLink(CommonStringUtils.formatUrl(baseUrl, '/xapi/testlog/log', TestNgUtils.getTestName(method)), 'Download logs')})"
