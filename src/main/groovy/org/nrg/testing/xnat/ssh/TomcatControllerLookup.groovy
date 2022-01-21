@@ -9,7 +9,8 @@ class TomcatControllerLookup {
             'service-tomcat': new ServiceTomcatController('tomcat'),
             'service-tomcat7': new ServiceTomcatController('tomcat7'),
             'service-tomcat8': new ServiceTomcatController('tomcat8'),
-            'service-tomcat9': new ServiceTomcatController('tomcat9')
+            'service-tomcat9': new ServiceTomcatController('tomcat9'),
+            'nrgci-docker-compose': new DockerComposeTomcatController()
     ]
 
     static TomcatController lookup(String managerKey) {
