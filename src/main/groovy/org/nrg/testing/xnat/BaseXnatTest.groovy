@@ -141,7 +141,11 @@ abstract class BaseXnatTest extends BaseTestCase {
 
     @AfterClass(alwaysRun = true)
     void restoreSiteConfig() {
-        mainAdminInterface().postToSiteConfig(siteConfigRestoration)
+        if (siteConfigRestoration == null) {
+            log.warn('Object to restore siteConfig is null. Skipping...')
+        } else {
+            mainAdminInterface().postToSiteConfig(siteConfigRestoration)
+        }
     }
 
     protected void initializeTestRandomVariables() {

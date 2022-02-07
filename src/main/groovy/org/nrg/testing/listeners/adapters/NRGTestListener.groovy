@@ -33,6 +33,9 @@ class NRGTestListener extends BaseTestListener {
 
     @Override
     void onConfigurationFailure(ITestResult itr) {
+        if (!testClassSupported(itr)) {
+            return
+        }
         super.onConfigurationFailure(itr)
         log.warn("Configuration method ${itr.method.methodName} failed with stack trace:\n", itr.throwable)
         setFields(itr)
@@ -40,6 +43,9 @@ class NRGTestListener extends BaseTestListener {
 
     @Override
     void onStart(ITestResult result)  {
+        if (!testClassSupported(result)) {
+            return
+        }
         setFields(result)
         if (Settings.CHECK_DEPENDENCIES) {
             final List<String> prerequisiteTests = []
@@ -64,6 +70,9 @@ class NRGTestListener extends BaseTestListener {
 
     @Override
     void onFailure(ITestResult testResult)  {
+        if (!testClassSupported(testResult)) {
+            return
+        }
         final JIRATest currentTest = testController.currentTest
         if (currentTest.failureReason == null) {
             try {
@@ -88,11 +97,17 @@ class NRGTestListener extends BaseTestListener {
 
     @Override
     void onSuccess(ITestResult testResult) {
+        if (!testClassSupported(testResult)) {
+            return
+        }
         testCleanup(testResult)
     }
 
     @Override
     void onSkipped(ITestResult testResult) {
+        if (!testClassSupported(testResult)) {
+            return
+        }
         skipReasons.put(testResult.method, testController.currentTest.skipReason)
 
         testCleanup(testResult)
@@ -100,6 +115,9 @@ class NRGTestListener extends BaseTestListener {
 
     @Override
     void onTestComplete(ITestResult testResult) {
+        if (!testClassSupported(testResult)) {
+            return
+        }
         setFields(testResult)
     }
 
@@ -125,6 +143,10 @@ class NRGTestListener extends BaseTestListener {
         new SummaryEmail(getPassedTests(), failureReasons, skipReasons).sendSummaryEmail()
     }
 
+    private boolean testClassSupported(ITestResult testResult) {
+        testResult.instance instanceof BaseXnatTest
+    }
+
     private void testCleanup(ITestResult testResult) {
         final JIRATest test = testController.currentTest
         if (test.jiraNumber != null) {
@@ -138,8 +160,10 @@ class NRGTestListener extends BaseTestListener {
 
     private void setFields(ITestResult testResult) {
         try {
-            if (testResult.instance instanceof BaseXnatTest) xnatRestDriver = (testResult.instance as BaseXnatTest).restDriver
-            testController = (testResult.instance as BaseTestCase).testController
+            if (testResult.instance instanceof BaseXnatTest) {
+                xnatRestDriver = (testResult.instance as BaseXnatTest).restDriver
+                testController = (testResult.instance as BaseTestCase).testController
+            }
         } catch (NullPointerException ignored) {
             final String nullEntity = (testResult == null) ? 'testResult' : 'testResult.instance'
             log.debug("Could not set driver in NRGTestListener due to NPE (in ${nullEntity})")
