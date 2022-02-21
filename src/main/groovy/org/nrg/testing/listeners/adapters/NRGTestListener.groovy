@@ -33,11 +33,11 @@ class NRGTestListener extends BaseTestListener {
 
     @Override
     void onConfigurationFailure(ITestResult itr) {
+        log.warn("Configuration method ${itr.method.methodName} failed with stack trace:\n", itr.throwable)
         if (!testClassSupported(itr)) {
             return
         }
         super.onConfigurationFailure(itr)
-        log.warn("Configuration method ${itr.method.methodName} failed with stack trace:\n", itr.throwable)
         setFields(itr)
     }
 
