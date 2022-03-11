@@ -27,6 +27,7 @@ Each specific configuration setting may be done as a command line argument, or f
 * xnat.dicom.host: (Optional) - Host for XNAT DICOM Receiver. Defaults to the host specified in xnat.baseurl.
 * xnat.dicom.port: (Optional) - Port number for XNAT DICOM Receiver. Defaults to 8104.
 * xnat.dicom.aetitle: (Optional) - DICOM AE Title for XNAT DICOM Receiver. Defaults to "XNAT".
+* * xnat.dicom.callingaetitle: (Optional) - The calling AE Title used to identify this application when sending a c-store request to the XNAT DICOM Receiver. Defaults to "GRXNAT".
 * xnat.jira: (Optional) - Should a testing cycle be created in JIRA according to settings found in jira.properties? Defaults to false.
 * xnat.requireAdmin: (Optional) - Are admin accounts required/allowed? Defaults to true.
 * xnat.notifiedEmails: (Optional) - Comma-separated list of emails to which results will be sent on test completion. If true, requires xnat.users.email.password to be set.

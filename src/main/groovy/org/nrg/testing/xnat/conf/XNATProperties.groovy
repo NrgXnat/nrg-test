@@ -28,6 +28,7 @@ class XNATProperties extends BaseProperties {
     public static final String DICOM_HOST = 'xnat.dicom.host'
     public static final String DICOM_PORT = 'xnat.dicom.port'
     public static final String DICOM_AETITLE = 'xnat.dicom.aetitle'
+    public static final String CALLING_AE_TITLE = 'xnat.dicom.callingaetitle'
     public static final String JIRA_SETTING = 'xnat.jira'
     public static final String ADMIN_SETTING = 'xnat.requireAdmin'
     public static final String DYNAMIC_ORDERING = 'xnat.pipeline.useDynamicOrdering'
@@ -133,6 +134,10 @@ class XNATProperties extends BaseProperties {
 
     String getDicomAetitle() {
         getPropertyFromAnywhere(DICOM_AETITLE) ?: 'XNAT'
+    }
+
+    String getCallingAETitle() {
+        getPropertyFromAnywhere(CALLING_AE_TITLE) ?: 'GRXNAT'
     }
 
     boolean getJiraSetting() {

@@ -16,20 +16,25 @@ class XnatCStore {
     private final CStore cstoreSpec
     private static final int PROJECT_ROUTING_HEADER = Tag.StudyDescription
 
-    XnatCStore(String host, Integer port, String aeTitle) {
+    XnatCStore(String host, Integer port, String aeTitle, String callingAETitle) {
         cstoreSpec = CStore.to(
                 aeTitle ?: Settings.DICOM_AETITLE,
                 host ?: Settings.DICOM_HOST,
-                port ?: Settings.DICOM_PORT
+                port ?: Settings.DICOM_PORT,
+                callingAETitle ?: Settings.CALLING_AE_TITLE
         )
     }
 
     XnatCStore(DicomScpReceiver dicomScpReceiver) {
-        this(dicomScpReceiver.host, dicomScpReceiver.port, dicomScpReceiver.aeTitle)
+        this(dicomScpReceiver.host, dicomScpReceiver.port, dicomScpReceiver.aeTitle, null)
+    }
+
+    XnatCStore(DicomScpReceiver dicomScpReceiver, String callingAETitle) {
+        this(dicomScpReceiver.host, dicomScpReceiver.port, dicomScpReceiver.aeTitle, callingAETitle)
     }
 
     XnatCStore() {
-        this(null, null, null)
+        this(null, null, null, null)
     }
 
     XnatCStore data(String directory) {

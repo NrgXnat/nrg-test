@@ -79,6 +79,7 @@ class Settings {
     public static final String DICOM_HOST = properties.dicomHost
     public static final int DICOM_PORT = properties.dicomPort
     public static final String DICOM_AETITLE = properties.dicomAetitle
+    public static final String CALLING_AE_TITLE = properties.callingAETitle
     public static final DicomScpReceiver DEFAULT_RECEIVER = new DicomScpReceiver().aeTitle(DICOM_AETITLE).port(DICOM_PORT).enabled(true).host(DICOM_HOST)
     public static final boolean HAS_DICOM_RECEIVER_INFO = (DICOM_HOST != null) && (DICOM_PORT > 0) && (DICOM_AETITLE != null)
     public static final boolean ADMIN_SETTING = properties.adminSetting
