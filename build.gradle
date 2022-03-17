@@ -7,7 +7,6 @@ version buildVersion
 
 apply plugin: 'groovy'
 apply plugin: 'java'
-apply plugin: 'maven'
 apply plugin: 'maven-publish'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
@@ -50,32 +49,32 @@ repositories {
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-configurations.compile {
+configurations.implementation {
     exclude(group: 'ch.qos.logback', module: 'logback-classic')
 }
 
 dependencies {
-    compile(group: 'org.codehaus.groovy', name: 'groovy-all', version: dependencyManagement.importedProperties['vGroovy'], ext: 'pom')
-    compile("org.nrg:test_utils:${vTestUtils}")
-    compile("org.nrg:jira-zephyr:${vJiraZephyr}")
-    compile("org.nrg:multiprocessor-scheduling:${vMultiprocessor}")
-    compile("org.nrg:grxnat:${vGrxnat}")
-    compile('org.testng:testng')
-    compile('com.fasterxml.jackson.core:jackson-databind')
-    compile('org.hibernate:hibernate-core')
-    compile('net.lingala.zip4j:zip4j')
-    compile('commons-net:commons-net')
-    compile('org.reflections:reflections')
-    compile('com.hierynomus:sshj')
-    compile('org.apache.commons:commons-math3')
-    compile('com.sun.mail:javax.mail')
-    compile('org.jsoup:jsoup')
-    compile('net.sf.opencsv:opencsv')
-    compile('net.imagej:imagej') {
+    implementation(group: 'org.codehaus.groovy', name: 'groovy-all', version: dependencyManagement.importedProperties['vGroovy'], ext: 'pom')
+    implementation("org.nrg:test_utils:${vTestUtils}")
+    implementation("org.nrg:jira-zephyr:${vJiraZephyr}")
+    implementation("org.nrg:multiprocessor-scheduling:${vMultiprocessor}")
+    implementation("org.nrg:grxnat:${vGrxnat}")
+    implementation('org.testng:testng')
+    implementation('com.fasterxml.jackson.core:jackson-databind')
+    implementation('org.hibernate:hibernate-core')
+    implementation('net.lingala.zip4j:zip4j')
+    implementation('commons-net:commons-net')
+    implementation('org.reflections:reflections')
+    implementation('com.hierynomus:sshj')
+    implementation('org.apache.commons:commons-math3')
+    implementation('com.sun.mail:javax.mail')
+    implementation('org.jsoup:jsoup')
+    implementation('net.sf.opencsv:opencsv')
+    implementation('net.imagej:imagej') {
         exclude(group: 'com.miglayout', module: 'miglayout')
     }
-    compile('ome:bio-formats_plugins')
-    compile('ome:formats-gpl') {
+    implementation('ome:bio-formats_plugins')
+    implementation('ome:formats-gpl') {
         exclude(group: 'ch.systems.cisd', module: 'logback-classic')
         exclude(group: 'ch.systems.cisd', module: 'jhdf5')
     }
@@ -87,6 +86,8 @@ test {
 
 jar {
     from sourceSets.main.allSource
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 publishing {
