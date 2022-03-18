@@ -7,6 +7,7 @@ version buildVersion
 
 apply plugin: 'groovy'
 apply plugin: 'java'
+apply plugin: 'java-library'
 apply plugin: 'maven-publish'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
@@ -24,7 +25,6 @@ buildscript {
     repositories {
         mavenLocal()
         mavenCentral()
-        jcenter()
     }
     dependencies {
         classpath "io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE"
@@ -40,7 +40,6 @@ dependencyManagement {
 repositories {
     mavenLocal()
     mavenCentral()
-    jcenter()
     maven { url 'https://nrgxnat.jfrog.io/nrgxnat/libs-release' }
     maven { url 'https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot' }
     maven { url 'https://nrgxnat.jfrog.io/nrgxnat/remote-repos' }
@@ -49,32 +48,32 @@ repositories {
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-configurations.implementation {
+configurations.api {
     exclude(group: 'ch.qos.logback', module: 'logback-classic')
 }
 
 dependencies {
-    implementation(group: 'org.codehaus.groovy', name: 'groovy-all', version: dependencyManagement.importedProperties['vGroovy'], ext: 'pom')
-    implementation("org.nrg:test_utils:${vTestUtils}")
-    implementation("org.nrg:jira-zephyr:${vJiraZephyr}")
-    implementation("org.nrg:multiprocessor-scheduling:${vMultiprocessor}")
-    implementation("org.nrg:grxnat:${vGrxnat}")
-    implementation('org.testng:testng')
-    implementation('com.fasterxml.jackson.core:jackson-databind')
-    implementation('org.hibernate:hibernate-core')
-    implementation('net.lingala.zip4j:zip4j')
-    implementation('commons-net:commons-net')
-    implementation('org.reflections:reflections')
-    implementation('com.hierynomus:sshj')
-    implementation('org.apache.commons:commons-math3')
-    implementation('com.sun.mail:javax.mail')
-    implementation('org.jsoup:jsoup')
-    implementation('net.sf.opencsv:opencsv')
-    implementation('net.imagej:imagej') {
+    api(group: 'org.codehaus.groovy', name: 'groovy-all', version: dependencyManagement.importedProperties['vGroovy'], ext: 'pom')
+    api("org.nrg:test_utils:${vTestUtils}")
+    api("org.nrg:jira-zephyr:${vJiraZephyr}")
+    api("org.nrg:multiprocessor-scheduling:${vMultiprocessor}")
+    api("org.nrg:grxnat:${vGrxnat}")
+    api('org.testng:testng')
+    api('com.fasterxml.jackson.core:jackson-databind')
+    api('org.hibernate:hibernate-core')
+    api('net.lingala.zip4j:zip4j')
+    api('commons-net:commons-net')
+    api('org.reflections:reflections')
+    api('com.hierynomus:sshj')
+    api('org.apache.commons:commons-math3')
+    api('com.sun.mail:javax.mail')
+    api('org.jsoup:jsoup')
+    api('net.sf.opencsv:opencsv')
+    api('net.imagej:imagej') {
         exclude(group: 'com.miglayout', module: 'miglayout')
     }
-    implementation('ome:bio-formats_plugins')
-    implementation('ome:formats-gpl') {
+    api('ome:bio-formats_plugins')
+    api('ome:formats-gpl') {
         exclude(group: 'ch.systems.cisd', module: 'logback-classic')
         exclude(group: 'ch.systems.cisd', module: 'jhdf5')
     }
