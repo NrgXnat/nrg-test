@@ -1,6 +1,5 @@
 package org.nrg.testing
 
-import io.restassured.RestAssured
 import groovy.util.logging.Log4j
 import org.apache.commons.io.FileUtils
 import org.apache.commons.lang3.StringUtils

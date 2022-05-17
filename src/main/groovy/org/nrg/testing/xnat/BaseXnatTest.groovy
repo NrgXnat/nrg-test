@@ -11,6 +11,7 @@ import org.nrg.testing.annotations.ExpectedFailure
 import org.nrg.testing.annotations.JiraKey
 import org.nrg.testing.annotations.TestRequires
 import org.nrg.testing.annotations.XnatVersionLink
+import org.nrg.testing.enums.PluginDependencyCheckState
 import org.nrg.testing.enums.TestBehavior
 import org.nrg.testing.enums.TestData
 import org.nrg.testing.jira.JIRAProperties
@@ -112,11 +113,7 @@ abstract class BaseXnatTest extends BaseTestCase {
             if (classRequires.admin()) {
                 TestNgUtils.assumeTrue(Settings.ADMIN_AVAILABLE, "XNAT admin account is required for all tests in class: ${testClassName}")
             }
-            if (Settings.BEHAVIOR_FOR_MISSING_PLUGIN == TestBehavior.SKIP) {
-                classRequires.plugins().each { pluginId ->
-                    TestNgUtils.assumeTrue(pluginId in installedPlugins()*.id, "XNAT plugin with id ${pluginId} is required for all tests in class: ${testClassName}")
-                }
-            }
+            checkPluginSkips(classRequires, true, testClassName)
             if (classRequires.closedXnat()) {
                 mainAdminInterface().closeXnat()
             } else if (classRequires.openXnat()) {
@@ -171,11 +168,7 @@ abstract class BaseXnatTest extends BaseTestCase {
             if (testRequires.admin()) {
                 TestNgUtils.assumeTrue(Settings.ADMIN_AVAILABLE, "XNAT admin account is required for test: ${testName}")
             }
-            if (Settings.BEHAVIOR_FOR_MISSING_PLUGIN == TestBehavior.SKIP) {
-                testRequires.plugins().each { pluginId ->
-                    TestNgUtils.assumeTrue(pluginId in installedPlugins()*.id, "XNAT plugin with id ${pluginId} is required for test: ${testName}")
-                }
-            }
+            checkPluginSkips(testRequires, false, testName)
             if (testRequires.closedXnat()) {
                 mainAdminInterface().closeXnat()
             } else if (testRequires.openXnat()) {
@@ -395,6 +388,20 @@ abstract class BaseXnatTest extends BaseTestCase {
     private XnatRestDriver initRestDriver() { // Just to guarantee restDriver object is properly initialized if subclasses want to use it via instance variables
         constructRestDriver()
         restDriver
+    }
+
+    private checkPluginSkips(TestRequires testRequires, boolean isClassLevel, String testOrClass) {
+        if (Settings.BEHAVIOR_FOR_MISSING_PLUGIN == TestBehavior.SKIP) {
+            final String scope = isClassLevel ? 'all tests in class' : 'test'
+            testRequires.plugins().each { pluginId ->
+                switch (PluginDependencyManager.checkPlugin(installedPlugins(), pluginId)) {
+                    case PluginDependencyCheckState.MISSING_PLUGIN:
+                        throw new SkipException("XNAT plugin with id (and possibly minimum version) ${pluginId} is required for ${scope}: ${testOrClass}")
+                    case PluginDependencyCheckState.VERSION_MISMATCH:
+                        throw new SkipException("XNAT plugin with id and minimum version ${pluginId} is required for ${scope}: ${testOrClass}. We found the plugin on the XNAT instance, but without a compatible version.")
+                }
+            }
+        }
     }
 
     XnatRestDriver getRestDriver() {

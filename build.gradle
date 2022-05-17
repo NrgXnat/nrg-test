@@ -112,7 +112,7 @@ publishing {
                 def developers = root.appendNode('developers')
 
                 def charlie = developers.appendNode('developer')
-                charlie.appendNode('id', 'grepStar')
+                charlie.appendNode('id', 'charlie')
                 charlie.appendNode('name', 'Charlie Moore')
                 charlie.appendNode('email', 'moore.c@wustl.edu')
             }
