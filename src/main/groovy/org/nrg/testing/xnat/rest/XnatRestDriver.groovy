@@ -30,6 +30,7 @@ import org.nrg.xnat.pogo.extensions.project.ProjectXMLPutExtension
 import org.nrg.xnat.pogo.extensions.subject.SubjectExtension
 import org.nrg.xnat.pogo.extensions.subject.SubjectXMLPutExtension
 import org.nrg.xnat.pogo.resources.Resource
+import org.nrg.xnat.pogo.resources.ResourceFile
 import org.nrg.xnat.pogo.users.User
 import org.nrg.xnat.prearchive.SessionData
 import org.nrg.xnat.rest.Credentials
@@ -38,6 +39,7 @@ import org.nrg.xnat.versions.XnatVersion
 import java.nio.file.Paths
 
 import static org.hamcrest.CoreMatchers.equalTo
+import static org.testng.AssertJUnit.assertTrue
 
 @SuppressWarnings('unused')
 @Log4j
@@ -135,6 +137,23 @@ abstract class XnatRestDriver {
         final File downloadedFile = Paths.get(Settings.TEMP_SUBDIR, "${RandomHelper.randomID()}.binarytestfile").toFile()
         HttpUtils.saveBinaryResponseToFile(response, downloadedFile)
         downloadedFile
+    }
+
+    List<File> downloadAllDicomFromSession(User authUser, Project project, Subject subject, ImagingSession session) {
+        final XnatInterface authInterface = interfaceFor(authUser)
+        final List<File> dicomFiles = []
+        final List<Scan> scans = authInterface.readScans(project, subject, session)
+        scans.each { scan ->
+            scan.scanResources.each { resource ->
+                if (resource.format == 'DICOM') { // scan may have > 1 DICOM resource, "DICOM" and "secondary"
+                    resource.resourceFiles.each { dicomFile ->
+                        dicomFiles << saveBinaryResponseToFile(authInterface.queryBase().get(mainInterface().resourceFileUrl(resource, dicomFile)))
+                    }
+                }
+            }
+        }
+        assertTrue(dicomFiles.size() > 0)
+        dicomFiles
     }
 
     RequestSpecification invalidCredentials() {
