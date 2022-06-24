@@ -228,7 +228,8 @@ abstract class BaseXnatTest extends BaseTestCase {
                     requireLogin: existingConfig.requireLogin,
                     requireEmailVerification: existingConfig.requireEmailVerification,
                     autoEnableUsers: existingConfig.autoEnableUsers,
-                    preventCrossModalityMerge: existingConfig.preventCrossModalityMerge
+                    preventCrossModalityMerge: existingConfig.preventCrossModalityMerge,
+                    restrictUserListToAdmins: existingConfig.restrictUserListToAdmins
             )
         }
     }

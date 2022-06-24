@@ -143,10 +143,13 @@ abstract class XnatRestDriver {
         final XnatInterface authInterface = interfaceFor(authUser)
         final List<File> dicomFiles = []
         final List<Scan> scans = authInterface.readScans(project, subject, session)
+        log.info("Downloading DICOM files for list of scans: ${scans}...")
         scans.each { scan ->
             scan.scanResources.each { resource ->
                 if (resource.format == 'DICOM') { // scan may have > 1 DICOM resource, "DICOM" and "secondary"
+                    log.info("Found DICOM-format resource for scan ${scan.id} with label ${resource.folder}...")
                     resource.resourceFiles.each { dicomFile ->
+                        log.info("Downloading local copy of DICOM resource file ${dicomFile.name}...")
                         dicomFiles << saveBinaryResponseToFile(authInterface.queryBase().get(mainInterface().resourceFileUrl(resource, dicomFile)))
                     }
                 }

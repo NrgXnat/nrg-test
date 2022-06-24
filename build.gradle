@@ -79,6 +79,10 @@ dependencies {
     }
 }
 
+java {
+    withSourcesJar()
+}
+
 test {
     useTestNG {}
 }
