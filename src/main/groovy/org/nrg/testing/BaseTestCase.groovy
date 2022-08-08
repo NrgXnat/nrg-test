@@ -53,7 +53,7 @@ class BaseTestCase {
         }
     }
 
-    @BeforeSuite
+    @BeforeSuite(alwaysRun = true)
     void setupAllTests(ITestContext testContext) {
         // RestAssured.useRelaxedHTTPSValidation()
         allRunningTests = constructTestMap(testContext.getAllTestMethods())

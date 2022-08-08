@@ -18,7 +18,7 @@ import static io.restassured.config.ObjectMapperConfig.objectMapperConfig
 
 class BaseXnatRestTest extends BaseXnatTest {
 
-    @BeforeSuite
+    @BeforeSuite(alwaysRun = true)
     protected void addXnatSerializers() {
         RestAssured.config = RestAssuredConfig.config().objectMapperConfig(objectMapperConfig().jackson2ObjectMapperFactory(
                 new Jackson2ObjectMapperFactory() {

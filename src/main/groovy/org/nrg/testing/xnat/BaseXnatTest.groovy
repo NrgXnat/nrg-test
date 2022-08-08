@@ -55,7 +55,7 @@ abstract class BaseXnatTest extends BaseTestCase {
     private final List<XnatPlugin> installedPlugins = []
     private SiteConfig siteConfigRestoration
 
-    @BeforeSuite
+    @BeforeSuite(alwaysRun = true)
     void setupXnatTests(ITestContext testContext) {
         validateSettings()
         constructRestDriver()
@@ -74,7 +74,7 @@ abstract class BaseXnatTest extends BaseTestCase {
     /**
      * Handles annotated requirements at the class level and creates generic users required by class or tests
      */
-    @BeforeClass
+    @BeforeClass(alwaysRun = true)
     void handleClassRequirements() {
         noteInitialConfigSettings()
 
