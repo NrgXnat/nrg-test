@@ -14,7 +14,7 @@ apply plugin: 'eclipse'
 apply plugin: 'io.spring.dependency-management'
 
 def vBom = '3.1'
-def vTestUtils = '2.5'
+def vTestUtils = '2.6-SNAPSHOT'
 def vMultiprocessor = '4.0'
 def vJiraZephyr = '2.0'
 def vGrxnat = '1.20-SNAPSHOT'
