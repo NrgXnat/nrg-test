@@ -8,8 +8,10 @@ import io.restassured.specification.RequestSpecification
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.rest.XnatRestDriver
 import org.nrg.xnat.pogo.DataType
+import org.nrg.xnat.pogo.Project
 import org.nrg.xnat.pogo.users.User
 import org.nrg.xnat.rest.Credentials
+import org.testng.annotations.AfterClass
 import org.testng.annotations.BeforeSuite
 
 import java.lang.reflect.Type
@@ -17,6 +19,8 @@ import java.lang.reflect.Type
 import static io.restassured.config.ObjectMapperConfig.objectMapperConfig
 
 class BaseXnatRestTest extends BaseXnatTest {
+
+    protected final List<Project> testProjects = []
 
     @BeforeSuite(alwaysRun = true)
     protected void addXnatSerializers() {
@@ -28,6 +32,13 @@ class BaseXnatRestTest extends BaseXnatTest {
                     }
                 }
         ))
+    }
+
+    @AfterClass(alwaysRun = true)
+    protected void removeTempProjects() {
+        testProjects.each { project ->
+            restDriver.deleteProjectSilently(mainAdminUser, project)
+        }
     }
 
     @Override
@@ -56,6 +67,12 @@ class BaseXnatRestTest extends BaseXnatTest {
     @Deprecated
     protected RequestSpecification mainAdminCredentials() {
         Credentials.build(mainAdminUser)
+    }
+
+    protected Project registerTempProject() {
+        final Project project = new Project()
+        testProjects << project
+        project
     }
 
     protected RequestSpecification mainQueryBase() {
