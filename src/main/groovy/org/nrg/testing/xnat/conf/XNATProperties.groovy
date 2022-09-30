@@ -59,6 +59,7 @@ class XNATProperties extends BaseProperties {
     public static final String SMTP_PORT = 'mail.smtp.port'
     public static final String CS_SWARM_CAN_ENABLE = 'cs.swarm.canEnable'
     public static final String CS_SWARM_TIMEOUT = 'cs.swarm.timeout'
+    public static final String CS_SWARM_CONSTRAINTS = 'cs.swarm.constraints'
 
     XNATProperties() {
         super('xnat.config', 'local.properties')
@@ -275,6 +276,10 @@ class XNATProperties extends BaseProperties {
 
     boolean nthXnatRequired(int n) {
         getBooleanProperty(nthXnatProperty(XNAT_REQUIRED, n), false)
+    }
+
+    String getSwarmConstraints() {
+        getPropertyFromAnywhere(CS_SWARM_CONSTRAINTS)
     }
 
     List<XnatConfig> getOtherXnatConfigs() {

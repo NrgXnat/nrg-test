@@ -1,6 +1,7 @@
 package org.nrg.testing.xnat.conf
 
 import io.restassured.specification.RequestSpecification
+import org.apache.commons.lang3.StringUtils
 import org.apache.log4j.Logger
 import org.nrg.testing.CommonStringUtils
 import org.nrg.testing.FileIOUtils
@@ -11,6 +12,7 @@ import org.nrg.testing.util.RandomHelper
 import org.nrg.testing.xnat.ssh.SSHConnection
 import org.nrg.testing.xnat.ssh.TomcatController
 import org.nrg.testing.xnat.ssh.TomcatControllerLookup
+import org.nrg.xnat.pogo.containers.SwarmConstraint
 import org.nrg.xnat.versions.XnatVersion
 import org.nrg.xnat.pogo.dicom.DicomScpReceiver
 import org.nrg.xnat.rest.Credentials
@@ -93,6 +95,8 @@ class Settings {
     public static final boolean HEADLESS = properties.headlessSetting
     public static final TomcatController TOMCAT_CONTROLLER = TomcatControllerLookup.lookup(properties.tomcatControlScriptKey)
     public static final boolean SSH_FUNCTIONS = new SSHConnection().testSSH() // needs to come after TEMP_SUBDIR
+    public static final String SWARM_CONSTRAINTS = properties.swarmConstraints
+    private static List<SwarmConstraint> swarmConstraints = null
 
     private static File getSshKey() {
         Paths.get(System.getProperty('user.home'), '.ssh', SSH_KEY_NAME).toFile()
@@ -147,4 +151,29 @@ class Settings {
         "${emailId}+${RandomHelper.randomLetters(12)}${emailProvider}"
     }
 
+    static List<SwarmConstraint> swarmConstraints() {
+        if (swarmConstraints != null) {
+            return swarmConstraints
+        }
+        swarmConstraints = []
+        if (StringUtils.isEmpty(properties.swarmConstraints)) {
+            return swarmConstraints
+        }
+        final List<String> scs = properties.swarmConstraints.split(';') as List<String>
+        swarmConstraints = scs.findResults { constraintString ->
+            final List<String> fields = constraintString.split(',') as List<String>
+            if (fields.size() < 4) {
+                LOGGER.info("Skip the swarm constraint as the format is not correct.->" + constraintString)
+                return null
+            }
+            new SwarmConstraint(
+                    id: scs.indexOf(constraintString),
+                    userSettable: Boolean.parseBoolean(fields.get(0)),
+                    attribute: fields.get(1),
+                    comparator: fields.get(2),
+                    values: fields.subList(3, fields.size())
+            )
+        }
+        swarmConstraints
+    }
 }
