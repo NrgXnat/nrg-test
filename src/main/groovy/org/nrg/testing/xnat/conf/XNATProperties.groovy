@@ -242,10 +242,12 @@ class XNATProperties extends BaseProperties {
         }
     }
 
+    @Deprecated
     boolean getCsSwarmCanEnable() {
         getBooleanProperty(CS_SWARM_CAN_ENABLE, false)
     }
 
+    @Deprecated
     int getCsSwarmTimeout() {
         getIntProperty(CS_SWARM_TIMEOUT, 5)
     }

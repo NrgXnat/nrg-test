@@ -54,16 +54,20 @@ class BaseProperties {
         getPropertyFromAnywhere([property], false)
     }
 
-    protected String getStringProperty(boolean isSensitive, String property, String defaultValue) {
+    String getStringProperty(boolean isSensitive, String property, String defaultValue) {
         getPropertyFromAnywhere([property], isSensitive) ?: defaultValue
     }
 
-    protected boolean getBooleanProperty(String property, boolean defaultValue) {
+    String getStringProperty(String property, String defaultValue) {
+        getPropertyFromAnywhere([property], false) ?: defaultValue
+    }
+
+    boolean getBooleanProperty(String property, boolean defaultValue) {
         final String providedValue = getPropertyFromAnywhere(property)
         (providedValue != null) ? Boolean.parseBoolean(providedValue) : defaultValue
     }
 
-    protected int getIntProperty(String property, int defaultValue) {
+    int getIntProperty(String property, int defaultValue) {
         final String providedValue = getPropertyFromAnywhere(property)
         (providedValue != null) ? Integer.parseInt(providedValue) : defaultValue
     }

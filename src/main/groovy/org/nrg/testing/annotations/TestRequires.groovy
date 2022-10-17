@@ -18,9 +18,11 @@ import java.lang.annotation.Target
     boolean dicomScp() default false
     boolean openXnat() default false
     boolean closedXnat() default false
-    boolean csSwarmCanEnable() default false
+    @Deprecated boolean csSwarmCanEnable() default false
     int users() default 0
     boolean admin() default false
     String[] plugins() default []
     TestData[] data() default [TestData.NONE]
+    String[] trueProperties() default []
+    String[] falseProperties() default []
 }

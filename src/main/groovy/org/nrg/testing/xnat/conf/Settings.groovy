@@ -61,8 +61,8 @@ class Settings {
     public static final String SMTP_HOST = properties.smtpHost
     public static final int SMTP_PORT = properties.smtpPort
     public static final Properties SMTP_PROPERTIES = composeSmtpProperties()
-    public static final boolean CS_SWARM_CAN_ENABLE = properties.csSwarmCanEnable
-    public static final int CS_SWARM_TIMEOUT = properties.csSwarmTimeout
+    @Deprecated public static final boolean CS_SWARM_CAN_ENABLE = getBooleanProperty(properties.CS_SWARM_CAN_ENABLE, false)
+    public static final int CS_SWARM_TIMEOUT = getIntProperty(properties.CS_SWARM_TIMEOUT, 5)
 
     // values that get fuzzy when multiple XNATs in play
     public static final String MAIN_USERNAME = properties.mainUser
@@ -107,6 +107,14 @@ class Settings {
         props.put('mail.smtp.host', SMTP_HOST)
         props.put('mail.smtp.port', SMTP_PORT)
         props
+    }
+
+    static boolean getBooleanProperty(final String property, final boolean defaultValue) {
+        properties.getBooleanProperty(property, defaultValue)
+    }
+
+    static int getIntProperty(final String property, final int defaultValue) {
+        properties.getIntProperty(property, defaultValue)
     }
 
     static RequestSpecification mainCredentials() {

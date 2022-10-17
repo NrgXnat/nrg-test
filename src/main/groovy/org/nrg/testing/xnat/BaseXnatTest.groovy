@@ -122,6 +122,12 @@ abstract class BaseXnatTest extends BaseTestCase {
             if (classRequires.csSwarmCanEnable()) {
                 TestNgUtils.assumeTrue(Settings.CS_SWARM_CAN_ENABLE, "Docker swarm is required for all tests in class: ${testClassName}")
             }
+            for (final String property : classRequires.trueProperties()) {
+                TestNgUtils.assumeTrue(Settings.getBooleanProperty(property, false), "Property \"${property}\" required to be true for all tests in class: ${testClassName}")
+            }
+            for (final String property : classRequires.falseProperties()) {
+                TestNgUtils.assumeFalse(Settings.getBooleanProperty(property, true), "Property \"${property}\" required to be false for all tests in class: ${testClassName}")
+            }
         }
 
         if (requiredUsers > 0) {
@@ -177,6 +183,12 @@ abstract class BaseXnatTest extends BaseTestCase {
             }
             if (testRequires.csSwarmCanEnable()) {
                 TestNgUtils.assumeTrue(Settings.CS_SWARM_CAN_ENABLE, "Docker swarm is required for test: ${testName}")
+            }
+            for (final String property : testRequires.trueProperties()) {
+                TestNgUtils.assumeTrue(Settings.getBooleanProperty(property, false), "Property \"${property}\" required to be true for test: ${testName}")
+            }
+            for (final String property : testRequires.falseProperties()) {
+                TestNgUtils.assumeFalse(Settings.getBooleanProperty(property, true), "Property \"${property}\" required to be false for test: ${testName}")
             }
         }
 
