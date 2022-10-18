@@ -378,11 +378,11 @@ abstract class BaseXnatTest extends BaseTestCase {
         restDriver.setTestController(testController)
     }
 
-    protected XnatInterface mainInterface() {
+    XnatInterface mainInterface() {
         interfaceFor(mainUser)
     }
 
-    protected XnatInterface mainAdminInterface() {
+    XnatInterface mainAdminInterface() {
         interfaceFor(mainAdminUser)
     }
 
