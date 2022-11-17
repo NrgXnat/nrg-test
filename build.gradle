@@ -13,7 +13,7 @@ apply plugin: 'idea'
 apply plugin: 'eclipse'
 apply plugin: 'io.spring.dependency-management'
 
-def vBom = '3.1'
+def vBom = '3.2-SNAPSHOT'
 def vTestUtils = '2.6-SNAPSHOT'
 def vMultiprocessor = '4.0'
 def vJiraZephyr = '2.0'
