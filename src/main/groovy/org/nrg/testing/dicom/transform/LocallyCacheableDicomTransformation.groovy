@@ -41,6 +41,12 @@ class LocallyCacheableDicomTransformation {
         this
     }
 
+    LocallyCacheableDicomTransformation simpleTransform(TransformFunction transformFunction) {
+        transformations(
+                new DicomTransformation(identifier).transformFunction(transformFunction)
+        )
+    }
+
     Path baseLevelDir() {
         Paths.get(Settings.DATA_LOCATION, identifier)
     }
