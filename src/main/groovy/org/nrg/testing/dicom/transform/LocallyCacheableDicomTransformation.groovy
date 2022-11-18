@@ -1,9 +1,6 @@
 package org.nrg.testing.dicom.transform
 
-import org.dcm4che3.data.Attributes
 import org.dcm4che3.data.DatasetWithFMI
-import org.dcm4che3.data.VR
-import org.dcm4che3.util.UIDUtils
 import org.nrg.testing.DicomUtils
 import org.nrg.testing.FileIOUtils
 import org.nrg.testing.enums.TestData

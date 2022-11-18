@@ -1,8 +1,11 @@
 package org.nrg.testing.dicom.transform
 
+import groovy.transform.builder.Builder
+import groovy.transform.builder.SimpleStrategy
 import org.dcm4che3.data.DatasetWithFMI
 import java.util.function.Function
 
+@Builder(builderStrategy = SimpleStrategy, prefix = '')
 class DicomTransformation {
 
     String identifier
@@ -16,23 +19,7 @@ class DicomTransformation {
     }
 
     DicomTransformation produceZip() {
-        produceZip = true
-        this
-    }
-
-    DicomTransformation transformationCount(int count) {
-        transformationCount = count
-        this
-    }
-
-    DicomTransformation prefilter(Function<List<DatasetWithFMI>, List<DatasetWithFMI>> prefilter) {
-        this.prefilter = prefilter
-        this
-    }
-
-    DicomTransformation transformFunction(TransformFunction transformFunction) {
-        this.transformFunction = transformFunction
-        this
+        produceZip(true)
     }
 
 }
