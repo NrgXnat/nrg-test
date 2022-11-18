@@ -37,9 +37,13 @@ class XnatCStore {
         this(null, null, null, null)
     }
 
-    XnatCStore data(String directory) {
-        cstoreSpec.directory(Paths.get(Settings.DATA_LOCATION, directory).toFile())
+    XnatCStore data(File directory) {
+        cstoreSpec.directory(directory)
         this
+    }
+
+    XnatCStore data(String directory) {
+        data(Paths.get(Settings.DATA_LOCATION, directory).toFile())
     }
 
     XnatCStore data(TestData testData) {

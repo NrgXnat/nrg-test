@@ -362,9 +362,7 @@ abstract class BaseXnatTest extends BaseTestCase {
 
     protected User getGenericUser() {
         if (userPool.size() > 0) {
-            final User user = userPool[0]
             userPool.remove(0)
-            user
         } else {
             null
         }
