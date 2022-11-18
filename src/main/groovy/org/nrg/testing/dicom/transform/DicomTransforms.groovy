@@ -19,16 +19,16 @@ class DicomTransforms {
                 final Map<String, String> seriesMap = [:]
                 listOfDicom.each { instance ->
                     final Attributes dataset = instance.dataset
-                    final String currentStudyInstanceUid = dataset.getString(Tag.StudyInstanceUID)
-                    final String currentSeriesInstanceUid = dataset.getString(Tag.SeriesInstanceUID)
-                    if (!studyMap.containsKey(currentStudyInstanceUid)) {
-                        studyMap.put(currentStudyInstanceUid, UIDUtils.createUID())
-                    }
-                    dataset.setString(Tag.StudyInstanceUID, VR.UI, studyMap.get(currentStudyInstanceUid))
-                    if (!seriesMap.containsKey(currentSeriesInstanceUid)) {
-                        seriesMap.put(currentSeriesInstanceUid, UIDUtils.createUID())
-                    }
-                    dataset.setString(Tag.SeriesInstanceUID, VR.UI, seriesMap.get(currentSeriesInstanceUid))
+                    dataset.setString(
+                            Tag.StudyInstanceUID,
+                            VR.UI,
+                            studyMap.computeIfAbsent(dataset.getString(Tag.StudyInstanceUID), () -> UIDUtils.createUID())
+                    )
+                    dataset.setString(
+                            Tag.SeriesInstanceUID,
+                            VR.UI,
+                            seriesMap.computeIfAbsent(dataset.getString(Tag.SeriesInstanceUID), () -> UIDUtils.createUID())
+                    )
                     dataset.setString(Tag.SOPInstanceUID, VR.UI, UIDUtils.createUID())
                 }
             })
