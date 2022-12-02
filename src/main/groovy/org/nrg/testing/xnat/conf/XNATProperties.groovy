@@ -40,6 +40,7 @@ class XNATProperties extends BaseProperties {
     public static final String TIMELOG_SETTING = 'xnat.timelogs'
     public static final String GITLOGS_SETTING = 'xnat.gitLogs'
     public static final String BASIC_MODE = 'xnat.basic'
+    public static final String ALLOW_PERFORMANCE_TESTS = 'xnat.allowPerformanceTests'
     public static final String LOGGING_SETTING = 'xnat.allowLogging'
     public static final String DATABASE_URL = 'xnat.db.url'
     public static final String DATABASE_USER = 'xnat.db.user'
@@ -184,6 +185,10 @@ class XNATProperties extends BaseProperties {
 
     boolean getBasicSetting() {
         getBooleanProperty(BASIC_MODE, false)
+    }
+
+    boolean getPerformanceAllowedSetting() {
+        getBooleanProperty(ALLOW_PERFORMANCE_TESTS, false)
     }
 
     boolean getLoggingAllowedSetting() {

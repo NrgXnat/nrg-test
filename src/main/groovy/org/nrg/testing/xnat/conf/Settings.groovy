@@ -56,6 +56,7 @@ class Settings {
     public static final boolean TIMELOG_SETTING = properties.timelogSetting
     public static final boolean GITLOGS_SETTING = properties.gitlogSetting
     public static final boolean BASIC_MODE = properties.basicSetting
+    public static final boolean PERFORMANCE_TESTS_ALLOWED = properties.performanceAllowedSetting
     public static final boolean LOGGING_ALLOWED = properties.loggingAllowedSetting
     public static final String FIREFOX_PATH = properties.firefoxPath
     public static final String SMTP_HOST = properties.smtpHost
