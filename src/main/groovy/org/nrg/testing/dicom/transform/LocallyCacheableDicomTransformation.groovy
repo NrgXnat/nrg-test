@@ -1,14 +1,18 @@
 package org.nrg.testing.dicom.transform
 
+import org.apache.commons.io.IOUtils
 import org.dcm4che3.data.DatasetWithFMI
 import org.nrg.testing.DicomUtils
 import org.nrg.testing.FileIOUtils
 import org.nrg.testing.enums.TestData
 import org.nrg.testing.xnat.conf.Settings
 
+import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
+import java.util.zip.ZipOutputStream
 
 class LocallyCacheableDicomTransformation {
 
@@ -48,6 +52,10 @@ class LocallyCacheableDicomTransformation {
         Paths.get(Settings.DATA_LOCATION, identifier)
     }
 
+    Path locateOverallZip() {
+        Paths.get(Settings.DATA_LOCATION, "${identifier}.zip")
+    }
+
     Path locateBaseDirForTransformedData(DicomTransformation transformation) {
         locateBaseDirForTransformedData(transformation.identifier)
     }
@@ -57,7 +65,7 @@ class LocallyCacheableDicomTransformation {
     }
 
     Path locateZipForIndividualTransformation(DicomTransformation transformation) {
-        locateBaseDirForTransformedData(transformation.identifier)
+        locateZipForIndividualTransformation(transformation.identifier)
     }
 
     Path locateZipForIndividualTransformation(String identifier) {
@@ -84,17 +92,14 @@ class LocallyCacheableDicomTransformation {
             return
         }
 
-        final ZipFile zipFile = new ZipFile(baseData.toFile())
-        final List<DatasetWithFMI> sourceDicomInstances = zipFile.entries().toList().findResults { zipEntry ->
-            !zipEntry.directory ? DicomUtils.readDicom(zipFile.getInputStream(zipEntry)) : null
-        }
+        final List<DatasetWithFMI> sourceDicomInstances = readBaseData()
 
         transformations.each { transformation ->
-            final List<DatasetWithFMI> copyOfSource = new ArrayList<>(sourceDicomInstances)
-            final List<DatasetWithFMI> postFilter = transformation.prefilter ? transformation.prefilter.apply(copyOfSource) : copyOfSource
+            final List<DatasetWithFMI> copyOfSource = new ArrayList<>(sourceDicomInstances) // each transformation needs the full source list
+            final List<DatasetWithFMI> postFilter = transformation.prefilter ? transformation.prefilter.apply(copyOfSource) : copyOfSource // ... but we assume here at least the the prefilter won't modify instances directly
             transformation.transformationCount.times { index ->
                 final Path individualIterationPath = locateDataForIndividualTransformationInstance(transformation, index)
-                transformation.transformFunction.apply(postFilter).eachWithIndex { instance, fileIndex -> // assumption here is that we don't need to clone again after filtering
+                transformation.transformFunction.apply(clone(postFilter)).eachWithIndex { instance, fileIndex ->
                     final Path subfolder = individualIterationPath.resolve('subfolder' + fileIndex.intdiv(FILES_PER_FOLDER))
                     if (fileIndex % FILES_PER_FOLDER == 0) {
                         FileIOUtils.mkdirs(subfolder)
@@ -102,11 +107,43 @@ class LocallyCacheableDicomTransformation {
                     DicomUtils.writeDicomToFile(instance, subfolder.resolve("${fileIndex}.dcm").toFile())
                 }
             }
-            // TODO: zip an individual transformation
+            if (transformation.produceZip) {
+                zip(locateZipForIndividualTransformation(transformation), locateBaseDirForTransformedData(transformation))
+            }
         }
-        // TODO: zip the whole thing
+        if (produceOverallZip) {
+            zip(locateOverallZip(), baseLevelDir())
+        }
 
        completionMarker.toFile() << 'This marker exists to show that DICOM data has been produced locally for a test. Please do not mess with the data in this directory if you wish to run the tests successfully.'
+    }
+
+    private List<DatasetWithFMI> readBaseData() {
+        if (baseData) {
+            final ZipFile zipFile = new ZipFile(baseData.toFile())
+            zipFile.entries().toList().findResults { zipEntry ->
+                !zipEntry.directory ? DicomUtils.readDicom(zipFile.getInputStream(zipEntry)) : null
+            }
+        } else {
+            []
+        }
+    }
+
+    private void zip(Path destinationZip, Path sourceDir) {
+        final Path baseDir = baseLevelDir()
+        Files.createFile(destinationZip)
+        final ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(destinationZip.toFile()))
+
+        Files.walk(sourceDir, 100)
+                .forEach(path -> {
+                    final File asFile = path.toFile()
+                    if (asFile.isFile() && !asFile.name.endsWith('.zip')) {
+                        zipOutputStream.putNextEntry(new ZipEntry(baseDir.relativize(path).toString()))
+                        IOUtils.copy(new FileInputStream(asFile), zipOutputStream)
+                        zipOutputStream.closeEntry()
+                    }
+                })
+        zipOutputStream.close()
     }
 
     private static List<DatasetWithFMI> clone(List<DatasetWithFMI> dicomInstances) {

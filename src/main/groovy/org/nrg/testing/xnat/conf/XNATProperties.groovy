@@ -40,7 +40,6 @@ class XNATProperties extends BaseProperties {
     public static final String TIMELOG_SETTING = 'xnat.timelogs'
     public static final String GITLOGS_SETTING = 'xnat.gitLogs'
     public static final String BASIC_MODE = 'xnat.basic'
-    public static final String ALLOW_PERFORMANCE_TESTS = 'xnat.allowPerformanceTests'
     public static final String LOGGING_SETTING = 'xnat.allowLogging'
     public static final String DATABASE_URL = 'xnat.db.url'
     public static final String DATABASE_USER = 'xnat.db.user'
@@ -61,6 +60,8 @@ class XNATProperties extends BaseProperties {
     public static final String CS_SWARM_CAN_ENABLE = 'cs.swarm.canEnable'
     public static final String CS_SWARM_TIMEOUT = 'cs.swarm.timeout'
     public static final String CS_SWARM_CONSTRAINTS = 'cs.swarm.constraints'
+    public static final String ALLOW_PERFORMANCE_TESTS = 'xnat.performance.allow'
+    public static final String PERFORMANCE_RESET_SCRIPT_ID = 'xnat.performance.resetId'
 
     XNATProperties() {
         super('xnat.config', 'local.properties')
@@ -187,10 +188,6 @@ class XNATProperties extends BaseProperties {
         getBooleanProperty(BASIC_MODE, false)
     }
 
-    boolean getPerformanceAllowedSetting() {
-        getBooleanProperty(ALLOW_PERFORMANCE_TESTS, false)
-    }
-
     boolean getLoggingAllowedSetting() {
         getBooleanProperty(LOGGING_SETTING, true)
     }
@@ -287,6 +284,14 @@ class XNATProperties extends BaseProperties {
 
     String getSwarmConstraints() {
         getPropertyFromAnywhere(CS_SWARM_CONSTRAINTS)
+    }
+
+    boolean getPerformanceAllowedSetting() {
+        getBooleanProperty(ALLOW_PERFORMANCE_TESTS, false)
+    }
+
+    String getPerformanceResetScriptId() {
+        getStringProperty(PERFORMANCE_RESET_SCRIPT_ID, null)
     }
 
     List<XnatConfig> getOtherXnatConfigs() {

@@ -4,6 +4,7 @@ import org.dcm4che3.data.DatasetWithFMI
 
 import java.util.function.Consumer
 import java.util.function.Function
+import java.util.function.Supplier
 
 /**
  * Class for defining a function to apply to a list of DICOM objects to transform them into a new list.
@@ -24,6 +25,14 @@ class TransformFunction {
 
     static TransformFunction generalTransform(Function<List<DatasetWithFMI>, List<DatasetWithFMI>> function) {
         new TransformFunction(function)
+    }
+
+    static TransformFunction generateFromScratch(Supplier<List<DatasetWithFMI>> function) {
+        generalTransform(
+                (List<DatasetWithFMI> ignored) -> {
+                    function.get()
+                }
+        )
     }
 
     static TransformFunction composition(TransformFunction... transforms) {

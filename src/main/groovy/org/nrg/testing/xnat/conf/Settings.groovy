@@ -56,7 +56,6 @@ class Settings {
     public static final boolean TIMELOG_SETTING = properties.timelogSetting
     public static final boolean GITLOGS_SETTING = properties.gitlogSetting
     public static final boolean BASIC_MODE = properties.basicSetting
-    public static final boolean PERFORMANCE_TESTS_ALLOWED = properties.performanceAllowedSetting
     public static final boolean LOGGING_ALLOWED = properties.loggingAllowedSetting
     public static final String FIREFOX_PATH = properties.firefoxPath
     public static final String SMTP_HOST = properties.smtpHost
@@ -64,6 +63,8 @@ class Settings {
     public static final Properties SMTP_PROPERTIES = composeSmtpProperties()
     @Deprecated public static final boolean CS_SWARM_CAN_ENABLE = getBooleanProperty(properties.CS_SWARM_CAN_ENABLE, false)
     public static final int CS_SWARM_TIMEOUT = getIntProperty(properties.CS_SWARM_TIMEOUT, 5)
+    public static final boolean PERFORMANCE_TESTS_ALLOWED = properties.performanceAllowedSetting
+
 
     // values that get fuzzy when multiple XNATs in play
     public static final String MAIN_USERNAME = properties.mainUser
