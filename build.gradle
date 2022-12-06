@@ -9,6 +9,7 @@ apply plugin: 'groovy'
 apply plugin: 'java'
 apply plugin: 'java-library'
 apply plugin: 'maven-publish'
+apply plugin: 'net.linguica.maven-settings'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
 apply plugin: 'io.spring.dependency-management'
@@ -25,9 +26,13 @@ buildscript {
     repositories {
         mavenLocal()
         mavenCentral()
+        maven {
+            url 'https://plugins.gradle.org/m2/'
+        }
     }
     dependencies {
         classpath "io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE"
+        classpath 'net.linguica.gradle:maven-settings-plugin:0.5'
     }
 }
 
@@ -124,17 +129,9 @@ publishing {
     }
     repositories {
         maven {
-            credentials {
-                // These properties must be set in the ~/.gradle/gradle.properties file or passed on the Gradle command
-                // line in the form -PrepoUsername=foo -PrepoPassword=bar.
-                username propertyWithDefault('repoUsername', 'username')
-                password propertyWithDefault('repoPassword', 'password')
-            }
-            if (project.version.endsWith('-SNAPSHOT')) {
-                url 'https://nrgxnat.jfrog.io/nrgxnat/libs-snapshot-local'
-            } else {
-                url 'https://nrgxnat.jfrog.io/nrgxnat/libs-release-local'
-            }
+            url "https://nrgxnat.jfrog.io/nrgxnat/libs-${project.version.endsWith("-SNAPSHOT") ? "snapshot" : "release"}-local"
+            // The value for name must match <id> in ~/.m2/settings.xml
+            name = "XNAT_Artifactory"
         }
     }
 }
