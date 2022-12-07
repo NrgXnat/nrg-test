@@ -9,6 +9,8 @@ import org.nrg.testing.TimeUtils
 import org.nrg.testing.enums.TestBehavior
 import org.nrg.testing.file.FileLocation
 import org.nrg.testing.util.RandomHelper
+import org.nrg.testing.xnat.performance.reset.PerformanceServerResetScript
+import org.nrg.testing.xnat.performance.reset.XnatResetScriptLookup
 import org.nrg.testing.xnat.ssh.SSHConnection
 import org.nrg.testing.xnat.ssh.TomcatController
 import org.nrg.testing.xnat.ssh.TomcatControllerLookup
@@ -63,8 +65,6 @@ class Settings {
     public static final Properties SMTP_PROPERTIES = composeSmtpProperties()
     @Deprecated public static final boolean CS_SWARM_CAN_ENABLE = getBooleanProperty(properties.CS_SWARM_CAN_ENABLE, false)
     public static final int CS_SWARM_TIMEOUT = getIntProperty(properties.CS_SWARM_TIMEOUT, 5)
-    public static final boolean PERFORMANCE_TESTS_ALLOWED = properties.performanceAllowedSetting
-
 
     // values that get fuzzy when multiple XNATs in play
     public static final String MAIN_USERNAME = properties.mainUser
@@ -99,6 +99,9 @@ class Settings {
     public static final boolean SSH_FUNCTIONS = new SSHConnection().testSSH() // needs to come after TEMP_SUBDIR
     public static final String SWARM_CONSTRAINTS = properties.swarmConstraints
     private static List<SwarmConstraint> swarmConstraints = null
+    public static final boolean PERFORMANCE_TESTS_ALLOWED = properties.performanceAllowedSetting
+    public static final PerformanceServerResetScript PERFORMANCE_RESET_SCRIPT = XnatResetScriptLookup.lookup(properties.performanceResetScriptId)
+    public static final boolean PERFORMANCE_SET_BASELINES = properties.performanceSetBaselineSetting
 
     private static File getSshKey() {
         Paths.get(System.getProperty('user.home'), '.ssh', SSH_KEY_NAME).toFile()

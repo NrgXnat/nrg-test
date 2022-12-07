@@ -2,6 +2,7 @@ package org.nrg.testing.xnat.performance
 
 import groovy.util.logging.Log4j
 import org.nrg.testing.xnat.BaseXnatRestTest
+import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.performance.actions.CheckablePerformanceWorkflow
 import org.testng.annotations.BeforeMethod
 
@@ -13,7 +14,11 @@ class XnatPerformanceTests extends BaseXnatRestTest {
     @BeforeMethod(alwaysRun = true)
     void clearXnat() {
         log.fatal('BeforeMethod for performance test called')
-        // TODO: implement
+        if (Settings.PERFORMANCE_TESTS_ALLOWED) {
+            log.info("Performing hard reset on XNAT server...")
+            Settings.PERFORMANCE_RESET_SCRIPT.resetXnatServer()
+            setupXnat()
+        }
     }
 
     protected PerformanceScenarioBuilder performanceScenario() {

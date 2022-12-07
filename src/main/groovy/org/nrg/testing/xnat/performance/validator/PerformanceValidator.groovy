@@ -26,14 +26,20 @@ trait PerformanceValidator<X extends CheckablePerformanceEntry<X>> {
                 objectMapper.readValue(historicalRecordFile, HistoricalPerformanceCatalog<X>) as HistoricalPerformanceCatalog<X> :
                 new HistoricalPerformanceCatalog<X>()
         final CheckablePerformanceResult result = validateAgainst(historicalRecord.findBaseline(), observedBehavior)
+        if (Settings.PERFORMANCE_SET_BASELINES) {
+            historicalRecord.entries.each { entry ->
+                entry.setBaseline(false)
+            }
+            observedBehavior.setBaseline(true)
+        }
         historicalRecord.entries << observedBehavior
         objectMapper.writeValue(historicalRecordFile, historicalRecord)
-        // TODO: update baseline?
         if (result.passed) {
             log.info("All checks passing for ${identifier}")
         } else {
             log.warn("Checks failed for ${identifier}")
         }
+        log.info("Data for ${identifier}: ${XnatInterface.XNAT_REST_MAPPER.writeValueAsString(historicalRecord)}")
         result
     }
 

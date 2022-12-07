@@ -62,6 +62,7 @@ class XNATProperties extends BaseProperties {
     public static final String CS_SWARM_CONSTRAINTS = 'cs.swarm.constraints'
     public static final String ALLOW_PERFORMANCE_TESTS = 'xnat.performance.allow'
     public static final String PERFORMANCE_RESET_SCRIPT_ID = 'xnat.performance.resetId'
+    public static final String PERFORMANCE_SET_BASELINE = 'xnat.performance.setBaseline'
 
     XNATProperties() {
         super('xnat.config', 'local.properties')
@@ -292,6 +293,10 @@ class XNATProperties extends BaseProperties {
 
     String getPerformanceResetScriptId() {
         getStringProperty(PERFORMANCE_RESET_SCRIPT_ID, null)
+    }
+
+    boolean getPerformanceSetBaselineSetting() {
+        getBooleanProperty(PERFORMANCE_SET_BASELINE, false)
     }
 
     List<XnatConfig> getOtherXnatConfigs() {
