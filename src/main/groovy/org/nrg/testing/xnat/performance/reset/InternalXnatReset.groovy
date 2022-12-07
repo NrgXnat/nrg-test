@@ -3,7 +3,7 @@ package org.nrg.testing.xnat.performance.reset
 class InternalXnatReset extends FixedScriptXnatReset {
 
     @Override
-    List<String> commandsList() {
+    List<String> commands() {
         [
                 'systemctl stop tomcat',
                 'dropdb xnat -U xnat',
