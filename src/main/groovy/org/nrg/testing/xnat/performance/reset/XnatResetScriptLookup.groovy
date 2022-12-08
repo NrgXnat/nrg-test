@@ -3,7 +3,8 @@ package org.nrg.testing.xnat.performance.reset
 class XnatResetScriptLookup {
 
     private static final Map<String, PerformanceServerResetScript> RESET_SCRIPTS = [
-            'internal': new InternalXnatReset()
+            'internal': new InternalXnatReset(),
+            'nothing': new DoNothingXnatReset()
     ]
 
     static PerformanceServerResetScript lookup(String managerKey) {

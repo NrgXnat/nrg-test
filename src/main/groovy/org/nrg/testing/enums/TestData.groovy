@@ -1,9 +1,13 @@
 package org.nrg.testing.enums
 
-import org.nrg.testing.xnat.conf.Settings
+import groovy.util.logging.Log4j
+import org.nrg.testing.FileIOUtils
+import org.nrg.testing.LocalDataCache
+import org.nrg.testing.XnatDownloadServerClient
 
-import java.nio.file.Paths
+import static org.testng.AssertJUnit.assertTrue
 
+@Log4j
 enum TestData {
     ANON_SESSION ('anonymizationSession', '1.3.12.2.1107.5.2.32.35177.30000006121218324675000000034'),
     ANON_2 ('anon2'),
@@ -79,11 +83,36 @@ enum TestData {
     }
 
     File toFile() {
-        Paths.get(Settings.DATA_LOCATION, getZipName()).toFile()
+        LocalDataCache.pathTo(zipName).toFile()
     }
 
     File toDirectory() {
-        Paths.get(Settings.DATA_LOCATION, name).toFile()
+        LocalDataCache.pathTo(name).toFile()
+    }
+
+    void download() {
+        if (this != NONE) {
+            final File possiblyCachedZip = toFile()
+            if (possiblyCachedZip.exists()) {
+                if (possiblyCachedZip.length() < 1000) { // it's less than 1 KB (e.g. probably empty, no test data will be this small)
+                    assertTrue(possiblyCachedZip.delete())
+                } else {
+                    log.info("I already have the ${zipName} test data. No need to download again!")
+                    return
+                }
+            }
+            cacheClient().downloadToFile(zipName, possiblyCachedZip)
+            FileIOUtils.unzip(possiblyCachedZip.parentFile, possiblyCachedZip, true)
+        }
+    }
+
+    private static XnatDownloadServerClient downloadServerClient
+
+    private static XnatDownloadServerClient cacheClient() {
+        if (downloadServerClient == null) {
+            downloadServerClient = new XnatDownloadServerClient()
+        }
+        downloadServerClient
     }
 
 }

@@ -25,6 +25,7 @@ import org.testng.annotations.Listeners
 
 import java.lang.annotation.Annotation
 import java.lang.reflect.Method
+import java.nio.file.Path
 import java.nio.file.Paths
 
 @Log4j
@@ -131,6 +132,10 @@ class BaseTestCase {
 
     protected File getDataFile(String filename) {
         Paths.get(Settings.DATA_LOCATION, filename).toFile()
+    }
+
+    protected File getDataFile(Path relativePath) {
+        Paths.get(Settings.DATA_LOCATION, relativePath.toString()).toFile()
     }
 
     protected String readDataFile(String filename) {

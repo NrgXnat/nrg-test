@@ -259,30 +259,8 @@ abstract class BaseXnatTest extends BaseTestCase {
                 }
             }
         }
-        if (!testDataRequirements.isEmpty()) {
-            XnatDownloadServerClient downloadServerClient
-            final Closure<XnatDownloadServerClient> cacheClient = {
-                if (downloadServerClient == null) {
-                    downloadServerClient = new XnatDownloadServerClient()
-                }
-                downloadServerClient
-            }
-            testDataRequirements.each { testData ->
-                if (testData != TestData.NONE) {
-                    final String dataName = testData.zipName
-                    final File testDataFile = Paths.get(Settings.DATA_LOCATION, dataName).toFile()
-                    if (testDataFile.exists()) {
-                        if (testDataFile.length() < 1000) { // it's less than 1 KB (e.g. probably empty, no test data will be this small)
-                            assertTrue(testDataFile.delete())
-                        } else {
-                            log.info("I already have the ${dataName} test data. No need to download again!")
-                            return
-                        }
-                    }
-                    cacheClient().downloadToFile(dataName, testDataFile)
-                    FileIOUtils.unzip(testDataFile.parentFile, testDataFile, true)
-                }
-            }
+        testDataRequirements.each { testData ->
+            testData.download()
         }
     }
 

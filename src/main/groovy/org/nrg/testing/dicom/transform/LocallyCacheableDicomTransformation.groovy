@@ -4,6 +4,7 @@ import org.apache.commons.io.IOUtils
 import org.dcm4che3.data.DatasetWithFMI
 import org.nrg.testing.DicomUtils
 import org.nrg.testing.FileIOUtils
+import org.nrg.testing.LocalDataCache
 import org.nrg.testing.enums.TestData
 import org.nrg.testing.xnat.conf.Settings
 
@@ -49,11 +50,11 @@ class LocallyCacheableDicomTransformation {
     }
 
     Path baseLevelDir() {
-        Paths.get(Settings.DATA_LOCATION, identifier)
+        LocalDataCache.pathTo(identifier)
     }
 
     Path locateOverallZip() {
-        Paths.get(Settings.DATA_LOCATION, "${identifier}.zip")
+        LocalDataCache.pathTo("${identifier}.zip")
     }
 
     Path locateBaseDirForTransformedData(DicomTransformation transformation) {
