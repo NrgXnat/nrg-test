@@ -9,6 +9,7 @@ import org.nrg.testing.annotations.HardDependency
 import org.nrg.testing.annotations.SoftClassDependency
 import org.nrg.testing.annotations.SoftDependency
 import org.nrg.testing.annotations.SortLast
+import org.nrg.testing.xnat.performance.XnatPerformanceTests
 import org.nrg.xnat.util.GraphUtils
 import org.testng.IMethodInstance
 import org.testng.ITestNGMethod
@@ -33,6 +34,11 @@ class DefaultMethodSortComparator implements Comparator<IMethodInstance> {
     int compare(IMethodInstance m1, IMethodInstance m2) {
         final Class m1Class = TestNgUtils.getTestClass(m1)
         final Class m2Class = TestNgUtils.getTestClass(m2)
+        final boolean m1IsPerformance = XnatPerformanceTests.isAssignableFrom(m1.method.realClass)
+        final boolean m2IsPerformance = XnatPerformanceTests.isAssignableFrom(m2.method.realClass)
+        if (m1IsPerformance ^ m2IsPerformance) { // we only want to "intervene" here if exactly one of the compared methods is a performance test to sort it to the end
+            return m1IsPerformance ? 1 : -1
+        }
         final int indexDiff = topologicallySortedClasses.indexOf(m1Class) - topologicallySortedClasses.indexOf(m2Class)
         if (indexDiff != 0) {
             indexDiff
