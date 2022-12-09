@@ -4,6 +4,9 @@ import groovy.util.logging.Log4j
 import org.nrg.testing.FileIOUtils
 import org.nrg.testing.LocalDataCache
 import org.nrg.testing.XnatDownloadServerClient
+import org.nrg.testing.xnat.conf.Settings
+
+import java.nio.file.Paths
 
 import static org.testng.AssertJUnit.assertTrue
 
@@ -83,7 +86,7 @@ enum TestData {
     }
 
     File toFile() {
-        LocalDataCache.pathTo(zipName).toFile()
+        Paths.get(Settings.DATA_LOCATION, zipName).toFile()
     }
 
     File toDirectory() {
