@@ -86,7 +86,7 @@ enum TestData {
     }
 
     File toFile() {
-        Paths.get(Settings.DATA_LOCATION, zipName).toFile()
+        LocalDataCache.pathTo(zipName).toFile()
     }
 
     File toDirectory() {

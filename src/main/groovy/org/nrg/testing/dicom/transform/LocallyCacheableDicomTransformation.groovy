@@ -121,6 +121,7 @@ class LocallyCacheableDicomTransformation {
 
     private List<DatasetWithFMI> readBaseData() {
         if (baseData) {
+            baseData.download()
             final ZipFile zipFile = new ZipFile(baseData.toFile())
             zipFile.entries().toList().findResults { zipEntry ->
                 !zipEntry.directory ? DicomUtils.readDicom(zipFile.getInputStream(zipEntry)) : null

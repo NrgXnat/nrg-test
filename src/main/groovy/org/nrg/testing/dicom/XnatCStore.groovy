@@ -47,7 +47,7 @@ class XnatCStore {
     }
 
     XnatCStore data(TestData testData) {
-        data(testData.name)
+        data(testData.toDirectory())
     }
 
     XnatCStore overwrittenHeaders(Map<Integer, String> headers) {
