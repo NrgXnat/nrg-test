@@ -6,11 +6,9 @@ import org.nrg.testing.DicomUtils
 import org.nrg.testing.FileIOUtils
 import org.nrg.testing.LocalDataCache
 import org.nrg.testing.enums.TestData
-import org.nrg.testing.xnat.conf.Settings
 
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
