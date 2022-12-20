@@ -14,7 +14,9 @@ enum ImageType {
     DICOM {
         @Override
         ImagePlus readImage(File image) throws IOException, FormatException {
-            readWith(image, new DicomReader())
+            final DicomReader dicomReader = new DicomReader()
+            dicomReader.setGroupFiles(false) // don't want to try to pull in other files
+            readWith(image, dicomReader)
         }
     },
 

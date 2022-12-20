@@ -173,6 +173,7 @@ class DiffedImage {
                 throw new UnsupportedOperationException('unknown reason.')
             }
         } catch (Exception e) {
+            log.warn('Failed to process image', e)
             throw new ImageProcessingException("Could not open image: ${image.name} due to: ${e.message}")
         }
     }
