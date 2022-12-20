@@ -2,6 +2,8 @@ package org.nrg.testing.xnat.ssh
 
 import groovy.util.logging.Log4j
 import net.schmizz.sshj.SSHClient
+import net.schmizz.sshj.transport.verification.HostKeyVerifier
+import net.schmizz.sshj.transport.verification.OpenSSHKnownHosts
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier
 import org.apache.commons.lang3.time.StopWatch
 import org.nrg.testing.TimeUtils
@@ -10,19 +12,22 @@ import org.nrg.testing.xnat.conf.XNATProperties
 import org.nrg.testing.xnat.rest.XnatRestDriver
 import org.testng.AssertJUnit
 
+import java.nio.file.Paths
+
 @Log4j
 class SSHConnection {
 
     private SSHClient sshClient
+    private static final HostKeyVerifier KNOWN_HOSTS = new OpenSSHKnownHosts(Paths.get(System.getProperty('user.home'), '.ssh', 'known_hosts').toFile())
 
-    private void initiateConnection() {
+    void initiateConnection() {
         sshClient = new SSHClient()
-        sshClient.addHostKeyVerifier(new PromiscuousVerifier())
+        sshClient.addHostKeyVerifier(KNOWN_HOSTS)
         sshClient.connect(Settings.HOSTURL)
         sshClient.authPublickey(Settings.SSH_USER, sshClient.loadKeys(Settings.SSH_KEY.path))
     }
 
-    private void disconnect() {
+    void disconnect() {
         sshClient.disconnect()
     }
 
@@ -73,15 +78,7 @@ class SSHConnection {
         waitForTomcat()
     }
 
-    private void manageTomcat(String commandName, String commandString) {
-        log.info("Sending command to tomcat: ${commandName}...")
-        final SSHCommandResult results = executeSingleCommand(commandString)
-        log.info(results.stdOut)
-        log.error(results.stdErr)
-        AssertJUnit.assertEquals(0, results.exitStatus)
-    }
-
-    private void waitForTomcat() {
+    static void waitForTomcat() {
         final StopWatch stopWatch = TimeUtils.launchStopWatch()
         while (true) {
             TimeUtils.checkStopWatch(stopWatch, 500, 'Tomcat didn\'t come back after restarting/starting it with SSH')
@@ -94,6 +91,14 @@ class SSHConnection {
             TimeUtils.sleep(10000)
         }
         TimeUtils.sleep(15000) // give it 15 extra seconds to just wait for tomcat to more fully be ready
+    }
+
+    private void manageTomcat(String commandName, String commandString) {
+        log.info("Sending command to tomcat: ${commandName}...")
+        final SSHCommandResult results = executeSingleCommand(commandString)
+        log.info(results.stdOut)
+        log.error(results.stdErr)
+        AssertJUnit.assertEquals(0, results.exitStatus)
     }
 
 }

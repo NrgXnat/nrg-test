@@ -2,6 +2,10 @@ package org.nrg.testing.xnat.performance.reset
 
 class InternalXnatReset extends FixedScriptXnatReset {
 
+    InternalXnatReset(boolean useSsh) {
+        super(useSsh)
+    }
+
     @Override
     List<String> commands() {
         [

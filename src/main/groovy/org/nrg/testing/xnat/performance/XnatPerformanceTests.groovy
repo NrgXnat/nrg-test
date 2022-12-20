@@ -4,6 +4,7 @@ import groovy.util.logging.Log4j
 import org.nrg.testing.xnat.BaseXnatRestTest
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.performance.actions.CheckablePerformanceWorkflow
+import org.nrg.testing.xnat.ssh.SSHConnection
 import org.testng.annotations.BeforeMethod
 
 import java.util.function.Consumer
@@ -17,6 +18,7 @@ class XnatPerformanceTests extends BaseXnatRestTest {
         if (Settings.PERFORMANCE_TESTS_ALLOWED) {
             log.info("Performing hard reset on XNAT server...")
             Settings.PERFORMANCE_RESET_SCRIPT.resetXnatServer()
+            SSHConnection.waitForTomcat()
             setupXnat()
         }
     }
