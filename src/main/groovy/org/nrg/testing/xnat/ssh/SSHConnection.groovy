@@ -6,6 +6,7 @@ import net.schmizz.sshj.transport.verification.HostKeyVerifier
 import net.schmizz.sshj.transport.verification.OpenSSHKnownHosts
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier
 import org.apache.commons.lang3.time.StopWatch
+import org.apache.log4j.Logger
 import org.nrg.testing.TimeUtils
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.conf.XNATProperties
@@ -101,7 +102,7 @@ class SSHConnection {
         try {
             return new OpenSSHKnownHosts(Paths.get(System.getProperty('user.home'), '.ssh', 'known_hosts').toFile())
         } catch (Exception e) {
-            log.warn('Ran into an exception in caching host key verifier: ', e)
+            Logger.getLogger(SSHConnection).warn('Ran into an exception in caching host key verifier: ', e)
             null
         }
     }
