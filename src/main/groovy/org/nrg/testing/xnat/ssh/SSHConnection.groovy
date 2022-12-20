@@ -18,7 +18,7 @@ import java.nio.file.Paths
 class SSHConnection {
 
     private SSHClient sshClient
-    private static final HostKeyVerifier KNOWN_HOSTS = new OpenSSHKnownHosts(Paths.get(System.getProperty('user.home'), '.ssh', 'known_hosts').toFile())
+    private static final HostKeyVerifier KNOWN_HOSTS = cacheHostKeyVerifier()
 
     void initiateConnection() {
         sshClient = new SSHClient()
@@ -32,6 +32,10 @@ class SSHConnection {
     }
 
     boolean testSSH() {
+        if (!KNOWN_HOSTS) {
+            log.info('Host key verifier not available, so all tests requiring SSH access will be skipped.')
+            return false
+        }
         if (Settings.SSH_USER == null) {
             log.info("No username is available for SSH, so all tests requiring SSH access will be skipped. Set ${XNATProperties.SSH_USER} if SSH is needed.")
         } else if (!Settings.SSH_KEY.exists()) {
@@ -91,6 +95,15 @@ class SSHConnection {
             TimeUtils.sleep(10000)
         }
         TimeUtils.sleep(15000) // give it 15 extra seconds to just wait for tomcat to more fully be ready
+    }
+
+    private static HostKeyVerifier cacheHostKeyVerifier() {
+        try {
+            return new OpenSSHKnownHosts(Paths.get(System.getProperty('user.home'), '.ssh', 'known_hosts').toFile())
+        } catch (Exception e) {
+            log.warn('Ran into an exception in caching host key verifier: ', e)
+            null
+        }
     }
 
     private void manageTomcat(String commandName, String commandString) {
