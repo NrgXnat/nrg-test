@@ -11,10 +11,17 @@ class DicomFilters {
         [listOfDicom[0]]
     }
 
-    static Function<List<DatasetWithFMI>, List<DatasetWithFMI>> subsetWithInstanceNumber(int instanceNumber) {
+    static Function<List<DatasetWithFMI>, List<DatasetWithFMI>> subsetWithInstanceNumber(int integer) {
+        subsetWithInstanceNumber([integer])
+    }
+
+    static Function<List<DatasetWithFMI>, List<DatasetWithFMI>> subsetWithInstanceNumber(List<Integer> instanceNumbers) {
         (List<DatasetWithFMI> listOfDicom) -> {
+            final List<String> acceptableNumbersAsStrings = instanceNumbers.collect { intVal ->
+                String.valueOf(intVal)
+            }
             listOfDicom.findAll { dicom ->
-                String.valueOf(instanceNumber) == dicom.dataset.getString(Tag.InstanceNumber) // reading as String because we don't want false matches from the defaultValue on getInt
+                dicom.dataset.getString(Tag.InstanceNumber) in acceptableNumbersAsStrings // reading as String because we don't want false matches from the defaultValue on getInt
             }
         }
     }

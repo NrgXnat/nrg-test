@@ -14,6 +14,10 @@ import java.util.function.Supplier
 class TransformFunction {
 
     Function<List<DatasetWithFMI>, List<DatasetWithFMI>> function
+    public static final TransformFunction IDENTITY = simple(new Consumer<DatasetWithFMI>() {
+        @Override
+        void accept(DatasetWithFMI datasetWithFMI) {}
+    })
 
     TransformFunction(Function<List<DatasetWithFMI>, List<DatasetWithFMI>> function) {
         this.function = function

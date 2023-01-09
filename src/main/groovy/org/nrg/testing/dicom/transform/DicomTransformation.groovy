@@ -12,7 +12,8 @@ class DicomTransformation {
     boolean produceZip = false
     int transformationCount = 1
     Function<List<DatasetWithFMI>, List<DatasetWithFMI>> prefilter
-    TransformFunction transformFunction
+    TransformFunction transformFunction = TransformFunction.IDENTITY
+    DicomFileWriter dicomFileWriter = new DefaultDicomWriter()
 
     DicomTransformation(String identifier) {
         this.identifier = identifier

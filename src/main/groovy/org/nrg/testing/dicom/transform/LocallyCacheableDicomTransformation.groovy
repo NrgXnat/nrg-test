@@ -103,7 +103,7 @@ class LocallyCacheableDicomTransformation {
                     if (fileIndex % FILES_PER_FOLDER == 0) {
                         FileIOUtils.mkdirs(subfolder)
                     }
-                    DicomUtils.writeDicomToFile(instance, subfolder.resolve("${fileIndex}.dcm").toFile())
+                    transformation.dicomFileWriter.writeDicom(instance, subfolder, fileIndex)
                 }
             }
             if (transformation.produceZip) {
