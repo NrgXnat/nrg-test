@@ -31,7 +31,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath "io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE"
+        classpath "io.spring.gradle:dependency-management-plugin:1.1.0"
         classpath 'net.linguica.gradle:maven-settings-plugin:0.5'
     }
 }
