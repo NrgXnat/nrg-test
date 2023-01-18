@@ -8,8 +8,10 @@ import java.nio.file.Path
 class DefaultDicomWriter implements DicomFileWriter {
 
     @Override
-    void writeDicom(DatasetWithFMI instance, Path dataDir, int fileIndex) {
-        DicomUtils.writeDicomToFile(instance, dataDir.resolve("${fileIndex}.dcm").toFile())
+    File writeDicom(DatasetWithFMI instance, Path dataDir, int fileIndex) {
+        final File outputFile = dataDir.resolve("${fileIndex}.dcm").toFile()
+        DicomUtils.writeDicomToFile(instance, outputFile)
+        outputFile
     }
 
 }

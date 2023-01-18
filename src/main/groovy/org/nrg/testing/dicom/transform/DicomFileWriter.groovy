@@ -6,6 +6,6 @@ import java.nio.file.Path
 
 interface DicomFileWriter {
 
-    void writeDicom(DatasetWithFMI instance, Path dataDir, int fileIndex)
+    File writeDicom(DatasetWithFMI instance, Path dataDir, int fileIndex)
 
 }

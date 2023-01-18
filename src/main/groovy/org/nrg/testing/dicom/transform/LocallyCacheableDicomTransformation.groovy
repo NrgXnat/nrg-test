@@ -92,8 +92,10 @@ class LocallyCacheableDicomTransformation {
         }
 
         final List<DatasetWithFMI> sourceDicomInstances = readBaseData()
+        final List<File> filesForOverallZip = []
 
         transformations.each { transformation ->
+            final List<File> filesForTransformation = []
             final List<DatasetWithFMI> copyOfSource = new ArrayList<>(sourceDicomInstances) // each transformation needs the full source list
             final List<DatasetWithFMI> postFilter = transformation.prefilter ? transformation.prefilter.apply(copyOfSource) : copyOfSource // ... but we assume here at least the the prefilter won't modify instances directly
             transformation.transformationCount.times { index ->
@@ -103,15 +105,17 @@ class LocallyCacheableDicomTransformation {
                     if (fileIndex % FILES_PER_FOLDER == 0) {
                         FileIOUtils.mkdirs(subfolder)
                     }
-                    transformation.dicomFileWriter.writeDicom(instance, subfolder, fileIndex)
+                    final File file = transformation.dicomFileWriter.writeDicom(instance, subfolder, fileIndex)
+                    filesForOverallZip << file
+                    filesForTransformation << file
                 }
             }
             if (transformation.produceZip) {
-                zip(locateZipForIndividualTransformation(transformation), locateBaseDirForTransformedData(transformation))
+                zip(locateZipForIndividualTransformation(transformation), filesForTransformation)
             }
         }
         if (produceOverallZip) {
-            zip(locateOverallZip(), baseLevelDir())
+            zip(locateOverallZip(), filesForOverallZip)
         }
 
        completionMarker.toFile() << 'This marker exists to show that DICOM data has been produced locally for a test. Please do not mess with the data in this directory if you wish to run the tests successfully.'
@@ -129,20 +133,18 @@ class LocallyCacheableDicomTransformation {
         }
     }
 
-    private void zip(Path destinationZip, Path sourceDir) {
+    private void zip(Path destinationZip, List<File> filesToZip) {
         final Path baseDir = baseLevelDir()
         Files.createFile(destinationZip)
         final ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(destinationZip.toFile()))
 
-        Files.walk(sourceDir, 100)
-                .forEach(path -> {
-                    final File asFile = path.toFile()
-                    if (asFile.isFile() && !asFile.name.endsWith('.zip')) {
-                        zipOutputStream.putNextEntry(new ZipEntry(baseDir.relativize(path).toString()))
-                        IOUtils.copy(new FileInputStream(asFile), zipOutputStream)
-                        zipOutputStream.closeEntry()
-                    }
-                })
+        filesToZip.each { file ->
+            if (file.isFile() && !file.name.endsWith('.zip')) {
+                zipOutputStream.putNextEntry(new ZipEntry(baseDir.relativize(file.toPath()).toString()))
+                IOUtils.copy(new FileInputStream(file), zipOutputStream)
+                zipOutputStream.closeEntry()
+            }
+        }
         zipOutputStream.close()
     }
 
