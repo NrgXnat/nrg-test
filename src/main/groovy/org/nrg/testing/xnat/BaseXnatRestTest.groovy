@@ -5,12 +5,17 @@ import io.restassured.RestAssured
 import io.restassured.config.RestAssuredConfig
 import io.restassured.path.json.mapper.factory.Jackson2ObjectMapperFactory
 import io.restassured.specification.RequestSpecification
+import org.nrg.testing.enums.TestData
+import org.nrg.testing.xnat.components.ComponentizedTest
+import org.nrg.testing.xnat.components.SessionImporterStep
+import org.nrg.testing.xnat.components.TestComponent
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.rest.XnatRestDriver
 import org.nrg.xnat.pogo.DataType
 import org.nrg.xnat.pogo.Project
 import org.nrg.xnat.pogo.users.User
 import org.nrg.xnat.rest.Credentials
+import org.nrg.xnat.rest.ForbiddenException
 import org.testng.annotations.AfterClass
 import org.testng.annotations.BeforeSuite
 
@@ -21,6 +26,7 @@ import static io.restassured.config.ObjectMapperConfig.objectMapperConfig
 class BaseXnatRestTest extends BaseXnatTest {
 
     protected final List<Project> testProjects = []
+    protected final TestComponent UPLOAD_SAMPLE1_SI = new SessionImporterStep(TestData.SAMPLE_1)
 
     @BeforeSuite(alwaysRun = true)
     protected void addXnatSerializers() {
@@ -69,7 +75,7 @@ class BaseXnatRestTest extends BaseXnatTest {
         Credentials.build(mainAdminUser)
     }
 
-    protected Project registerTempProject() {
+    Project registerTempProject() {
         final Project project = new Project()
         testProjects << project
         project
@@ -93,6 +99,35 @@ class BaseXnatRestTest extends BaseXnatTest {
 
     protected String formatXapiUrl(String... objects) {
         mainInterface().formatXapiUrl(objects)
+    }
+
+    protected void run(ComponentizedTest test) {
+        test.run(this)
+    }
+
+    protected TestComponent expect403(TestComponent baseAction) {
+        new TestComponent() {
+            @Override
+            void perform(BaseXnatRestTest xnatRestTest, Project project) {
+                try {
+                    baseAction.perform(xnatRestTest, project)
+                    throw new RuntimeException("${baseAction.class.simpleName ?: '[anonymous class]'} action attempt should have failed!")
+                } catch (ForbiddenException ignored) {
+                    // expected
+                }
+            }
+        }
+    }
+
+    protected void expect403(Runnable action) {
+        expect403(
+                new TestComponent() {
+                    @Override
+                    void perform(BaseXnatRestTest xnatRestTest, Project project) {
+                        action.run()
+                    }
+                }
+        ).perform(this, null)
     }
 
 }

@@ -85,10 +85,10 @@ class LocallyCacheableDicomTransformation {
         iteration
     }
 
-    void build() {
+    LocallyCacheableDicomTransformation build() {
         final Path completionMarker = baseLevelDir().resolve('README.txt')
         if (completionMarker.toFile().exists()) {
-            return
+            return this
         }
 
         final List<DatasetWithFMI> sourceDicomInstances = readBaseData()
@@ -118,7 +118,8 @@ class LocallyCacheableDicomTransformation {
             zip(locateOverallZip(), filesForOverallZip)
         }
 
-       completionMarker.toFile() << 'This marker exists to show that DICOM data has been produced locally for a test. Please do not mess with the data in this directory if you wish to run the tests successfully.'
+        completionMarker.toFile() << 'This marker exists to show that DICOM data has been produced locally for a test. Please do not mess with the data in this directory if you wish to run the tests successfully.'
+        this
     }
 
     private List<DatasetWithFMI> readBaseData() {
