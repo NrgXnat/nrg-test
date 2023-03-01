@@ -12,15 +12,19 @@ import org.nrg.testing.xnat.processing.files.comparators.imaging.metrics.Metric
 import org.nrg.testing.xnat.processing.files.comparators.imaging.metrics.Metrics
 import org.nrg.xnat.util.GraphUtils
 
+import java.util.function.Function
+
 @Log4j
 class DiffedImage {
 
     boolean isColor
     protected ComparisonPixel[][][] signedComparisonPixels // z, x, y so we can iterate over "pages"/"slices" (z)
     protected ImageType type
+    private boolean storeFullPixelData
 
-    DiffedImage(File originalImageFile, File generatedImageFile, ImageType type) throws ImageProcessingException {
+    DiffedImage(File originalImageFile, File generatedImageFile, ImageType type = null, boolean storeFullPixelData = false) throws ImageProcessingException {
         this.type = type
+        this.storeFullPixelData = storeFullPixelData
         final ImagePlus original = openImage(originalImageFile)
         final ImagePlus generated = openImage(generatedImageFile)
         final List<Integer> originalDimensions = original.dimensions as List<Integer>
@@ -41,10 +45,6 @@ class DiffedImage {
         readComparisonPixels(original, generated)
         original.close()
         generated.close()
-    }
-
-    DiffedImage(File originalImageFile, File generatedImageFile) throws ImageProcessingException {
-        this(originalImageFile, generatedImageFile, null)
     }
 
     DiffedImage(String originalImage, String generatedImage) throws ImageProcessingException {
@@ -198,7 +198,17 @@ class DiffedImage {
 
     // x and y are pointless here, but used in xnat_rest_tests to override this method
     protected ComparisonPixel readComparisonPixel(int x, int y, int[] original, int[] generated) {
-        isColor ? PixelFactory.getPixel(original[0], original[1], original[2], generated[0], generated[1], generated[2]) : PixelFactory.getPixel(original[0], generated[0])
+        isColor ? PixelFactory.getPixel(original[0], original[1], original[2], generated[0], generated[1], generated[2], storeFullPixelData) : PixelFactory.getPixel(original[0], generated[0], storeFullPixelData)
+    }
+
+    boolean ifAnyFail(Function<ComparisonPixel, Boolean> pixelTest) {
+        (0 ..< pages).any { z ->
+            (0 ..< width).any { x ->
+                (0 ..< height).any { y ->
+                    !pixelTest.apply(signedComparisonPixels[z][x][y])
+                }
+            }
+        }
     }
 
 }

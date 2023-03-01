@@ -69,4 +69,12 @@ class ComparisonPixel {
         "ComparisonPixel pair at (${x}, ${y}) on slice ${z}"
     }
 
+    PixelValue getGeneratedPixelValue() {
+        return isColor ? new PixelValue(generatedRed, generatedGreen, generatedBlue) : new PixelValue(generatedGray)
+    }
+
+    PixelValue getSourcePixelValue() {
+        return isColor ? new PixelValue(sourceRed, sourceGreen, sourceBlue) : new PixelValue(sourceGray)
+    }
+
 }

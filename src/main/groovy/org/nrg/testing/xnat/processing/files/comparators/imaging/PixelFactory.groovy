@@ -5,7 +5,7 @@ class PixelFactory {
     public static final ComparisonPixel ZERO_GRAY_PIXEL = new ZeroDiffPixel(false)
     public static final ComparisonPixel ZERO_COLOR_PIXEL = new ZeroDiffPixel(true)
 
-    static ComparisonPixel getPixel(int sourceGray, int generatedGray, boolean storeFullInformation) {
+    static ComparisonPixel getPixel(int sourceGray, int generatedGray, boolean storeFullInformation = false) {
         if (storeFullInformation) {
             (sourceGray == generatedGray) ? new ZeroComparisonPixel(sourceGray) : new ComparisonPixel(sourceGray, generatedGray)
         } else {
@@ -13,11 +13,7 @@ class PixelFactory {
         }
     }
 
-    static ComparisonPixel getPixel(int sourceGray, int generatedGray) {
-        getPixel(sourceGray, generatedGray, false)
-    }
-
-    static ComparisonPixel getPixel(int sourceRed, int sourceGreen, int sourceBlue, int generatedRed, int generatedGreen, int generatedBlue, boolean storeFullInformation) {
+    static ComparisonPixel getPixel(int sourceRed, int sourceGreen, int sourceBlue, int generatedRed, int generatedGreen, int generatedBlue, boolean storeFullInformation = false) {
         if (storeFullInformation) {
             if (sourceRed == generatedRed && sourceGreen == generatedGreen && sourceBlue == generatedBlue) {
                 new ZeroComparisonPixel(sourceRed, sourceGreen, sourceBlue)
@@ -31,10 +27,6 @@ class PixelFactory {
                 new ComparisonPixel(sourceRed, sourceGreen, sourceBlue, generatedRed, generatedGreen, generatedBlue)
             }
         }
-    }
-
-    static ComparisonPixel getPixel(int sourceRed, int sourceGreen, int sourceBlue, int generatedRed, int generatedGreen, int generatedBlue) {
-        getPixel(sourceRed, sourceGreen, sourceBlue, generatedRed, generatedGreen, generatedBlue, false)
     }
 
 }
