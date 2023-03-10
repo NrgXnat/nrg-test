@@ -16,12 +16,16 @@ import org.nrg.xnat.pogo.Project
 import org.nrg.xnat.pogo.users.User
 import org.nrg.xnat.rest.Credentials
 import org.nrg.xnat.rest.ForbiddenException
+import org.nrg.xnat.rest.NotFoundException
 import org.testng.annotations.AfterClass
 import org.testng.annotations.BeforeSuite
 
 import java.lang.reflect.Type
+import java.util.concurrent.Callable
 
 import static io.restassured.config.ObjectMapperConfig.objectMapperConfig
+import static org.hamcrest.MatcherAssert.assertThat
+import static org.testng.AssertJUnit.fail
 
 class BaseXnatRestTest extends BaseXnatTest {
 
@@ -105,7 +109,7 @@ class BaseXnatRestTest extends BaseXnatTest {
         test.run(this)
     }
 
-    protected TestComponent expect403(TestComponent baseAction) {
+    protected static TestComponent expect403(TestComponent baseAction) {
         new TestComponent() {
             @Override
             void perform(BaseXnatRestTest xnatRestTest, Project project) {
@@ -119,12 +123,59 @@ class BaseXnatRestTest extends BaseXnatTest {
         }
     }
 
+    protected static TestComponent expect404(TestComponent baseAction) {
+        new TestComponent() {
+            @Override
+            void perform(BaseXnatRestTest xnatRestTest, Project project) {
+                try {
+                    baseAction.perform(xnatRestTest, project)
+                    throw new RuntimeException("${baseAction.class.simpleName ?: '[anonymous class]'} action attempt should have failed!")
+                } catch (NotFoundException ignored) {
+                    // expected
+                }
+            }
+        }
+    }
+
     protected void expect403(Runnable action) {
         expect403(
                 new TestComponent() {
                     @Override
                     void perform(BaseXnatRestTest xnatRestTest, Project project) {
                         action.run()
+                    }
+                }
+        ).perform(this, null)
+    }
+
+    protected void expect403(Callable<Void> action) {
+        expect403(
+                new TestComponent() {
+                    @Override
+                    void perform(BaseXnatRestTest xnatRestTest, Project project) {
+                        action.call()
+                    }
+                }
+        ).perform(this, null)
+    }
+
+    protected void expect404(Runnable action) {
+        expect404(
+                new TestComponent() {
+                    @Override
+                    void perform(BaseXnatRestTest xnatRestTest, Project project) {
+                        action.run()
+                    }
+                }
+        ).perform(this, null)
+    }
+
+    protected void expect404(Callable<Void> action) {
+        expect404(
+                new TestComponent() {
+                    @Override
+                    void perform(BaseXnatRestTest xnatRestTest, Project project) {
+                        action.call()
                     }
                 }
         ).perform(this, null)
