@@ -6,14 +6,16 @@ import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.performance.actions.CheckablePerformanceWorkflow
 import org.nrg.testing.xnat.ssh.SSHConnection
 import org.testng.annotations.BeforeMethod
+import org.testng.annotations.Test
 
 import java.util.function.Consumer
 
 @Log4j
+@Test(groups = 'performance')
 class XnatPerformanceTests extends BaseXnatRestTest {
 
     @BeforeMethod(alwaysRun = true)
-    void clearXnat() {
+    protected void clearXnat() {
         log.fatal('BeforeMethod for performance test called')
         if (Settings.PERFORMANCE_TESTS_ALLOWED) {
             log.info("Performing hard reset on XNAT server...")

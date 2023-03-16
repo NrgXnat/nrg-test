@@ -22,12 +22,12 @@ class DicomTransforms {
                     dataset.setString(
                             Tag.StudyInstanceUID,
                             VR.UI,
-                            studyMap.computeIfAbsent(dataset.getString(Tag.StudyInstanceUID), () -> UIDUtils.createUID())
+                            studyMap.computeIfAbsent(dataset.getString(Tag.StudyInstanceUID), (unused) -> UIDUtils.createUID())
                     )
                     dataset.setString(
                             Tag.SeriesInstanceUID,
                             VR.UI,
-                            seriesMap.computeIfAbsent(dataset.getString(Tag.SeriesInstanceUID), () -> UIDUtils.createUID())
+                            seriesMap.computeIfAbsent(dataset.getString(Tag.SeriesInstanceUID), (unused) -> UIDUtils.createUID())
                     )
                     dataset.setString(Tag.SOPInstanceUID, VR.UI, UIDUtils.createUID())
                 }

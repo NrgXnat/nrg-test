@@ -33,7 +33,7 @@ trait PerformanceValidator<X extends CheckablePerformanceEntry<X>> {
             observedBehavior.setBaseline(true)
         }
         historicalRecord.entries << observedBehavior
-        objectMapper.writeValue(historicalRecordFile, historicalRecord)
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(historicalRecordFile, historicalRecord)
         if (result.passed) {
             log.info("All checks passing for ${identifier}")
         } else {
