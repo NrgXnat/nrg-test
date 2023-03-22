@@ -99,10 +99,13 @@ class SSHConnection {
     }
 
     private static HostKeyVerifier cacheHostKeyVerifier() {
+        if (Settings.SSH_SKIP_HOST_KEY_VERIFICATION) {
+            return new PromiscuousVerifier()
+        }
         try {
             return new OpenSSHKnownHosts(Paths.get(System.getProperty('user.home'), '.ssh', 'known_hosts').toFile())
         } catch (Exception e) {
-            Logger.getLogger(SSHConnection).warn('Ran into an exception in caching host key verifier: ', e)
+            Logger.getLogger(SSHConnection).info('Ran into an exception in caching host key verifier: ', e)
             null
         }
     }

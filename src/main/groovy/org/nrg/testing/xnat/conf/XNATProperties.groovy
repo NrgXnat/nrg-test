@@ -46,6 +46,7 @@ class XNATProperties extends BaseProperties {
     public static final String DATABASE_PASS = 'xnat.db.password'
     public static final String SSH_USER = 'xnat.ssh.user'
     public static final String SSH_PRIVATE_KEY_NAME = 'xnat.ssh.key'
+    public static final String SSH_SKIP_HOST_KEY_VERIFICATION = 'xnat.ssh.skipHostKeyVerification'
     public static final String PRODUCE_PDF = 'xnat.producePdf'
     public static final String DOM_SETTING = 'xnat.captureDom'
     public static final String SETUP_MRSCAN = 'xnat.setupMrscan'
@@ -211,6 +212,10 @@ class XNATProperties extends BaseProperties {
 
     String getSshPrivateKeyName() {
         getStringProperty(false, SSH_PRIVATE_KEY_NAME, 'id_rsa')
+    }
+
+    boolean getSshSkipHostKeyVerificationSetting() {
+        getBooleanProperty(SSH_SKIP_HOST_KEY_VERIFICATION, false)
     }
 
     boolean getPdfSetting() {
