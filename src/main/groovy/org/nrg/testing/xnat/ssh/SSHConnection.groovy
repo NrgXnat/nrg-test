@@ -89,7 +89,7 @@ class SSHConnection {
             TimeUtils.checkStopWatch(stopWatch, 500, 'Tomcat didn\'t come back after restarting/starting it with SSH')
             log.info('Waiting for tomcat to start back up...')
             try {
-                if (Settings.mainCredentials().get(Settings.BASEURL).statusCode == 200) {
+                if (Settings.adminCredentials().get(Settings.BASEURL).statusCode == 200) {
                     break
                 }
             } catch (ConnectException ignored) {}
