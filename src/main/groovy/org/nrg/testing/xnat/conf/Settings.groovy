@@ -75,6 +75,7 @@ class Settings {
     public static final String ADMIN_PASS = properties.adminPassword
     public static final boolean ADMIN_AVAILABLE = ADMIN_USERNAME != null && ADMIN_PASS != null
     public static final Class<? extends XnatVersion> XNAT_VERSION = properties.XNATVersion
+    public static final String XNAT_VERSION_AS_STRING = properties.xnatVersionString
     public static final String BASEURL = CommonStringUtils.formatUrl(properties.baseURL)
     public static final XnatConfig DEFAULT_XNAT_CONFIG = XnatConfig.buildDefaultConfig()
     public static final List<XnatConfig> OTHER_XNAT_CONFIGS = properties.otherXnatConfigs

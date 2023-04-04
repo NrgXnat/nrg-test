@@ -9,6 +9,23 @@ import org.nrg.xnat.interfaces.XnatInterface
 import java.util.function.Consumer
 
 @Log4j
+/**
+ * RepeatedMonitorableAction defines a measurable action that can be repeated several
+ * times and measured at a fixed interval (by iteration count). The action defined in
+ * {@link #performanceTestAction() performanceTestAction} and total number of iterations
+ * settable by {@link #overallIterationCount(int) overallIterationCount} are required,
+ * while the number of iterations captured in an individual snapshot is optional,
+ * configurable with {@link #actionsPerSnapshot(int) actionsPerSnapshot}.
+ *
+ * Examples of intended use cases include:
+ * <ul>
+ *     <li> create a project in XNAT 1000 times, measuring the time taken every 10 projects
+ *     <li> load an expensive stored search 5 times in a row, measuring the time on each load
+ * </ul>
+ *
+ * This action does not support a default validator, so it must
+ * be specified using {@link #validateUsing()}.
+ */
 class RepeatedMonitorableAction implements
         CheckablePerformanceWorkflow<RepeatedMonitorableAction, CumulativeTimeSeriesData> {
 

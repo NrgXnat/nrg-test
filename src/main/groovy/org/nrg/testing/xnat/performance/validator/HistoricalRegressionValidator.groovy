@@ -8,11 +8,22 @@ import org.nrg.testing.xnat.performance.persistence.CumulativeTimeSeriesData
 import java.util.function.Function
 
 @Log4j
+/**
+ * HistoricalRegressionValidator provides validation that the time series data produced
+ * by a {@link org.nrg.testing.xnat.performance.actions.RepeatedMonitorableAction}
+ * matches a functional form and also completes within an acceptable
+ * period of time. The abstract method {@link #regressionTerms()} is used to define
+ * the terms to be added together to create the regression model. The default minimum coefficient
+ * of determination (R-squared) is {@value HistoricalRegressionValidator#DEFAULT_ACCEPTABLE_RSQUARED},
+ * but can be overwritten with {@link #acceptableRSquared(double)}. The overall time check
+ * is delegated to (and customizable by) {@link OverallTimeAwareValidator}.
+ */
 abstract class HistoricalRegressionValidator<X extends HistoricalRegressionValidator<X>> implements
         PerformanceValidator<CumulativeTimeSeriesData>,
         OverallTimeAwareValidator<X> {
 
-    double acceptableRSquared = 0.95
+    public static final double DEFAULT_ACCEPTABLE_RSQUARED = 0.99
+    double acceptableRSquared = DEFAULT_ACCEPTABLE_RSQUARED
 
     abstract List<Function<Double, Double>> regressionTerms()
 

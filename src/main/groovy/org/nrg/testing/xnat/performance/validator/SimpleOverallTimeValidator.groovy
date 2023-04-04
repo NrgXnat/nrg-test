@@ -6,6 +6,10 @@ import org.nrg.testing.xnat.performance.persistence.ErrorProneAggregatableRecord
 import org.nrg.testing.xnat.performance.persistence.SimpleOverallTimeRecord
 
 @Log4j
+/**
+ * SimpleOverallTimeValidator performs an overall time check that
+ * is delegated to (and customizable by) {@link OverallTimeAwareValidator}.
+ */
 class SimpleOverallTimeValidator implements
         PerformanceValidator<SimpleOverallTimeRecord>,
         OverallTimeAwareValidator<SimpleOverallTimeValidator> {

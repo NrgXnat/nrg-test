@@ -10,6 +10,19 @@ import org.nrg.xnat.interfaces.XnatInterface
 import java.util.function.BiConsumer
 
 @Log4j
+/**
+ * ErrorProneAggregatableAction defines a measurable action that is designed to be repeated
+ * several times and measured in duration at the end, with the allowance that some of the
+ * individual calls may fail. The action is defined with
+ * {@link #performanceTestAction() performanceTestAction} and the provided instance of
+ * {@link ActionAggregator} should be used to count individual success or failures.
+ *
+ * The main use case of this right now is for large-scale ingestion in XNAT,
+ * where intermittent errors often occur.
+ *
+ * The default validator is {@link ErrorProneAggregatableValidator#DEFAULT}, but can changed
+ * with {@link #validateUsing()}.
+ */
 class ErrorProneAggregatableAction implements
         CheckablePerformanceWorkflow<ErrorProneAggregatableAction, ErrorProneAggregatableRecord> {
 

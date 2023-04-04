@@ -5,6 +5,10 @@ import groovy.util.logging.Log4j
 import java.util.function.Function
 
 @Log4j
+/**
+ * PolynomialRegressionValidator implements simple polynomial regression for the more generic
+ * {@link HistoricalRegressionValidator}.
+ */
 class PolynomialRegressionValidator extends HistoricalRegressionValidator<PolynomialRegressionValidator> {
 
     public static final PolynomialRegressionValidator LINEAR = new PolynomialRegressionValidator(1) // i.e. affine

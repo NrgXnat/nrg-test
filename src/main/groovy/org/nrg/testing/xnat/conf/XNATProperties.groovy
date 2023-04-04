@@ -264,6 +264,10 @@ class XNATProperties extends BaseProperties {
         parseVersion(XNAT_VERSION)
     }
 
+    String getXnatVersionString() {
+        getPropertyFromAnywhere(XNAT_VERSION)
+    }
+
     String getTomcatControlScriptKey() {
         getStringProperty(false, TOMCAT_CONTROL_SCRIPT, null)
     }

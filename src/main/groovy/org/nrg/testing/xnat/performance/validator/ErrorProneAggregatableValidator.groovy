@@ -5,12 +5,21 @@ import org.nrg.testing.xnat.performance.CheckablePerformanceResult
 import org.nrg.testing.xnat.performance.persistence.ErrorProneAggregatableRecord
 
 @Log4j
+/**
+ * ErrorProneAggregatableValidator provides validation that the record produced
+ * by a {@link org.nrg.testing.xnat.performance.actions.ErrorProneAggregatableAction}
+ * completes with both a sufficiently low rate of errors and also within an acceptable
+ * period of time. The default allowed rate of errors is
+ * {@value ErrorProneAggregatableValidator#DEFAULT_ALLOWED_RATE}. The overall time check
+ * is delegated to (and customizable by) {@link OverallTimeAwareValidator}.
+ */
 class ErrorProneAggregatableValidator implements
         PerformanceValidator<ErrorProneAggregatableRecord>,
         OverallTimeAwareValidator<ErrorProneAggregatableValidator> {
 
-    double allowedFailureRate = 0.005
+    public static final double DEFAULT_ALLOWED_RATE = 0.005
     public static final ErrorProneAggregatableValidator DEFAULT = new ErrorProneAggregatableValidator()
+    double allowedFailureRate = DEFAULT_ALLOWED_RATE
 
     ErrorProneAggregatableValidator allowedFailureRate(double rate) {
         setAllowedFailureRate(rate)

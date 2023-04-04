@@ -48,7 +48,7 @@ trait CheckablePerformanceWorkflow<
         }
         final V checkableEntry = produceCheckableEntry(stateHelper)
         checkableEntry.setTimestamp(System.currentTimeMillis())
-        checkableEntry.setXnatVersion(Settings.XNAT_VERSION.newInstance().versionKeys[0]) // TODO: consider XnatVersion with multiple version keys?
+        checkableEntry.setXnatVersion(Settings.XNAT_VERSION_AS_STRING)
         (validator ?: getDefaultValidator()).validate(identifier, checkableEntry)
     }
 

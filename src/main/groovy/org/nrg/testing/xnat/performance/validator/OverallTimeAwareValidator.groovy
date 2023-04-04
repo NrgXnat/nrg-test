@@ -2,9 +2,16 @@ package org.nrg.testing.xnat.performance.validator
 
 import org.nrg.testing.xnat.performance.CheckablePerformanceResult
 
+/**
+ * OverallTimeAwareValidator defines reusable functionality to check
+ * that the overall time to complete an action is within an acceptable fraction
+ * of a previous expected/baseline time. The default tolerance is set to
+ * 0.05, but can be overwritten with {@link OverallTimeAwareValidator#endpointTolerance(double)}
+ */
 trait OverallTimeAwareValidator<X extends PerformanceValidator> {
 
-    double endpointTolerance = 0.05
+    public static final double DEFAULT_TOLERANCE = 0.05
+    double endpointTolerance = DEFAULT_TOLERANCE
 
     X endpointTolerance(double tol) {
         setEndpointTolerance(tol)
