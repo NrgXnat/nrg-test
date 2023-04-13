@@ -3,6 +3,7 @@ package org.nrg.testing.xnat.performance.validator
 import groovy.util.logging.Log4j
 import org.nrg.testing.xnat.performance.CheckablePerformanceResult
 import org.nrg.testing.xnat.performance.persistence.ErrorProneAggregatableRecord
+import org.nrg.testing.xnat.performance.persistence.SimpleOverallTimeRecord
 
 @Log4j
 /**
@@ -13,9 +14,7 @@ import org.nrg.testing.xnat.performance.persistence.ErrorProneAggregatableRecord
  * {@value ErrorProneAggregatableValidator#DEFAULT_ALLOWED_RATE}. The overall time check
  * is delegated to (and customizable by) {@link OverallTimeAwareValidator}.
  */
-class ErrorProneAggregatableValidator implements
-        PerformanceValidator<ErrorProneAggregatableRecord>,
-        OverallTimeAwareValidator<ErrorProneAggregatableValidator> {
+class ErrorProneAggregatableValidator extends OverallTimeAwareValidator<ErrorProneAggregatableValidator, ErrorProneAggregatableRecord> {
 
     public static final double DEFAULT_ALLOWED_RATE = 0.005
     public static final ErrorProneAggregatableValidator DEFAULT = new ErrorProneAggregatableValidator()

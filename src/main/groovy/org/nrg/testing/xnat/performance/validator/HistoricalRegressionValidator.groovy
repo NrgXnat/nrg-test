@@ -18,9 +18,8 @@ import java.util.function.Function
  * but can be overwritten with {@link #acceptableRSquared(double)}. The overall time check
  * is delegated to (and customizable by) {@link OverallTimeAwareValidator}.
  */
-abstract class HistoricalRegressionValidator<X extends HistoricalRegressionValidator<X>> implements
-        PerformanceValidator<CumulativeTimeSeriesData>,
-        OverallTimeAwareValidator<X> {
+abstract class HistoricalRegressionValidator<X extends HistoricalRegressionValidator<X>> extends
+        OverallTimeAwareValidator<X, CumulativeTimeSeriesData> {
 
     public static final double DEFAULT_ACCEPTABLE_RSQUARED = 0.99
     double acceptableRSquared = DEFAULT_ACCEPTABLE_RSQUARED

@@ -10,9 +10,7 @@ import org.nrg.testing.xnat.performance.persistence.SimpleOverallTimeRecord
  * SimpleOverallTimeValidator performs an overall time check that
  * is delegated to (and customizable by) {@link OverallTimeAwareValidator}.
  */
-class SimpleOverallTimeValidator implements
-        PerformanceValidator<SimpleOverallTimeRecord>,
-        OverallTimeAwareValidator<SimpleOverallTimeValidator> {
+class SimpleOverallTimeValidator extends OverallTimeAwareValidator<SimpleOverallTimeValidator, SimpleOverallTimeRecord> {
 
     public static final SimpleOverallTimeValidator DEFAULT = new SimpleOverallTimeValidator()
 

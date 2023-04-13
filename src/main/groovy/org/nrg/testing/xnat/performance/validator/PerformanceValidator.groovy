@@ -13,7 +13,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 @Log4j
-trait PerformanceValidator<X extends CheckablePerformanceEntry<X>> {
+abstract class PerformanceValidator<X extends CheckablePerformanceEntry<X>> {
 
     public static final String DIR = 'performance'
 
