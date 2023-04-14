@@ -25,4 +25,5 @@ import java.lang.annotation.Target
     TestData[] data() default [TestData.NONE]
     String[] trueProperties() default []
     String[] falseProperties() default []
+    PluginRequirement[] specificPluginRequirements() default []
 }

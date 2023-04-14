@@ -3,10 +3,8 @@ package org.nrg.testing.xnat
 import groovy.util.logging.Log4j
 import org.apache.commons.lang3.StringUtils
 import org.nrg.testing.BaseTestCase
-import org.nrg.testing.FileIOUtils
 import org.nrg.testing.TestController
 import org.nrg.testing.TestNgUtils
-import org.nrg.testing.XnatDownloadServerClient
 import org.nrg.testing.annotations.ExpectedFailure
 import org.nrg.testing.annotations.JiraKey
 import org.nrg.testing.annotations.TestRequires
@@ -21,6 +19,8 @@ import org.nrg.testing.listeners.adapters.jira.JIRATestListener
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.conf.XNATProperties
 import org.nrg.testing.xnat.conf.XnatConfig
+import org.nrg.testing.xnat.plugins.PluginDependencyCheck
+import org.nrg.testing.xnat.plugins.PluginDependencyManager
 import org.nrg.testing.xnat.rest.XnatRestDriver
 import org.nrg.xnat.interfaces.XnatInterface
 import org.nrg.xnat.pogo.Project
@@ -38,9 +38,6 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.BeforeSuite
 
 import java.lang.reflect.Method
-import java.nio.file.Paths
-
-import static org.testng.AssertJUnit.assertTrue
 
 @Log4j
 abstract class BaseXnatTest extends BaseTestCase {
@@ -380,15 +377,16 @@ abstract class BaseXnatTest extends BaseTestCase {
         restDriver
     }
 
-    private checkPluginSkips(TestRequires testRequires, boolean isClassLevel, String testOrClass) {
+    private void checkPluginSkips(TestRequires testRequires, boolean isClassLevel, String testOrClass) {
         if (Settings.BEHAVIOR_FOR_MISSING_PLUGIN == TestBehavior.SKIP) {
             final String scope = isClassLevel ? 'all tests in class' : 'test'
-            testRequires.plugins().each { pluginId ->
-                switch (PluginDependencyManager.checkPlugin(installedPlugins(), pluginId)) {
+            PluginDependencyManager.parsePluginRequirements(testRequires).each { pluginRequirement ->
+                final PluginDependencyCheck pluginDependencyCheck = PluginDependencyManager.checkPlugin(installedPlugins(), pluginRequirement)
+                switch (pluginDependencyCheck.state) {
                     case PluginDependencyCheckState.MISSING_PLUGIN:
-                        throw new SkipException("XNAT plugin with id (and possibly minimum version) ${pluginId} is required for ${scope}: ${testOrClass}")
+                        throw new SkipException("XNAT plugin with id ${pluginRequirement.pluginId} is required for ${scope}: ${testOrClass}")
                     case PluginDependencyCheckState.VERSION_MISMATCH:
-                        throw new SkipException("XNAT plugin with id and minimum version ${pluginId} is required for ${scope}: ${testOrClass}. We found the plugin on the XNAT instance, but without a compatible version.")
+                        throw new SkipException("XNAT plugin with id ${pluginRequirement.pluginId} is required for ${scope}: ${testOrClass}. We found the plugin on the XNAT instance, but without a compatible version: ${pluginDependencyCheck.failureReason}.")
                 }
             }
         }

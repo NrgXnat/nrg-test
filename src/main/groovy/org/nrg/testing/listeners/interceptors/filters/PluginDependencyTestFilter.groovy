@@ -5,7 +5,9 @@ import org.nrg.testing.TestNgUtils
 import org.nrg.testing.annotations.TestRequires
 import org.nrg.testing.enums.PluginDependencyCheckState
 import org.nrg.testing.enums.TestBehavior
-import org.nrg.testing.xnat.PluginDependencyManager
+import org.nrg.testing.xnat.plugins.GeneralPluginRequirement
+import org.nrg.testing.xnat.plugins.PluginDependencyCheck
+import org.nrg.testing.xnat.plugins.PluginDependencyManager
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.xnat.interfaces.XnatInterface
 import org.nrg.xnat.pogo.XnatPlugin
@@ -24,26 +26,26 @@ class PluginDependencyTestFilter extends TestFilterInterceptor {
     boolean isTestAllowed(IMethodInstance testInstance) {
         final TestRequires classRequirement = testInstance.method.realClass.getAnnotation(TestRequires) as TestRequires
         final TestRequires methodRequirement = TestNgUtils.getAnnotation(testInstance.method, TestRequires)
-        final List<String> requiredPlugins = []
 
-        if (classRequirement != null) {
-            requiredPlugins.addAll(classRequirement.plugins())
-        }
-        if (methodRequirement != null) {
-            requiredPlugins.addAll(methodRequirement.plugins())
-        }
-
-        if (!requiredPlugins.isEmpty()) {
-            for (String plugin : requiredPlugins) {
-                switch (PluginDependencyManager.checkPlugin(cachePlugins(), plugin)) {
-                    case PluginDependencyCheckState.MISSING_PLUGIN:
-                        log.info("XNAT plugin with id (and possibly minimum version) ${plugin} is required for test: ${TestNgUtils.getTestName(testInstance)}. The test will be removed from consideration.")
-                        return false
-                    case PluginDependencyCheckState.VERSION_MISMATCH:
-                        log.info("XNAT plugin with id and minimum version ${plugin} is required for test: ${TestNgUtils.getTestName(testInstance)}. The plugin appears to be installed, but with an incompatible version. The test will be removed from consideration.")
-                        return false
-                }
+        final Map<GeneralPluginRequirement, PluginDependencyCheck> allPluginRequirements = [:]
+        [classRequirement, methodRequirement].each { possibleRequirementSource ->
+            PluginDependencyManager.parsePluginRequirements(possibleRequirementSource).each { pluginRequirement ->
+                allPluginRequirements.put(pluginRequirement, PluginDependencyManager.checkPlugin(cachePlugins(), pluginRequirement))
             }
+        }
+        final GeneralPluginRequirement missingPlugin = allPluginRequirements.find {
+            it.value.state == PluginDependencyCheckState.MISSING_PLUGIN
+        }?.key
+        if (missingPlugin) {
+            log.info("XNAT plugin with id ${missingPlugin.pluginId} is required for test: ${TestNgUtils.getTestName(testInstance)}. The test will be removed from consideration.")
+            return false
+        }
+        final Map.Entry<GeneralPluginRequirement, PluginDependencyCheck> versionMismatchPlugin = allPluginRequirements.find {
+            it.value.state == PluginDependencyCheckState.VERSION_MISMATCH
+        }
+        if (versionMismatchPlugin) {
+            log.info("XNAT plugin with id ${versionMismatchPlugin.key.pluginId} is required for test: ${TestNgUtils.getTestName(testInstance)}. The plugin appears to be installed, but with an incompatible version: ${versionMismatchPlugin.value.failureReason}. The test will be removed from consideration.")
+            return false
         }
         return true
     }
