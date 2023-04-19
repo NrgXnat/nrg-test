@@ -2,6 +2,8 @@ package org.nrg.testing.xnat.performance.actions
 
 import groovy.util.logging.Log4j
 import org.nrg.testing.xnat.performance.PerformanceStateHelper
+import org.nrg.testing.xnat.performance.charting.CumulativeTimeSeriesCharter
+import org.nrg.testing.xnat.performance.charting.PerformanceCharter
 import org.nrg.testing.xnat.performance.persistence.CumulativeTimeSeriesData
 import org.nrg.testing.xnat.performance.validator.PerformanceValidator
 import org.nrg.xnat.interfaces.XnatInterface
@@ -32,6 +34,7 @@ class RepeatedMonitorableAction implements
     int overallIterationCount
     int actionsPerSnapshot = 10
     Consumer<XnatInterface> performanceTestAction
+    String actionDescription
 
     RepeatedMonitorableAction(String identifier) {
         setIdentifier(identifier)
@@ -49,6 +52,11 @@ class RepeatedMonitorableAction implements
 
     RepeatedMonitorableAction performanceTestAction(Consumer<XnatInterface> performanceTestAction) {
         setPerformanceTestAction(performanceTestAction)
+        this
+    }
+
+    RepeatedMonitorableAction actionDescription(String actionDescription) {
+        setActionDescription(actionDescription)
         this
     }
 
@@ -71,6 +79,11 @@ class RepeatedMonitorableAction implements
     @Override
     PerformanceValidator<CumulativeTimeSeriesData> getDefaultValidator() {
         throw new UnsupportedOperationException('This type of action does not support a default validator. Please specify one.')
+    }
+
+    @Override
+    PerformanceCharter<RepeatedMonitorableAction, CumulativeTimeSeriesData> getPerformanceCharter() {
+        new CumulativeTimeSeriesCharter()
     }
 
 }

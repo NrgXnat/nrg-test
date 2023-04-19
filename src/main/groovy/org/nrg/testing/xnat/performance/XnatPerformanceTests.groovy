@@ -17,7 +17,7 @@ class XnatPerformanceTests extends BaseXnatRestTest {
     @BeforeMethod(alwaysRun = true)
     protected void clearXnat() {
         log.fatal('BeforeMethod for performance test called')
-        if (Settings.PERFORMANCE_TESTS_ALLOWED) {
+        if (Settings.PERFORMANCE_TESTS_ALLOWED && !Settings.PERFORMANCE_EXPORT_ONLY) {
             log.info("Performing hard reset on XNAT server...")
             Settings.PERFORMANCE_RESET_SCRIPT.resetXnatServer()
             SSHConnection.waitForTomcat()
@@ -44,7 +44,13 @@ class XnatPerformanceTests extends BaseXnatRestTest {
         }
 
         void run() {
-            new PerformanceScenario(setup, tests).run(new PerformanceStateHelper(restDriver))
+            if (!Settings.PERFORMANCE_EXPORT_ONLY) {
+                new PerformanceScenario(setup, tests).run(new PerformanceStateHelper(restDriver))
+            }
+
+            tests.each { test ->
+                test.getPerformanceCharter().chart(test)
+            }
         }
     }
 

@@ -64,6 +64,7 @@ class XNATProperties extends BaseProperties {
     public static final String ALLOW_PERFORMANCE_TESTS = 'xnat.performance.allow'
     public static final String PERFORMANCE_RESET_SCRIPT_ID = 'xnat.performance.resetId'
     public static final String PERFORMANCE_SET_BASELINE = 'xnat.performance.setBaseline'
+    public static final String PERFORMANCE_EXPORT_ONLY = 'xnat.performance.exportOnly'
 
     XNATProperties() {
         super('xnat.config', 'local.properties')
@@ -306,6 +307,10 @@ class XNATProperties extends BaseProperties {
 
     boolean getPerformanceSetBaselineSetting() {
         getBooleanProperty(PERFORMANCE_SET_BASELINE, false)
+    }
+
+    boolean getPerformanceExportOnlySetting() {
+        getBooleanProperty(PERFORMANCE_EXPORT_ONLY, false)
     }
 
     List<XnatConfig> getOtherXnatConfigs() {

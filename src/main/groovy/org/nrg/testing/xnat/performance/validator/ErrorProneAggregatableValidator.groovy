@@ -3,7 +3,6 @@ package org.nrg.testing.xnat.performance.validator
 import groovy.util.logging.Log4j
 import org.nrg.testing.xnat.performance.CheckablePerformanceResult
 import org.nrg.testing.xnat.performance.persistence.ErrorProneAggregatableRecord
-import org.nrg.testing.xnat.performance.persistence.SimpleOverallTimeRecord
 
 @Log4j
 /**

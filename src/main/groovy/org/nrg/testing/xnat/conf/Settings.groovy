@@ -104,6 +104,7 @@ class Settings {
     public static final boolean PERFORMANCE_TESTS_ALLOWED = properties.performanceAllowedSetting
     public static final PerformanceServerResetScript PERFORMANCE_RESET_SCRIPT = XnatResetScriptLookup.lookup(properties.performanceResetScriptId)
     public static final boolean PERFORMANCE_SET_BASELINES = properties.performanceSetBaselineSetting
+    public static final boolean PERFORMANCE_EXPORT_ONLY = properties.performanceExportOnlySetting
 
     private static File getSshKey() {
         Paths.get(System.getProperty('user.home'), '.ssh', SSH_KEY_NAME).toFile()

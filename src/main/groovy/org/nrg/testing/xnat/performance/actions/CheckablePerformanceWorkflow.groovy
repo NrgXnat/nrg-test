@@ -4,6 +4,7 @@ import org.nrg.testing.dicom.transform.LocallyCacheableDicomTransformation
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.performance.CheckablePerformanceResult
 import org.nrg.testing.xnat.performance.PerformanceStateHelper
+import org.nrg.testing.xnat.performance.charting.PerformanceCharter
 import org.nrg.testing.xnat.performance.persistence.CheckablePerformanceEntry
 import org.nrg.testing.xnat.performance.validator.PerformanceValidator
 import org.nrg.xnat.pogo.users.User
@@ -15,6 +16,7 @@ trait CheckablePerformanceWorkflow<
     Runnable setup
     String identifier
     PerformanceUserProvider userProvider
+    String title
     def validator // typing this as PerformanceValidator<V> produces bad class file
 
     T withSetup(Runnable setup) {
@@ -42,6 +44,11 @@ trait CheckablePerformanceWorkflow<
         this as T
     }
 
+    T title(String title) {
+        setTitle(title)
+        this as T
+    }
+
     CheckablePerformanceResult run(PerformanceStateHelper stateHelper) {
         if (setup != null) {
             setup.run()
@@ -55,4 +62,7 @@ trait CheckablePerformanceWorkflow<
     abstract V produceCheckableEntry(PerformanceStateHelper stateHelper)
 
     abstract PerformanceValidator<V> getDefaultValidator()
+
+    abstract PerformanceCharter<T, V> getPerformanceCharter()
+
 }

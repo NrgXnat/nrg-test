@@ -2,6 +2,8 @@ package org.nrg.testing.xnat.performance.actions
 
 import groovy.util.logging.Log4j
 import org.nrg.testing.xnat.performance.PerformanceStateHelper
+import org.nrg.testing.xnat.performance.charting.PerformanceCharter
+import org.nrg.testing.xnat.performance.charting.SimpleOverallTimeCharter
 import org.nrg.testing.xnat.performance.persistence.SimpleOverallTimeRecord
 import org.nrg.testing.xnat.performance.validator.PerformanceValidator
 import org.nrg.testing.xnat.performance.validator.SimpleOverallTimeValidator
@@ -53,6 +55,11 @@ class SimpleTimedAction implements
     @Override
     PerformanceValidator<SimpleOverallTimeRecord> getDefaultValidator() {
         SimpleOverallTimeValidator.DEFAULT
+    }
+
+    @Override
+    PerformanceCharter<SimpleTimedAction, SimpleOverallTimeRecord> getPerformanceCharter() {
+        new SimpleOverallTimeCharter()
     }
 
 }
