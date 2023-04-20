@@ -18,7 +18,7 @@ class PerformanceScenario {
         this.tests = tests
     }
 
-    void run(PerformanceStateHelper performanceStateHelper) {
+    String run(PerformanceStateHelper performanceStateHelper) {
         if (setup != null) {
             setup.accept(performanceStateHelper)
         }
@@ -33,8 +33,9 @@ class PerformanceScenario {
                         "  * ${failingEntry.key.identifier} failed because ${failingEntry.value.problems.join(', ')}".toString()
                     }).join('\n')
             log.info(errorMessage)
-            fail(errorMessage)
+            return errorMessage
         }
+        null
     }
 
 }

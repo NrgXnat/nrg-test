@@ -10,6 +10,8 @@ import org.testng.annotations.Test
 
 import java.util.function.Consumer
 
+import static org.testng.AssertJUnit.fail
+
 @Log4j
 @Test(groups = 'performance')
 class XnatPerformanceTests extends BaseXnatRestTest {
@@ -44,12 +46,15 @@ class XnatPerformanceTests extends BaseXnatRestTest {
         }
 
         void run() {
-            if (!Settings.PERFORMANCE_EXPORT_ONLY) {
-                new PerformanceScenario(setup, tests).run(new PerformanceStateHelper(restDriver))
-            }
+            final String failureResult = Settings.PERFORMANCE_EXPORT_ONLY ?
+                    null : new PerformanceScenario(setup, tests).run(new PerformanceStateHelper(restDriver))
 
             tests.each { test ->
                 test.getPerformanceCharter().chart(test)
+            }
+
+            if (failureResult) {
+                fail(failureResult)
             }
         }
     }
