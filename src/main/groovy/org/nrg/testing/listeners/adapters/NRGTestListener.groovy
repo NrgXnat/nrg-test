@@ -74,6 +74,9 @@ class NRGTestListener extends BaseTestListener {
             return
         }
         final JIRATest currentTest = testController.currentTest
+        if (currentTest == null) {
+            return
+        }
         if (currentTest.failureReason == null) {
             try {
                 RestAssured.given().get(Settings.BASEURL)
@@ -106,6 +109,9 @@ class NRGTestListener extends BaseTestListener {
     @Override
     void onSkipped(ITestResult testResult) {
         if (!testClassSupported(testResult)) {
+            return
+        }
+        if (testController.currentTest == null) {
             return
         }
         skipReasons.put(testResult.method, testController.currentTest.skipReason)
