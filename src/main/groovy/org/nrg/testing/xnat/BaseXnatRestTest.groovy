@@ -18,6 +18,7 @@ import org.nrg.xnat.rest.Credentials
 import org.nrg.xnat.rest.ForbiddenException
 import org.nrg.xnat.rest.NotFoundException
 import org.testng.annotations.AfterClass
+import org.testng.annotations.AfterSuite
 import org.testng.annotations.BeforeSuite
 
 import java.lang.reflect.Type
@@ -29,6 +30,7 @@ import static org.testng.AssertJUnit.fail
 
 class BaseXnatRestTest extends BaseXnatTest {
 
+    protected static final List<Project> suiteTestProjects = []
     protected final List<Project> testProjects = []
     protected final TestComponent UPLOAD_SAMPLE1_SI = new SessionImporterStep(TestData.SAMPLE_1)
 
@@ -42,6 +44,13 @@ class BaseXnatRestTest extends BaseXnatTest {
                     }
                 }
         ))
+    }
+
+    @AfterSuite(alwaysRun = true)
+    protected void removeLongTermProjects() {
+        suiteTestProjects.each { project ->
+            restDriver.deleteProjectSilently(mainAdminUser, project)
+        }
     }
 
     @AfterClass(alwaysRun = true)
@@ -82,6 +91,12 @@ class BaseXnatRestTest extends BaseXnatTest {
     Project registerTempProject() {
         final Project project = new Project()
         testProjects << project
+        project
+    }
+
+    static Project registerSuiteTempProject() {
+        final Project project = new Project()
+        suiteTestProjects << project
         project
     }
 
