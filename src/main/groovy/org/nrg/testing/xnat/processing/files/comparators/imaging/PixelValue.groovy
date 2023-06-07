@@ -22,4 +22,9 @@ class PixelValue {
 
     protected PixelValue() {}
 
+
+    @Override
+    String toString() {
+        return isColor ? "PixelValue{red=${red}, green=${green}, blue=${blue}}" : "PixelValue{gray=${gray}}"
+    }
 }

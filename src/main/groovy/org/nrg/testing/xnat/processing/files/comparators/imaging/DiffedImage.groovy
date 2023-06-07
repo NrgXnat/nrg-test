@@ -191,6 +191,7 @@ class DiffedImage {
             (0 ..< width).each { x ->
                 (0 ..< height).each { y ->
                     signedComparisonPixels[z][x][y] = readComparisonPixel(x, y, original.getPixel(x, y), generated.getPixel(x, y))
+                    signedComparisonPixels[z][x][y].setCoordinates(z, x, y)
                 }
             }
         }
