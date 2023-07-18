@@ -15,10 +15,16 @@ class LatexUtils {
         Pattern.compile("^ *${replacementKey}\$")
     }
 
-    static String offset(int numSpaces, List<String> inputLines) {
+    /*
+        input will be joined together with newlines to form a single String. Individual items in input
+        may be multiline and the indent will be applied to each line
+     */
+    static String offset(int numSpaces, List<String> input) {
         final String spaces = ' ' * numSpaces
-        inputLines.collect { line ->
-            spaces + line
+        input.collectMany { blockOrLine ->
+            blockOrLine.split('\n').collect { line ->
+                spaces + line
+            }
         }.join('\n')
     }
 

@@ -10,6 +10,7 @@ class TomcatControllerLookup {
             'service-tomcat7': new ServiceTomcatController('tomcat7'),
             'service-tomcat8': new ServiceTomcatController('tomcat8'),
             'service-tomcat9': new ServiceTomcatController('tomcat9'),
+            'systemctl': new SystemctlTomcatController(),
             'nrgci-docker-compose': new DockerComposeTomcatController()
     ]
 
