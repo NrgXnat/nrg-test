@@ -10,6 +10,7 @@ import org.nrg.xnat.pogo.users.User
 import javax.mail.*
 import javax.mail.search.SearchTerm
 
+@Deprecated
 class EmailReader {
 
     private static final Properties props = getEmailProperties()

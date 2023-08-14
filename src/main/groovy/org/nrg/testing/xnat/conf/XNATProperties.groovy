@@ -20,7 +20,9 @@ class XNATProperties extends BaseProperties {
     public static final String XNAT_VERSION = 'xnat.version'
     public static final String BASEURL = 'xnat.baseurl'
     public static final String EMAIL = 'xnat.users.email'
-    public static final String EMAIL_PASS = 'xnat.users.email.password'
+    @Deprecated public static final String EMAIL_PASS = 'xnat.users.email.password'
+    public static final String EMAIL_TOKENS_DIR = 'xnat.users.email.tokens'
+    public static final String EMAIL_CREDENTIALS = 'xnat.users.email.credentials'
     public static final String DEFAULT_TIMEOUT = 'xnat.defaultTimeout'
     public static final String BROWSER = 'xnat.browser'
     public static final String INIT_SETTING = 'xnat.init'
@@ -102,8 +104,16 @@ class XNATProperties extends BaseProperties {
         getPropertyFromAnywhere(EMAIL)
     }
 
-    String getMainEmailPassword() {
+    @Deprecated String getMainEmailPassword() {
         getSensitiveProperty(EMAIL_PASS)
+    }
+
+    String getEmailTokensDir() {
+        getStringProperty(EMAIL_TOKENS_DIR, 'tokens')
+    }
+
+    String getEmailCredentialsJson() {
+        getPropertyFromAnywhere(EMAIL_CREDENTIALS)
     }
 
     String getMainAdminUser() {

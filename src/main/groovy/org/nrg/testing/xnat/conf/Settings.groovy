@@ -6,6 +6,7 @@ import org.apache.log4j.Logger
 import org.nrg.testing.CommonStringUtils
 import org.nrg.testing.FileIOUtils
 import org.nrg.testing.TimeUtils
+import org.nrg.testing.email.EmailClient
 import org.nrg.testing.enums.TestBehavior
 import org.nrg.testing.file.FileLocation
 import org.nrg.testing.util.RandomHelper
@@ -30,7 +31,9 @@ class Settings {
 
     // values constant even with multiple XNATs in play
     public static final String EMAIL = properties.mainEmail // must be ahead of user initialization
-    public static final String EMAIL_PASS = properties.mainEmailPassword
+    @Deprecated public static final String EMAIL_PASS = properties.mainEmailPassword
+    public static final String EMAIL_TOKENS_DIR = properties.emailTokensDir
+    public static final String EMAIL_CREDENTIALS_JSON = properties.emailCredentialsJson
     public static final String DATA_LOCATION = FileLocation.getDataLocation()
     public static final String TARGET_LOCATION = FileLocation.getResultLocation()
     public static final String TIMELOG_LOCATION = FileLocation.getTimeLogsLocation()
@@ -99,6 +102,7 @@ class Settings {
     public static final boolean HEADLESS = properties.headlessSetting
     public static final TomcatController TOMCAT_CONTROLLER = TomcatControllerLookup.lookup(properties.tomcatControlScriptKey)
     public static final boolean SSH_FUNCTIONS = new SSHConnection().testSSH() // needs to come after TEMP_SUBDIR
+    public static final boolean EMAIL_AUTH_VALID = EmailClient.test()
     public static final String SWARM_CONSTRAINTS = properties.swarmConstraints
     private static List<SwarmConstraint> swarmConstraints = null
     public static final boolean PERFORMANCE_TESTS_ALLOWED = properties.performanceAllowedSetting

@@ -18,6 +18,7 @@ import java.lang.annotation.Target
     boolean dicomScp() default false
     boolean openXnat() default false
     boolean closedXnat() default false
+    boolean email() default false
     @Deprecated boolean csSwarmCanEnable() default false
     int users() default 0
     boolean admin() default false

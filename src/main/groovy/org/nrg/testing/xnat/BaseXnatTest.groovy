@@ -9,6 +9,7 @@ import org.nrg.testing.annotations.ExpectedFailure
 import org.nrg.testing.annotations.JiraKey
 import org.nrg.testing.annotations.TestRequires
 import org.nrg.testing.annotations.XnatVersionLink
+import org.nrg.testing.email.EmailQuery
 import org.nrg.testing.enums.PluginDependencyCheckState
 import org.nrg.testing.enums.TestBehavior
 import org.nrg.testing.enums.TestData
@@ -54,6 +55,7 @@ abstract class BaseXnatTest extends BaseTestCase {
 
     @BeforeSuite(alwaysRun = true)
     void setupXnatTests(ITestContext testContext) {
+        EmailQuery.setStartTime()
         validateSettings()
         constructRestDriver()
         if (Settings.INIT_SETTING) {
@@ -109,6 +111,9 @@ abstract class BaseXnatTest extends BaseTestCase {
             }
             if (classRequires.admin()) {
                 TestNgUtils.assumeTrue(Settings.ADMIN_AVAILABLE, "XNAT admin account is required for all tests in class: ${testClassName}")
+            }
+            if (classRequires.email()) {
+                TestNgUtils.assumeTrue(Settings.EMAIL_AUTH_VALID, "Email credentials for gmail API are required for all tests in class: ${testClassName}")
             }
             checkPluginSkips(classRequires, true, testClassName)
             if (classRequires.closedXnat()) {
@@ -170,6 +175,9 @@ abstract class BaseXnatTest extends BaseTestCase {
             }
             if (testRequires.admin()) {
                 TestNgUtils.assumeTrue(Settings.ADMIN_AVAILABLE, "XNAT admin account is required for test: ${testName}")
+            }
+            if (testRequires.email()) {
+                TestNgUtils.assumeTrue(Settings.EMAIL_AUTH_VALID, "Email credentials for gmail API are required for test: ${testName}")
             }
             checkPluginSkips(testRequires, false, testName)
             if (testRequires.closedXnat()) {

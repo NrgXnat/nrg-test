@@ -82,6 +82,10 @@ dependencies {
         exclude(group: 'ch.systems.cisd', module: 'logback-classic')
         exclude(group: 'ch.systems.cisd', module: 'jhdf5')
     }
+
+    api('com.google.api-client:google-api-client')
+    api('com.google.oauth-client:google-oauth-client-jetty')
+    api('com.google.apis:google-api-services-gmail')
 }
 
 java {
