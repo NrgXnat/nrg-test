@@ -5,6 +5,7 @@ import org.apache.log4j.Logger
 import org.nrg.testing.CommonStringUtils
 import org.nrg.testing.enums.TestBehavior
 import org.nrg.testing.util.BaseProperties
+import org.nrg.xnat.pogo.containers.Backend
 import org.nrg.xnat.versions.XnatVersion
 import org.nrg.xnat.versions.XnatVersionList
 
@@ -60,9 +61,9 @@ class XNATProperties extends BaseProperties {
     public static final String XNAT_REQUIRED = 'xnat.required' // used to specify that additional XNATs will be needed
     public static final String SMTP_HOST = 'mail.smtp.host'
     public static final String SMTP_PORT = 'mail.smtp.port'
-    public static final String CS_SWARM_CAN_ENABLE = 'cs.swarm.canEnable'
     public static final String CS_SWARM_TIMEOUT = 'cs.swarm.timeout'
     public static final String CS_SWARM_CONSTRAINTS = 'cs.swarm.constraints'
+    public static final String CS_SUPPORTED_BACKENDS = 'cs.backends'
     public static final String ALLOW_PERFORMANCE_TESTS = 'xnat.performance.allow'
     public static final String PERFORMANCE_RESET_SCRIPT_ID = 'xnat.performance.resetId'
     public static final String PERFORMANCE_SET_BASELINE = 'xnat.performance.setBaseline'
@@ -262,11 +263,6 @@ class XNATProperties extends BaseProperties {
     }
 
     @Deprecated
-    boolean getCsSwarmCanEnable() {
-        getBooleanProperty(CS_SWARM_CAN_ENABLE, false)
-    }
-
-    @Deprecated
     int getCsSwarmTimeout() {
         getIntProperty(CS_SWARM_TIMEOUT, 5)
     }
@@ -305,6 +301,18 @@ class XNATProperties extends BaseProperties {
 
     String getSwarmConstraints() {
         getPropertyFromAnywhere(CS_SWARM_CONSTRAINTS)
+    }
+
+    List<Backend> getSupportedContainerBackends() {
+        getStringProperty(CS_SUPPORTED_BACKENDS, Backend.DOCKER.lower())
+                .split(',')
+                .collect { stringRep ->
+                    Backend.fromString(stringRep)
+                }
+    }
+
+    Backend getPreferredBackend() {
+        getSupportedContainerBackends()[0]
     }
 
     boolean getPerformanceAllowedSetting() {

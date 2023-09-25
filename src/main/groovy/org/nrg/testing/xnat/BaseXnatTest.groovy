@@ -37,6 +37,7 @@ import org.testng.annotations.AfterClass
 import org.testng.annotations.BeforeClass
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.BeforeSuite
+import org.testng.annotations.DataProvider
 
 import java.lang.reflect.Method
 
@@ -52,6 +53,7 @@ abstract class BaseXnatTest extends BaseTestCase {
     protected final User mainAdminUser = Settings.DEFAULT_XNAT_CONFIG.mainAdminUser
     private final List<XnatPlugin> installedPlugins = []
     private SiteConfig siteConfigRestoration
+    public static final String CS_BACKENDS_DATA_PROVIDER = 'backend'
 
     @BeforeSuite(alwaysRun = true)
     void setupXnatTests(ITestContext testContext) {
@@ -121,9 +123,7 @@ abstract class BaseXnatTest extends BaseTestCase {
             } else if (classRequires.openXnat()) {
                 mainAdminInterface().openXnat()
             }
-            if (classRequires.csSwarmCanEnable()) {
-                TestNgUtils.assumeTrue(Settings.CS_SWARM_CAN_ENABLE, "Docker swarm is required for all tests in class: ${testClassName}")
-            }
+            TestNgUtils.assumeTrue(checkCsBackendsSupported(classRequires), "Could not find an acceptable container backend for all tests in class: ${testClassName}")
             for (final String property : classRequires.trueProperties()) {
                 TestNgUtils.assumeTrue(Settings.getBooleanProperty(property, false), "Property \"${property}\" required to be true for all tests in class: ${testClassName}")
             }
@@ -151,6 +151,13 @@ abstract class BaseXnatTest extends BaseTestCase {
         } else {
             mainAdminInterface().postToSiteConfig(siteConfigRestoration)
         }
+    }
+
+    @DataProvider
+    static Object[][] backend() {
+        Settings.CS_SUPPORTED_BACKENDS.collect { backend ->
+            [backend]
+        }.toArray(Object[][]::new)
     }
 
     protected void initializeTestRandomVariables() {
@@ -186,9 +193,7 @@ abstract class BaseXnatTest extends BaseTestCase {
                 mainAdminInterface().openXnat()
 
             }
-            if (testRequires.csSwarmCanEnable()) {
-                TestNgUtils.assumeTrue(Settings.CS_SWARM_CAN_ENABLE, "Docker swarm is required for test: ${testName}")
-            }
+            TestNgUtils.assumeTrue(checkCsBackendsSupported(testRequires), "Could not find an acceptable container backend for test: ${testName}")
             for (final String property : testRequires.trueProperties()) {
                 TestNgUtils.assumeTrue(Settings.getBooleanProperty(property, false), "Property \"${property}\" required to be true for test: ${testName}")
             }
@@ -396,6 +401,16 @@ abstract class BaseXnatTest extends BaseTestCase {
                     case PluginDependencyCheckState.VERSION_MISMATCH:
                         throw new SkipException("XNAT plugin with id ${pluginRequirement.pluginId} is required for ${scope}: ${testOrClass}. We found the plugin on the XNAT instance, but without a compatible version: ${pluginDependencyCheck.failureReason}.")
                 }
+            }
+        }
+    }
+
+    private boolean checkCsBackendsSupported(TestRequires testRequires) {
+        if (testRequires.supportedContainerBackends().size() == 0) {
+            true
+        } else {
+            testRequires.supportedContainerBackends().any { testCompatibleBackend ->
+                Settings.CS_SUPPORTED_BACKENDS.contains(testCompatibleBackend)
             }
         }
     }

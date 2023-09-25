@@ -1,6 +1,7 @@
 package org.nrg.testing.annotations
 
 import org.nrg.testing.enums.TestData
+import org.nrg.xnat.pogo.containers.Backend
 
 import java.lang.annotation.ElementType
 import java.lang.annotation.Retention
@@ -19,7 +20,7 @@ import java.lang.annotation.Target
     boolean openXnat() default false
     boolean closedXnat() default false
     boolean email() default false
-    @Deprecated boolean csSwarmCanEnable() default false
+    Backend[] supportedContainerBackends() default []
     int users() default 0
     boolean admin() default false
     String[] plugins() default []

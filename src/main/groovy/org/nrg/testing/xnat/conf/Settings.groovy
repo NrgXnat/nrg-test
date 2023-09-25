@@ -15,6 +15,7 @@ import org.nrg.testing.xnat.performance.reset.XnatResetScriptLookup
 import org.nrg.testing.xnat.ssh.SSHConnection
 import org.nrg.testing.xnat.ssh.TomcatController
 import org.nrg.testing.xnat.ssh.TomcatControllerLookup
+import org.nrg.xnat.pogo.containers.Backend
 import org.nrg.xnat.pogo.containers.SwarmConstraint
 import org.nrg.xnat.versions.XnatVersion
 import org.nrg.xnat.pogo.dicom.DicomScpReceiver
@@ -66,7 +67,6 @@ class Settings {
     public static final String SMTP_HOST = properties.smtpHost
     public static final int SMTP_PORT = properties.smtpPort
     public static final Properties SMTP_PROPERTIES = composeSmtpProperties()
-    @Deprecated public static final boolean CS_SWARM_CAN_ENABLE = getBooleanProperty(properties.CS_SWARM_CAN_ENABLE, false)
     public static final int CS_SWARM_TIMEOUT = getIntProperty(properties.CS_SWARM_TIMEOUT, 5)
 
     // values that get fuzzy when multiple XNATs in play
@@ -105,6 +105,8 @@ class Settings {
     public static final boolean EMAIL_AUTH_VALID = EmailClient.test()
     public static final String SWARM_CONSTRAINTS = properties.swarmConstraints
     private static List<SwarmConstraint> swarmConstraints = null
+    public static final List<Backend> CS_SUPPORTED_BACKENDS = properties.supportedContainerBackends
+    public static final Backend CS_PREFERRED_BACKEND = properties.preferredBackend
     public static final boolean PERFORMANCE_TESTS_ALLOWED = properties.performanceAllowedSetting
     public static final PerformanceServerResetScript PERFORMANCE_RESET_SCRIPT = XnatResetScriptLookup.lookup(properties.performanceResetScriptId)
     public static final boolean PERFORMANCE_SET_BASELINES = properties.performanceSetBaselineSetting

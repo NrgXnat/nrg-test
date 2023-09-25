@@ -4,7 +4,11 @@ import org.nrg.xnat.pogo.resources.Resource
 
 class GenericResource extends Resource {
 
-    private final String url
+    String url
+
+    GenericResource() {
+
+    }
 
     GenericResource(String url) {
         this.url = url
