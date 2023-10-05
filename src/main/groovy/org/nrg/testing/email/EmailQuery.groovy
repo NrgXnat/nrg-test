@@ -1,7 +1,6 @@
 package org.nrg.testing.email
 
 import com.google.api.services.gmail.model.Message
-import org.nrg.testing.xnat.conf.Settings
 
 import java.util.concurrent.TimeUnit
 import java.util.function.Predicate
@@ -11,6 +10,7 @@ import static org.awaitility.Awaitility.await
 class EmailQuery {
 
     private static long suiteStartTime
+    private static final int DEFAULT_TIMEOUT_SECONDS = 300
 
     List<String> requiredStrings = []
     List<String> forbiddenStrings = []
@@ -48,7 +48,7 @@ class EmailQuery {
         this
     }
 
-    EmailQueryResult repeatQueryUntilArbitraryCondition(Predicate<List<Message>> condition, int timeout = Settings.DEFAULT_TIMEOUT) {
+    EmailQueryResult repeatQueryUntilArbitraryCondition(Predicate<List<Message>> condition, int timeout = DEFAULT_TIMEOUT_SECONDS) {
         new EmailQueryResult(
                 await().atMost(timeout, TimeUnit.SECONDS).until(
                         () -> EmailClient.queryGmail(buildQuery()),
@@ -57,18 +57,18 @@ class EmailQuery {
         )
     }
 
-    EmailQueryResult issueQueryOnce(int timeout = Settings.DEFAULT_TIMEOUT) {
+    EmailQueryResult issueQueryOnce(int timeout = DEFAULT_TIMEOUT_SECONDS) {
         repeatQueryUntilArbitraryCondition(messages -> true, timeout)
     }
 
-    EmailQueryResult queryUntilMatchingExactNumberOfResults(int expectedResults, int timeout = Settings.DEFAULT_TIMEOUT) {
+    EmailQueryResult queryUntilMatchingExactNumberOfResults(int expectedResults, int timeout = DEFAULT_TIMEOUT_SECONDS) {
         repeatQueryUntilArbitraryCondition(
                 messages -> messages.size() == expectedResults,
                 timeout
         )
     }
 
-    EmailQueryResult queryUntilSingleResult(int timeout = Settings.DEFAULT_TIMEOUT) {
+    EmailQueryResult queryUntilSingleResult(int timeout = DEFAULT_TIMEOUT_SECONDS) {
         queryUntilMatchingExactNumberOfResults(1, timeout)
     }
 
