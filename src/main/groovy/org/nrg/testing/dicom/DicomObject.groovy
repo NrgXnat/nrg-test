@@ -3,6 +3,9 @@ package org.nrg.testing.dicom
 import org.dcm4che3.data.VR
 import org.nrg.testing.dicom.values.*
 
+import java.util.function.Consumer
+import java.util.function.Supplier
+
 import static org.nrg.testing.DicomUtils.stringHeaderToHexInt
 
 class DicomObject extends DicomScopable {
@@ -67,6 +70,18 @@ class DicomObject extends DicomScopable {
         }
     }
 
+    void putEmptyChecks(int... dicomElements) {
+        dicomElements.each { dicomElement ->
+            putValueEqualCheck(dicomElement, '')
+        }
+    }
+
+    void putEmptyChecks(String... dicomElements) {
+        dicomElements.each { dicomElement ->
+            putValueEqualCheck(dicomElement, '')
+        }
+    }
+
     void putWildcardedNonexistenceCheck(String wildcardedElement) {
         DicomEditUtils.resolveAllDicomEditTags(wildcardedElement).each { concreteTag ->
             putNonexistenceChecks(concreteTag)
@@ -119,6 +134,21 @@ class DicomObject extends DicomScopable {
 
     void putSequenceCheck(String dicomElement, DicomSequence sequence) {
         putSequenceCheck(stringHeaderToHexInt(dicomElement), sequence)
+    }
+
+    @SafeVarargs
+    void putSequenceCheck(int dicomElement, Consumer<DicomObject>... dicomObjects) {
+        final DicomObject[] resolvedObjects = dicomObjects.collect { dicomObjectConsumer ->
+            final DicomObject dicomObject = new DicomObject()
+            dicomObjectConsumer.accept(dicomObject)
+            dicomObject
+        }
+        putSequenceCheck(dicomElement, new DicomSequence(resolvedObjects))
+    }
+
+    @SafeVarargs
+    void putSequenceCheck(String dicomElement, Consumer<DicomObject>... dicomObjects) {
+        putSequenceCheck(stringHeaderToHexInt(dicomElement), dicomObjects)
     }
 
     DicomTag getTagByHexCode(int hexCode) {

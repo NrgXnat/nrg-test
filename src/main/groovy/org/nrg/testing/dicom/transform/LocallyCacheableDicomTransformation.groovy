@@ -63,12 +63,20 @@ class LocallyCacheableDicomTransformation {
         baseLevelDir().resolve('data').resolve(identifier)
     }
 
+    Path locateBaseDirForOnlyTransformation() {
+        locateBaseDirForTransformedData(transformations[0])
+    }
+
     Path locateZipForIndividualTransformation(DicomTransformation transformation) {
         locateZipForIndividualTransformation(transformation.identifier)
     }
 
     Path locateZipForIndividualTransformation(String identifier) {
         locateBaseDirForTransformedData(identifier).resolve('data.zip')
+    }
+
+    Path locateZipForOnlyTransformation() {
+        locateZipForIndividualTransformation(transformations[0])
     }
 
     Path locateDataForIndividualTransformationInstance(DicomTransformation transformation, int transformationCount = 0) {

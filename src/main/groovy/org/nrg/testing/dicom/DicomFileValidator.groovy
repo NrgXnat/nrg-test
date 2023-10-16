@@ -95,7 +95,7 @@ class DicomFileValidator extends DicomValidator {
     }
 
     private Attributes expectedLocation(DicomTag tag) {
-        if (tag.asInt() < 0x00080000) { // Metadata below (0008,0000)
+        if (tag.asInt() < DicomUtils.SMALLEST_DATASET_HEADER && tag.asInt() >= 0) { // Metadata below (0008,0000), but negative ints are how dcm4che handles tags above Integer.MAX_VALUE
             return currentFullDicomData.fileMetaInformation // (0002,xxxx) elements should not be in sequences
         }
 
