@@ -1,11 +1,11 @@
 package org.nrg.testing.dicom.transform
 
-import org.dcm4che3.data.DatasetWithFMI
+import org.dcm4che3.data.Attributes
 
 import java.nio.file.Path
 
 interface DicomFileWriter {
 
-    File writeDicom(DatasetWithFMI instance, Path dataDir, int fileIndex)
+    File writeDicom(Attributes instance, Path dataDir, int fileIndex)
 
 }

@@ -2,7 +2,8 @@ package org.nrg.testing.dicom.transform
 
 import groovy.transform.builder.Builder
 import groovy.transform.builder.SimpleStrategy
-import org.dcm4che3.data.DatasetWithFMI
+import org.dcm4che3.data.Attributes
+
 import java.util.function.Function
 
 @Builder(builderStrategy = SimpleStrategy, prefix = '')
@@ -11,7 +12,7 @@ class DicomTransformation {
     String identifier
     boolean produceZip = false
     int transformationCount = 1
-    Function<List<DatasetWithFMI>, List<DatasetWithFMI>> prefilter
+    Function<List<Attributes>, List<Attributes>> prefilter
     TransformFunction transformFunction = TransformFunction.IDENTITY
     DicomFileWriter dicomFileWriter = new DefaultDicomWriter()
 

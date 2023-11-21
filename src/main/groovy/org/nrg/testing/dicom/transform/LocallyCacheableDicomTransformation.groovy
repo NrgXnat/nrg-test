@@ -1,7 +1,7 @@
 package org.nrg.testing.dicom.transform
 
 import org.apache.commons.io.IOUtils
-import org.dcm4che3.data.DatasetWithFMI
+import org.dcm4che3.data.Attributes
 import org.nrg.testing.DicomUtils
 import org.nrg.testing.FileIOUtils
 import org.nrg.testing.LocalDataCache
@@ -9,6 +9,7 @@ import org.nrg.testing.enums.TestData
 
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.function.Consumer
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
@@ -45,6 +46,10 @@ class LocallyCacheableDicomTransformation {
         transformations(
                 new DicomTransformation(identifier).transformFunction(transformFunction)
         )
+    }
+
+    LocallyCacheableDicomTransformation simpleTransform(Consumer<Attributes> function) {
+        simpleTransform(TransformFunction.simple(function))
     }
 
     Path baseLevelDir() {
@@ -99,13 +104,13 @@ class LocallyCacheableDicomTransformation {
             return this
         }
 
-        final List<DatasetWithFMI> sourceDicomInstances = readBaseData()
+        final List<Attributes> sourceDicomInstances = readBaseData()
         final List<File> filesForOverallZip = []
 
         transformations.each { transformation ->
             final List<File> filesForTransformation = []
-            final List<DatasetWithFMI> copyOfSource = new ArrayList<>(sourceDicomInstances) // each transformation needs the full source list
-            final List<DatasetWithFMI> postFilter = transformation.prefilter ? transformation.prefilter.apply(copyOfSource) : copyOfSource // ... but we assume here at least the the prefilter won't modify instances directly
+            final List<Attributes> copyOfSource = new ArrayList<>(sourceDicomInstances) // each transformation needs the full source list
+            final List<Attributes> postFilter = transformation.prefilter ? transformation.prefilter.apply(copyOfSource) : copyOfSource // ... but we assume here at least the the prefilter won't modify instances directly
             transformation.transformationCount.times { index ->
                 final Path individualIterationPath = locateDataForIndividualTransformationInstance(transformation, index)
                 transformation.transformFunction.apply(clone(postFilter)).eachWithIndex { instance, fileIndex ->
@@ -130,7 +135,7 @@ class LocallyCacheableDicomTransformation {
         this
     }
 
-    private List<DatasetWithFMI> readBaseData() {
+    private List<Attributes> readBaseData() {
         if (baseData) {
             baseData.download()
             final ZipFile zipFile = new ZipFile(baseData.toFile())
@@ -157,7 +162,7 @@ class LocallyCacheableDicomTransformation {
         zipOutputStream.close()
     }
 
-    private static List<DatasetWithFMI> clone(List<DatasetWithFMI> dicomInstances) {
+    private static List<Attributes> clone(List<Attributes> dicomInstances) {
         dicomInstances.collect { instance ->
             DicomUtils.clone(instance)
         }

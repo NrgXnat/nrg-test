@@ -1,7 +1,6 @@
 package org.nrg.testing.dicom
 
 import org.dcm4che3.data.Attributes
-import org.dcm4che3.data.DatasetWithFMI
 import org.dcm4che3.data.VR
 import org.nrg.testing.DicomUtils
 import org.nrg.testing.dicom.values.DicomSequence
@@ -10,7 +9,7 @@ import static org.testng.AssertJUnit.*
 
 class DicomFileValidator extends DicomValidator {
 
-    private DatasetWithFMI currentFullDicomData
+    private Attributes currentFullDicomData
 
     @Override
     void validate(File actualFile, DicomObject expectedDicomObject) {
@@ -96,17 +95,17 @@ class DicomFileValidator extends DicomValidator {
 
     private Attributes expectedLocation(DicomTag tag) {
         if (tag.asInt() < DicomUtils.SMALLEST_DATASET_HEADER && tag.asInt() >= 0) { // Metadata below (0008,0000), but negative ints are how dcm4che handles tags above Integer.MAX_VALUE
-            return currentFullDicomData.fileMetaInformation // (0002,xxxx) elements should not be in sequences
+            return currentFullDicomData // (0002,xxxx) elements should not be in sequences
         }
 
         final List<DicomScopable> scope = tag.fullScope
-        Attributes currentDataset = currentFullDicomData.dataset
+        Attributes currentDataset = currentFullDicomData
         if (scope.size() > 3) {
             (0 .. scope.size() - 3).step(3).each { i -> // predictable order in the scope: DicomObject -> Element -> Sequence -> SequenceItem (another DicomObject) -> Element -> Sequence -> SequenceItem ...
                 currentDataset = currentDataset.getNestedDataset((scope[i + 1] as DicomTag).asInt(), (scope[i + 3] as SequenceItem).sequenceIndex)
             }
         }
-        if (currentDataset != null ) {
+        if (currentDataset != null) {
             currentDataset
         } else {
             throw new AssertionError("Could not find parent in the DICOM source for DicomElement:\n${tag.fullScopeStringRepresentation}")

@@ -1,6 +1,6 @@
 package org.nrg.testing.dicom.transform
 
-import org.dcm4che3.data.DatasetWithFMI
+import org.dcm4che3.data.Attributes
 
 import java.nio.file.Path
 
@@ -13,7 +13,7 @@ class OffsetIndexDicomWriter extends DefaultDicomWriter {
     }
 
     @Override
-    File writeDicom(DatasetWithFMI instance, Path dataDir, int fileIndex) {
+    File writeDicom(Attributes instance, Path dataDir, int fileIndex) {
         super.writeDicom(instance, dataDir, fileIndex + offset)
     }
 
