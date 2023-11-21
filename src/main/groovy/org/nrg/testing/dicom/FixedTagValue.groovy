@@ -15,7 +15,7 @@ class FixedTagValue implements InterfileDicomValidation {
     @Override
     void validate(Map<File, DicomObject> dicomObjectFileMap) {
         final List<String> distinctValues = dicomObjectFileMap.keySet().collect { dicomFile ->
-            DicomUtils.readDicom(dicomFile).dataset.getStrings(dicomTag).join(DicomUtils.DELIMITER)
+            DicomUtils.readDicom(dicomFile).getStrings(dicomTag).join(DicomUtils.DELIMITER)
         }.unique()
         assertEquals("All DICOM files were expected to have the same value for tag ${DicomUtils.intToFullHexString(dicomTag)}. Instead, the following values were found: ${distinctValues}.", 1, distinctValues.size())
     }

@@ -15,7 +15,7 @@ class DistinctTagValues implements InterfileDicomValidation {
     @Override
     void validate(Map<File, DicomObject> dicomObjectFileMap) {
         final List<String> distinctValues = dicomObjectFileMap.keySet().collect { dicomFile ->
-            DicomUtils.readDicom(dicomFile).dataset.getStrings(dicomTag).join(DicomUtils.DELIMITER)
+            DicomUtils.readDicom(dicomFile).getStrings(dicomTag).join(DicomUtils.DELIMITER)
         }.unique()
         final int numFiles = dicomObjectFileMap.keySet().size()
         assertEquals(
