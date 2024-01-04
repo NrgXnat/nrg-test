@@ -73,7 +73,7 @@ class EmailQuery {
     }
 
     private String buildQuery() {
-        final List<String> components = []
+        final List<String> components = ['{in:spam in:inbox}']
         if (requiredStrings.size() > 0) {
             components << requiredStrings.collect { requiredTerm ->
                 "\"${requiredTerm}\""
