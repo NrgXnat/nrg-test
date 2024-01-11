@@ -162,8 +162,7 @@ class LocallyCacheableDicomTransformation {
         zipOutputStream.close()
     }
 
-    @SuppressWarnings('GrMethodMayBeStatic')
-    protected List<Attributes> clone(List<Attributes> dicomInstances) {
+    private static List<Attributes> clone(List<Attributes> dicomInstances) {
         dicomInstances.collect { instance ->
             DicomUtils.clone(instance)
         }
