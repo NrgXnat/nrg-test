@@ -37,9 +37,15 @@ import org.nrg.xnat.rest.Credentials
 import org.nrg.xnat.versions.XnatVersion
 
 import java.nio.file.Paths
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
+import java.util.regex.Matcher
+import java.util.regex.Pattern
 
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.testng.AssertJUnit.assertTrue
+import static org.testng.AssertJUnit.fail
 
 @SuppressWarnings('unused')
 @Log4j
@@ -63,6 +69,8 @@ abstract class XnatRestDriver {
     TestController testController
     protected static final Map<User, XnatInterface> xnatInterfaceMap = [:]
     public static final ObjectMapper XNAT_REST_MAPPER = XnatInterface.XNAT_REST_MAPPER
+    protected static final Pattern SERVER_TIME_REGEX = Pattern.compile('.*?monitoring taken at (.*?) on.*')
+    protected static final DateTimeFormatter SERVER_TIME_FORMATTER = DateTimeFormatter.ofPattern('M/d/uu h:mm a')
 
     abstract List<Class<? extends XnatVersion>> getHandledVersions()
 
@@ -299,6 +307,28 @@ abstract class XnatRestDriver {
             adminInterface.createUser(mainAdminUser.email(Settings.EMAIL))
             adminInterface.makeUserAdmin(mainAdminUser)
         }
+    }
+
+    LocalDateTime translateTimeToServerTimezone(LocalDateTime timeToConvert) {
+        final XnatInterface adminInterface = interfaceFor(mainAdminUser)
+        final Matcher serverTimeMatcher = SERVER_TIME_REGEX.matcher(
+                adminInterface
+                        .queryBase()
+                        .get(adminInterface.formatXnatUrl('/monitoring'))
+                        .then()
+                        .assertThat()
+                        .statusCode(200)
+                        .and()
+                        .extract()
+                        .asString()
+        )
+        final LocalDateTime now = LocalDateTime.now()
+        if (!serverTimeMatcher.find()) {
+            fail('Could not parse monitoring servlet.')
+        }
+        final LocalDateTime extractedTime = LocalDateTime.parse(serverTimeMatcher.group(1), SERVER_TIME_FORMATTER)
+        final long shift = 15 * (Math.round(ChronoUnit.MINUTES.between(extractedTime, now) / 15)) // the smallest precision of a timezone difference is 15 minutes, we can round to that precision
+        timeToConvert.minusMinutes(shift)
     }
 
     private void clearPrearchiveSessionsMatchingFilter(User authUser, String prearchiveQueryUrl, String jsonPathFilter) {
