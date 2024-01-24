@@ -30,7 +30,6 @@ import org.nrg.xnat.pogo.extensions.project.ProjectXMLPutExtension
 import org.nrg.xnat.pogo.extensions.subject.SubjectExtension
 import org.nrg.xnat.pogo.extensions.subject.SubjectXMLPutExtension
 import org.nrg.xnat.pogo.resources.Resource
-import org.nrg.xnat.pogo.resources.ResourceFile
 import org.nrg.xnat.pogo.users.User
 import org.nrg.xnat.prearchive.SessionData
 import org.nrg.xnat.rest.Credentials
@@ -71,6 +70,7 @@ abstract class XnatRestDriver {
     public static final ObjectMapper XNAT_REST_MAPPER = XnatInterface.XNAT_REST_MAPPER
     protected static final Pattern SERVER_TIME_REGEX = Pattern.compile('.*?monitoring taken at (.*?) on.*')
     protected static final DateTimeFormatter SERVER_TIME_FORMATTER = DateTimeFormatter.ofPattern('M/d/uu h:mm a')
+    protected static Long serverTimeShiftMinutes = null
 
     abstract List<Class<? extends XnatVersion>> getHandledVersions()
 
@@ -310,25 +310,27 @@ abstract class XnatRestDriver {
     }
 
     LocalDateTime translateTimeToServerTimezone(LocalDateTime timeToConvert) {
-        final XnatInterface adminInterface = interfaceFor(mainAdminUser)
-        final Matcher serverTimeMatcher = SERVER_TIME_REGEX.matcher(
-                adminInterface
-                        .queryBase()
-                        .get(adminInterface.formatXnatUrl('/monitoring'))
-                        .then()
-                        .assertThat()
-                        .statusCode(200)
-                        .and()
-                        .extract()
-                        .asString()
-        )
-        final LocalDateTime now = LocalDateTime.now()
-        if (!serverTimeMatcher.find()) {
-            fail('Could not parse monitoring servlet.')
+        if (serverTimeShiftMinutes == null) {
+            final XnatInterface adminInterface = interfaceFor(mainAdminUser)
+            final Matcher serverTimeMatcher = SERVER_TIME_REGEX.matcher(
+                    adminInterface
+                            .queryBase()
+                            .get(adminInterface.formatXnatUrl('/monitoring'))
+                            .then()
+                            .assertThat()
+                            .statusCode(200)
+                            .and()
+                            .extract()
+                            .asString()
+            )
+            final LocalDateTime now = LocalDateTime.now()
+            if (!serverTimeMatcher.find()) {
+                fail('Could not parse monitoring servlet.')
+            }
+            final LocalDateTime extractedTime = LocalDateTime.parse(serverTimeMatcher.group(1), SERVER_TIME_FORMATTER)
+            serverTimeShiftMinutes = 15 * (Math.round(ChronoUnit.MINUTES.between(extractedTime, now) / 15)) // the smallest precision of a timezone difference is 15 minutes, we can round to that precision
         }
-        final LocalDateTime extractedTime = LocalDateTime.parse(serverTimeMatcher.group(1), SERVER_TIME_FORMATTER)
-        final long shift = 15 * (Math.round(ChronoUnit.MINUTES.between(extractedTime, now) / 15)) // the smallest precision of a timezone difference is 15 minutes, we can round to that precision
-        timeToConvert.minusMinutes(shift)
+        timeToConvert.minusMinutes(serverTimeShiftMinutes)
     }
 
     private void clearPrearchiveSessionsMatchingFilter(User authUser, String prearchiveQueryUrl, String jsonPathFilter) {
