@@ -20,6 +20,7 @@ class JIRATestListener extends BaseTestListener {
     private static Cycle cycle
     private static JiraZephyrController jiraZephyrController
     private static final Map<ITestNGMethod, JIRATest> jiraTests = [:]
+    private static final List<String> previousTestsComplete = []
 
     @Override
     void onStart(ITestResult result)  {
@@ -53,7 +54,10 @@ class JIRATestListener extends BaseTestListener {
 
     private String testLoggingMessage(String verb) {
         final String appendedNumber = (currentTestNumber == null) ? '' : " (${currentTestNumber})"
-        "Test ${verb}: ${testName}${appendedNumber}."
+        if (!previousTestsComplete.contains(testName)) {
+            previousTestsComplete << testName
+        }
+        "Test ${verb}: ${testName} [${previousTestsComplete.size()}/${jiraTests.size()}]${appendedNumber}."
     }
 
     /**
