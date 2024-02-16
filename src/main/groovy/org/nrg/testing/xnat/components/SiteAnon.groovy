@@ -4,12 +4,14 @@ import org.nrg.testing.xnat.BaseXnatRestTest
 import org.nrg.xnat.pogo.AnonScript
 import org.nrg.xnat.pogo.Project
 
-class SiteAnon implements TestComponent {
-
-    private final String contents
+class SiteAnon extends AnonStep<SiteAnon> {
 
     SiteAnon(String contents) {
-        this.contents = contents
+        super(contents)
+    }
+
+    SiteAnon() {
+
     }
 
     @Override

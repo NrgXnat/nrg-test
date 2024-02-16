@@ -6,6 +6,7 @@ import io.restassured.config.RestAssuredConfig
 import io.restassured.path.json.mapper.factory.Jackson2ObjectMapperFactory
 import io.restassured.specification.RequestSpecification
 import org.nrg.testing.enums.TestData
+import org.nrg.testing.util.RandomHelper
 import org.nrg.testing.xnat.components.ComponentizedTest
 import org.nrg.testing.xnat.components.SessionImporterStep
 import org.nrg.testing.xnat.components.TestComponent
@@ -13,6 +14,7 @@ import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.rest.XnatRestDriver
 import org.nrg.xnat.pogo.DataType
 import org.nrg.xnat.pogo.Project
+import org.nrg.xnat.pogo.dicom.DicomScpReceiver
 import org.nrg.xnat.pogo.users.User
 import org.nrg.xnat.rest.Credentials
 import org.nrg.xnat.rest.ForbiddenException
@@ -32,6 +34,7 @@ class BaseXnatRestTest extends BaseXnatTest {
 
     protected static final List<Project> suiteTestProjects = []
     protected final List<Project> testProjects = []
+    protected final List<DicomScpReceiver> createdReceivers = new ArrayList<>()
     protected final TestComponent UPLOAD_SAMPLE1_SI = new SessionImporterStep(TestData.SAMPLE_1)
 
     @BeforeSuite(alwaysRun = true)
@@ -54,9 +57,16 @@ class BaseXnatRestTest extends BaseXnatTest {
     }
 
     @AfterClass(alwaysRun = true)
-    protected void removeTempProjects() {
+    protected void removeTempObjects() {
         testProjects.each { project ->
             restDriver.deleteProjectSilently(mainAdminUser, project)
+        }
+        createdReceivers.each { possiblyCreatedReceiver ->
+            try {
+                mainAdminInterface().deleteDicomScpReceiver(possiblyCreatedReceiver)
+            } catch (Throwable ignored) {
+                // we may have allocated the object for it but not created it
+            }
         }
     }
 
@@ -86,6 +96,15 @@ class BaseXnatRestTest extends BaseXnatTest {
     @Deprecated
     protected RequestSpecification mainAdminCredentials() {
         Credentials.build(mainAdminUser)
+    }
+
+    protected DicomScpReceiver newDefaultReceiver() {
+        final DicomScpReceiver receiver = new DicomScpReceiver()
+                .host(Settings.DICOM_HOST)
+                .aeTitle(RandomHelper.randomID(10))
+                .port(Settings.DICOM_PORT)
+        createdReceivers << receiver
+        receiver
     }
 
     Project registerTempProject() {
