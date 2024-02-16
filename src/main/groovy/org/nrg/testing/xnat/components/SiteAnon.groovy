@@ -11,7 +11,7 @@ class SiteAnon extends AnonStep<SiteAnon> {
     }
 
     SiteAnon() {
-
+        super()
     }
 
     @Override
