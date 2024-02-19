@@ -111,6 +111,11 @@ class Settings {
     public static final PerformanceServerResetScript PERFORMANCE_RESET_SCRIPT = XnatResetScriptLookup.lookup(properties.performanceResetScriptId)
     public static final boolean PERFORMANCE_SET_BASELINES = properties.performanceSetBaselineSetting
     public static final boolean PERFORMANCE_EXPORT_ONLY = properties.performanceExportOnlySetting
+    public static final String DQR_PACS_AE_TITLE = properties.dqrPacsAeTitle
+    public static final String DQR_PACS_IP_ADDRESS = properties.dqrPacsIpAddress
+    public static final int DQR_PACS_PORT = properties.dqrPacsPort
+    public static final String DQR_SCP_RECEIVER_AE_TITLE = properties.dqrScpReceiverAeTitle
+    public static final int DQR_SCP_RECEIVER_PORT = properties.dqrScpReceiverPort
 
     private static File getSshKey() {
         Paths.get(System.getProperty('user.home'), '.ssh', SSH_KEY_NAME).toFile()

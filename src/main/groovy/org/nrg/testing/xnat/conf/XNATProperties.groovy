@@ -68,6 +68,11 @@ class XNATProperties extends BaseProperties {
     public static final String PERFORMANCE_RESET_SCRIPT_ID = 'xnat.performance.resetId'
     public static final String PERFORMANCE_SET_BASELINE = 'xnat.performance.setBaseline'
     public static final String PERFORMANCE_EXPORT_ONLY = 'xnat.performance.exportOnly'
+    public static final String DQR_PACS_AE_TITLE = 'dqr.pacs.ae.title'
+    public static final String DQR_PACS_IP_ADDRESS = 'dqr.pacs.ip.address'
+    public static final String DQR_PACS_PORT = 'dqr.pacs.port'
+    public static final String DQR_SCP_RECEIVER_AE_TITLE = 'dqr.scp.receiver.ae.title'
+    public static final String DQR_SCP_RECEIVER_PORT = 'dqr.scp.receiver.port'
 
     XNATProperties() {
         super('xnat.config', 'local.properties')
@@ -331,6 +336,25 @@ class XNATProperties extends BaseProperties {
         getBooleanProperty(PERFORMANCE_EXPORT_ONLY, false)
     }
 
+    String getDqrPacsAeTitle() {
+        getStringProperty(DQR_PACS_AE_TITLE, null)
+    }
+
+    String getDqrPacsIpAddress() {
+        getStringProperty(DQR_PACS_IP_ADDRESS, null)
+    }
+
+    int getDqrPacsPort() {
+        getIntProperty(DQR_PACS_PORT, 4242)
+    }
+
+    String getDqrScpReceiverAeTitle() {
+        getStringProperty(DQR_SCP_RECEIVER_AE_TITLE, null)
+    }
+
+    int getDqrScpReceiverPort() {
+        getIntProperty(DQR_SCP_RECEIVER_PORT, 8104)
+    }
     List<XnatConfig> getOtherXnatConfigs() {
         final List<XnatConfig> bonusConfigs = []
         int configIndex = 2
