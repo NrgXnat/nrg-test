@@ -17,6 +17,7 @@ import org.nrg.testing.jira.JIRAProperties
 import org.nrg.testing.jira.JIRASettings
 import org.nrg.testing.listeners.adapters.git.GitLogListener
 import org.nrg.testing.listeners.adapters.jira.JIRATestListener
+import org.nrg.testing.util.Version
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.conf.XNATProperties
 import org.nrg.testing.xnat.conf.XnatConfig
@@ -281,6 +282,17 @@ abstract class BaseXnatTest extends BaseTestCase {
         }
         installedPlugins
     }
+
+    protected XnatPlugin getInstalledPlugin(final String pluginId) {
+        installedPlugins()
+                .find { plugin -> plugin.id == pluginId } ?:
+                { throw new IllegalStateException("Unable to find plugin " + pluginId) }()
+    }
+
+    protected Version getPluginVersion(String pluginId) {
+        new Version(getInstalledPlugin(pluginId))
+    }
+
 
     protected abstract void setupXnat()
 
