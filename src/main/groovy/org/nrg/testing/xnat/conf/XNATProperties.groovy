@@ -68,6 +68,7 @@ class XNATProperties extends BaseProperties {
     public static final String PERFORMANCE_RESET_SCRIPT_ID = 'xnat.performance.resetId'
     public static final String PERFORMANCE_SET_BASELINE = 'xnat.performance.setBaseline'
     public static final String PERFORMANCE_EXPORT_ONLY = 'xnat.performance.exportOnly'
+    public static final String PERFORMANCE_COMPILE_PDF = 'xnat.performance.compilePdf'
     public static final String DQR_PACS_AE_TITLE = 'dqr.pacs.ae.title'
     public static final String DQR_PACS_IP_ADDRESS = 'dqr.pacs.ip.address'
     public static final String DQR_PACS_PORT = 'dqr.pacs.port'
@@ -334,6 +335,10 @@ class XNATProperties extends BaseProperties {
 
     boolean getPerformanceExportOnlySetting() {
         getBooleanProperty(PERFORMANCE_EXPORT_ONLY, false)
+    }
+
+    boolean getPerformanceCompilePdfSetting() {
+        getBooleanProperty(PERFORMANCE_COMPILE_PDF, false)
     }
 
     String getDqrPacsAeTitle() {

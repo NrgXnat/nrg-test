@@ -111,6 +111,7 @@ class Settings {
     public static final PerformanceServerResetScript PERFORMANCE_RESET_SCRIPT = XnatResetScriptLookup.lookup(properties.performanceResetScriptId)
     public static final boolean PERFORMANCE_SET_BASELINES = properties.performanceSetBaselineSetting
     public static final boolean PERFORMANCE_EXPORT_ONLY = properties.performanceExportOnlySetting
+    public static final boolean PERFORMANCE_COMPILE_PDF = properties.performanceCompilePdfSetting
     public static final String DQR_PACS_AE_TITLE = properties.dqrPacsAeTitle
     public static final String DQR_PACS_IP_ADDRESS = properties.dqrPacsIpAddress
     public static final int DQR_PACS_PORT = properties.dqrPacsPort
