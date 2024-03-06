@@ -27,7 +27,7 @@ class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorable
         historicalRecord.each { timeSeries ->
             datasetComparisonGraph.addNode(timeSeries)
         }
-        CollectionUtils.subsetsOfSize2(catalog.entries).each { pair ->
+        CollectionUtils.subsetsOfSize2(historicalRecord).each { pair ->
             if (pair.v1.calculateNormalizedDistanceTo(pair.v2) < MAX_EQUIVALENCE_DISTANCE) {
                 datasetComparisonGraph.putEdge(pair.v1, pair.v2)
             }
@@ -40,11 +40,11 @@ class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorable
 
         GraphUtils.findConnectedComponents(datasetComparisonGraph).eachWithIndex { similarDatasets, index ->
             if (similarDatasets.size() == 1) {
-                scatterPlot.addDataset(similarDatasets.first())
+                scatterPlot.addDataset(datasetFromIndex(index, similarDatasets.first()))
             } else {
                 final List<CumulativeTimeSeriesData> sorted = similarDatasets.sort { it.timestamp }.reverse()
                 final CumulativeTimeSeriesData representative = sorted.removeLast()
-                scatterPlot.addDataset(representative)
+                scatterPlot.addDataset(datasetFromIndex(index, representative))
                 scatterPlot.indicateGroupedDatasets(
                         representative.xnatVersion,
                         sorted*.xnatVersion
