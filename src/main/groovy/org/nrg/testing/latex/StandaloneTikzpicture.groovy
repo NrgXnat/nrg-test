@@ -9,7 +9,7 @@ abstract class StandaloneTikzpicture<T extends StandaloneTikzpicture> extends La
 
     @Override
     DocumentClass specifyDocumentClass() {
-        new DocumentClass().options(['margin=5mm']).className('standalone')
+        new DocumentClass().options(['margin=5mm', 'varwidth']).className('standalone')
     }
 
     @Override
@@ -27,6 +27,10 @@ abstract class StandaloneTikzpicture<T extends StandaloneTikzpicture> extends La
     }
 
     abstract String generatePlot()
+
+    String generateExplanation() {
+        ''
+    }
 
     T title(String title) {
         setTitle(title)
@@ -49,6 +53,7 @@ abstract class StandaloneTikzpicture<T extends StandaloneTikzpicture> extends La
                 .replace('%CHART_TITLE%', title)
                 .replace('%XLABEL%', xlabel)
                 .replace('%YLABEL%', ylabel)
+                .replace('%CHART_EXPLANATION%', generateExplanation())
     }
 
 }

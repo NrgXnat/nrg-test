@@ -1,6 +1,7 @@
 package org.nrg.testing.tests
 
 import org.nrg.testing.UnitTestUtils
+import org.nrg.testing.xnat.performance.persistence.CumulativeTimeSeriesData
 import org.nrg.testing.xnat.performance.validator.PolynomialRegressionValidator
 import org.testng.annotations.Test
 
@@ -42,6 +43,16 @@ class MathTest {
         UnitTestUtils.assertDoubleEqual(
                 1,
                 PolynomialRegressionValidator.QUADRATIC.performRegression(TRUE_QUADRATIC).calculateRSquared()
+        )
+    }
+
+    @Test
+    void testTimeSeriesDistance() {
+        UnitTestUtils.assertDoubleEqual(
+                2.5,
+                new CumulativeTimeSeriesData(timeSeriesData: [1: 10000, 2: 20000]).calculateNormalizedDistanceTo(
+                        new CumulativeTimeSeriesData(timeSeriesData: [1: 13000, 2: 16000])
+                )
         )
     }
 

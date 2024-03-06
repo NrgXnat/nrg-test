@@ -3,11 +3,18 @@ package org.nrg.testing.latex
 class MultipleDatasetScatterPlot extends StandaloneTikzpicture<MultipleDatasetScatterPlot> {
 
     List<ScatterPlotDataset> datasets = []
+    Map<String, List<String>> groupedDatasets = [:]
     public static final String BASE_SCATTERPLOT = LatexUtils.loadTemplate('multi_scatterplot.tex')
     public static final String BASE_SCATTERPLOT_INDIVIDUAL_DATASET = LatexUtils.loadTemplate('multi_scatterplot_individual_dataset.tex')
+    public static final String BASE_DATASET_COMBINATION_EXPLANATION = LatexUtils.loadTemplate('combined_datasets.tex')
 
     MultipleDatasetScatterPlot addDataset(ScatterPlotDataset dataset) {
         datasets << dataset
+        this
+    }
+
+    MultipleDatasetScatterPlot indicateGroupedDatasets(String representativeDataset, List<String> hiddenDatasets) {
+        groupedDatasets.put(representativeDataset, hiddenDatasets)
         this
     }
 
@@ -27,6 +34,21 @@ class MultipleDatasetScatterPlot extends StandaloneTikzpicture<MultipleDatasetSc
                     dataset.inject(BASE_SCATTERPLOT_INDIVIDUAL_DATASET)
                 }
         )
+    }
+
+    @Override
+    String generateExplanation() {
+        if (groupedDatasets.isEmpty()) {
+            ''
+        } else {
+            LatexUtils.replaceAndMaintainIndentFromList(
+                    BASE_DATASET_COMBINATION_EXPLANATION,
+                    '%DATASET_ITEMS%',
+                    groupedDatasets.collect { grouping ->
+                        "\\item ${grouping.key} also closely represents ${grouping.value.join(', ')}"
+                    }
+            )
+        }
     }
 
 }

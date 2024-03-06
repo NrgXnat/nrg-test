@@ -11,6 +11,7 @@ class ScatterPlotDataset implements LatexComponent {
     String color = 'black'
     String marker = '*'
     String markerSize = '1.5 pt'
+    Long timestamp
     List<Pair<String, String>> coordinates
 
     @Override
