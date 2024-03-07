@@ -2,6 +2,7 @@ package org.nrg.testing.xnat.performance.charting
 
 import com.google.common.graph.GraphBuilder
 import com.google.common.graph.MutableGraph
+import groovy.util.logging.Log4j
 import org.apache.commons.math3.util.Pair
 import org.nrg.testing.CollectionUtils
 import org.nrg.testing.latex.LatexDocument
@@ -11,6 +12,7 @@ import org.nrg.testing.xnat.performance.actions.RepeatedMonitorableAction
 import org.nrg.testing.xnat.performance.persistence.CumulativeTimeSeriesData
 import org.nrg.xnat.util.GraphUtils
 
+@Log4j
 class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorableAction, CumulativeTimeSeriesData> {
 
     private static final Map<Integer, String> COLORS = [
@@ -28,7 +30,11 @@ class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorable
             datasetComparisonGraph.addNode(timeSeries)
         }
         CollectionUtils.subsetsOfSize2(historicalRecord).each { pair ->
-            if (pair.v1.calculateNormalizedDistanceTo(pair.v2) < MAX_EQUIVALENCE_DISTANCE) {
+            final double euclidean = pair.v1.calculateNormalizedDistanceTo(pair.v2)
+            final double normalized = pair.v1.calculateNormalizedAverageAbsoluteValueDistance(pair.v2)
+            log.info("Normalized Euclidean distance from ${pair.v1.xnatVersion} -> ${pair.v2.xnatVersion}: ${euclidean}")
+            log.info("Normalized absolute value distance from ${pair.v1.xnatVersion} -> ${pair.v2.xnatVersion}: ${normalized}")
+            if (euclidean < MAX_EQUIVALENCE_DISTANCE) {
                 datasetComparisonGraph.putEdge(pair.v1, pair.v2)
             }
         }
