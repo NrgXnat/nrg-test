@@ -21,7 +21,7 @@ class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorable
             2 : 'blue!80!white',
             3 : 'lime!70!black'
     ]
-    private static final int MAX_EQUIVALENCE_DISTANCE = 0
+    private static final int MAX_EQUIVALENCE_DISTANCE = 1
 
     @Override
     LatexDocument produceDocument(RepeatedMonitorableAction performanceWorkflow, List<CumulativeTimeSeriesData> historicalRecord) {
@@ -34,7 +34,7 @@ class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorable
             final double normalized = pair.v1.calculateNormalizedAverageAbsoluteValueDistance(pair.v2)
             log.info("Normalized Euclidean distance from ${pair.v1.xnatVersion} -> ${pair.v2.xnatVersion}: ${euclidean}")
             log.info("Normalized absolute value distance from ${pair.v1.xnatVersion} -> ${pair.v2.xnatVersion}: ${normalized}")
-            if (euclidean < MAX_EQUIVALENCE_DISTANCE) {
+            if (normalized < MAX_EQUIVALENCE_DISTANCE) {
                 datasetComparisonGraph.putEdge(pair.v1, pair.v2)
             }
         }
