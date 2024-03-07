@@ -23,13 +23,15 @@ abstract class PerformanceCharter<
             chartFile.text = chart.produceSourceDocument()
             if (Settings.PERFORMANCE_COMPILE_PDF) {
                 log.info('Attempting to compile result to PDF...')
-                final StringBuilder stdOut = new StringBuilder()
-                final StringBuilder stdErr = new StringBuilder()
-                final Process process = "pdflatex -output-directory=${PerformanceUtils.PERFORMANCE_SUBDIR.toAbsolutePath()} ${chartFile.toPath().toAbsolutePath()}".execute()
-                process.consumeProcessOutput(stdOut, stdErr)
-                process.waitForOrKill(MAX_COMPILE_DURATION_MILLIS)
-                log.info(stdOut)
-                log.warn(stdErr)
+                2.times {
+                    final StringBuilder stdOut = new StringBuilder()
+                    final StringBuilder stdErr = new StringBuilder()
+                    final Process process = "pdflatex -output-directory=${PerformanceUtils.PERFORMANCE_SUBDIR.toAbsolutePath()} ${chartFile.toPath().toAbsolutePath()}".execute()
+                    process.consumeProcessOutput(stdOut, stdErr)
+                    process.waitForOrKill(MAX_COMPILE_DURATION_MILLIS)
+                    log.info(stdOut)
+                    log.warn(stdErr)
+                }
             }
         }
     }
