@@ -19,7 +19,7 @@ class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorable
             2 : 'blue!80!white',
             3 : 'lime!70!black'
     ]
-    private static final int MAX_EQUIVALENCE_DISTANCE = 1
+    private static final int MAX_EQUIVALENCE_DISTANCE = 0
 
     @Override
     LatexDocument produceDocument(RepeatedMonitorableAction performanceWorkflow, List<CumulativeTimeSeriesData> historicalRecord) {
@@ -42,8 +42,8 @@ class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorable
             if (similarDatasets.size() == 1) {
                 scatterPlot.addDataset(datasetFromIndex(index, similarDatasets.first()))
             } else {
-                final List<CumulativeTimeSeriesData> sorted = similarDatasets.sort { it.timestamp }.reverse()
-                final CumulativeTimeSeriesData representative = sorted.removeLast()
+                final List<CumulativeTimeSeriesData> sorted = similarDatasets.sort { it.timestamp }
+                final CumulativeTimeSeriesData representative = sorted.remove(0)
                 scatterPlot.addDataset(datasetFromIndex(index, representative))
                 scatterPlot.indicateGroupedDatasets(
                         representative.xnatVersion,
