@@ -27,7 +27,8 @@ class LatexTest {
                                         .label('B')
                                         .color('red')
                                         .coordinates([new Pair<>('1', '15'), new Pair<>('2', '25')])
-                        ).produceSourceDocument()
+                        ).indicateGroupedDatasets('A', ['C', 'D'])
+                        .produceSourceDocument()
         )
     }
 
