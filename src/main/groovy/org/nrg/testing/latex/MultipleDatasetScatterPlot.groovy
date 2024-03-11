@@ -42,13 +42,13 @@ class MultipleDatasetScatterPlot extends StandaloneTikzpicture<MultipleDatasetSc
         if (groupedDatasets.isEmpty()) {
             ''
         } else {
-            int verticalOffset = 3.5
+            double verticalOffset = 3.5
             LatexUtils.replaceAndMaintainIndentFromList(
                     BASE_DATASET_COMBINATION_EXPLANATION,
                     '%DATASET_ITEMS%',
                     groupedDatasets.collect { grouping ->
                         verticalOffset += 0.5
-                        "\\node at (-1,-${verticalOffset}) {\$\\bullet\$ ${grouping.key} also closely represents ${grouping.value.join(', ')}};"
+                        "\\node at (-1,-${verticalOffset}) {\$\\bullet\$ ${grouping.key} also closely represents ${grouping.value.join(', ')}};".toString()
                     }
             )
         }
