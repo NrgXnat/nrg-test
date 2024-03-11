@@ -68,9 +68,9 @@ class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorable
     private static ScatterPlotDataset datasetFromIndex(int index, CumulativeTimeSeriesData record) {
         final Function<Integer, String> indexToShape = { int i ->
             switch (i) {
-                case [0 .. 3]:
+                case 0 .. 3:
                     return '*'
-                case [4 .. 7]:
+                case 4 .. 7:
                     return 'triangle*'
                 default:
                     return 'square*'
