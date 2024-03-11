@@ -23,7 +23,7 @@ class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorable
             2 : 'blue!80!white',
             3 : 'lime!70!black'
     ]
-    private static final int MAX_EQUIVALENCE_DISTANCE = 3
+    private static final int MAX_EQUIVALENCE_DISTANCE = 1
 
     @Override
     LatexDocument produceDocument(RepeatedMonitorableAction performanceWorkflow, List<CumulativeTimeSeriesData> historicalRecord) {
