@@ -27,25 +27,28 @@ class MultipleDatasetScatterPlot extends StandaloneTikzpicture<MultipleDatasetSc
 
     @Override
     String generatePlot() {
-        LatexUtils.replaceAndMaintainIndentFromList(
+        final String plot = LatexUtils.replaceAndMaintainIndentFromList(
                 BASE_SCATTERPLOT.replace('%LEGEND_ENTRIES%', datasets.collect { "\\switchocg{${it.label}}{${it.label}}" }.join(',')),
                 '%PLOTS%',
                 datasets.collect { dataset ->
                     dataset.inject(BASE_SCATTERPLOT_INDIVIDUAL_DATASET)
                 }
         )
+
+        LatexUtils.replaceAndMaintainIndent(plot, '%CHART_EXPLANATION%', generateExplanation())
     }
 
-    @Override
     String generateExplanation() {
         if (groupedDatasets.isEmpty()) {
             ''
         } else {
+            int verticalOffset = 3.5
             LatexUtils.replaceAndMaintainIndentFromList(
                     BASE_DATASET_COMBINATION_EXPLANATION,
                     '%DATASET_ITEMS%',
                     groupedDatasets.collect { grouping ->
-                        "\\item ${grouping.key} also closely represents ${grouping.value.join(', ')}"
+                        verticalOffset += 0.5
+                        "\\node at (-1,-${verticalOffset}) {\$\\bullet\$ ${grouping.key} also closely represents ${grouping.value.join(', ')}};"
                     }
             )
         }

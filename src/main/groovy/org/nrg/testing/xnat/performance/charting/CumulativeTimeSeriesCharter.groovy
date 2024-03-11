@@ -12,6 +12,8 @@ import org.nrg.testing.xnat.performance.actions.RepeatedMonitorableAction
 import org.nrg.testing.xnat.performance.persistence.CumulativeTimeSeriesData
 import org.nrg.xnat.util.GraphUtils
 
+import java.util.function.Function
+
 @Log4j
 class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorableAction, CumulativeTimeSeriesData> {
 
@@ -21,7 +23,7 @@ class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorable
             2 : 'blue!80!white',
             3 : 'lime!70!black'
     ]
-    private static final int MAX_EQUIVALENCE_DISTANCE = 1
+    private static final int MAX_EQUIVALENCE_DISTANCE = 3
 
     @Override
     LatexDocument produceDocument(RepeatedMonitorableAction performanceWorkflow, List<CumulativeTimeSeriesData> historicalRecord) {
@@ -64,8 +66,19 @@ class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorable
     }
 
     private static ScatterPlotDataset datasetFromIndex(int index, CumulativeTimeSeriesData record) {
+        final Function<Integer, String> indexToShape = { int i ->
+            switch (i) {
+                case [0 .. 3]:
+                    return '*'
+                case [4 .. 7]:
+                    return 'triangle*'
+                default:
+                    return 'square*'
+            }
+        }
+
         new ScatterPlotDataset()
-                .marker(index > 3 ? 'triangle*' : '*')
+                .marker(indexToShape.apply(index))
                 .color(COLORS[index % 4])
                 .label(record.xnatVersion)
                 .coordinates(record.timeSeriesData.collect { new Pair<String, String>(String.valueOf(it.key), String.valueOf(it.value / 1000.0)) })
