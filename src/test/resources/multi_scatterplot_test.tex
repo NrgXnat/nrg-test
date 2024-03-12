@@ -36,6 +36,18 @@
             ]coordinates {(1,15)(2,25)};
         \end{scope}
     \end{axis}
+    \begin{scope}
+        \addtolength{\tabcolsep}{-0.3em}
+        \node [right, shape=rectangle, align=left](regressiontable) at (7,5) {
+            Add regression options: \\
+            \begin{tabular}{|l|}
+                \hline
+                A \\
+                B \\
+                \hline
+            \end{tabular}
+        };
+    \end{scope}
     \begin{scope}[every node/.style = {font=\footnotesize}, right]
         \node[text width = 13.5 cm] at (-1.2,-3) {In order to keep the number of shown datasets at a reasonable level, some datasets have been hidden entirely. From comparing the data, they were found to be very similar to one of the datasets that is shown as a representative example. These include:};
         \node at (-1,-4.0) {$\bullet$ A also closely represents C, D};

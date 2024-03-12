@@ -7,6 +7,7 @@ class MultipleDatasetScatterPlot extends StandaloneTikzpicture<MultipleDatasetSc
     public static final String BASE_SCATTERPLOT = LatexUtils.loadTemplate('multi_scatterplot.tex')
     public static final String BASE_SCATTERPLOT_INDIVIDUAL_DATASET = LatexUtils.loadTemplate('multi_scatterplot_individual_dataset.tex')
     public static final String BASE_DATASET_COMBINATION_EXPLANATION = LatexUtils.loadTemplate('combined_datasets.tex')
+    public static final String BASE_REGRESSION_LEGEND = LatexUtils.loadTemplate('regression_legend.tex')
 
     MultipleDatasetScatterPlot addDataset(ScatterPlotDataset dataset) {
         datasets << dataset
@@ -27,7 +28,7 @@ class MultipleDatasetScatterPlot extends StandaloneTikzpicture<MultipleDatasetSc
 
     @Override
     String generatePlot() {
-        final String plot = LatexUtils.replaceAndMaintainIndentFromList(
+        final String plots = LatexUtils.replaceAndMaintainIndentFromList(
                 BASE_SCATTERPLOT.replace('%LEGEND_ENTRIES%', datasets.collect { "\\switchocg{${it.label}}{${it.label}}" }.join(',')),
                 '%PLOTS%',
                 datasets.collect { dataset ->
@@ -35,7 +36,31 @@ class MultipleDatasetScatterPlot extends StandaloneTikzpicture<MultipleDatasetSc
                 }
         )
 
-        LatexUtils.replaceAndMaintainIndent(plot, '%CHART_EXPLANATION%', generateExplanation())
+        final String plotsWithRegressionLegend = LatexUtils.replaceAndMaintainIndent(
+                plots,
+                '%REGRESSION_LEGEND%',
+                generateRegressionLegend()
+        )
+
+        LatexUtils.replaceAndMaintainIndent(
+                plotsWithRegressionLegend,
+                '%CHART_EXPLANATION%',
+                generateExplanation()
+        )
+    }
+
+    String generateRegressionLegend() {
+        LatexUtils.replaceAndMaintainIndentFromList(
+                BASE_REGRESSION_LEGEND,
+                '%REGRESSION_TABLE_DATA%',
+                datasets.collect { dataset ->
+                    final List<String> cells = [dataset.label]
+                    dataset.regressions.each { regression ->
+                        cells << "\\switchocg{${regression.reference}}{${regression.displayName}}"
+                    }
+                    cells.join(' & ') + ' \\\\'
+                }
+        ).replace('%REGRESSION_HEADERS%', 'l' * (datasets[0].regressions.size() + 1))
     }
 
     String generateExplanation() {

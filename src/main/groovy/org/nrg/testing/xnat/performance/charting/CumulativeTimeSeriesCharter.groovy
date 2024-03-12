@@ -3,13 +3,17 @@ package org.nrg.testing.xnat.performance.charting
 import com.google.common.graph.GraphBuilder
 import com.google.common.graph.MutableGraph
 import groovy.util.logging.Log4j
+import org.apache.commons.math3.stat.regression.OLSMultipleLinearRegression
 import org.apache.commons.math3.util.Pair
 import org.nrg.testing.CollectionUtils
 import org.nrg.testing.latex.LatexDocument
 import org.nrg.testing.latex.MultipleDatasetScatterPlot
+import org.nrg.testing.latex.RegressionCurve
 import org.nrg.testing.latex.ScatterPlotDataset
 import org.nrg.testing.xnat.performance.actions.RepeatedMonitorableAction
 import org.nrg.testing.xnat.performance.persistence.CumulativeTimeSeriesData
+import org.nrg.testing.xnat.performance.regression.PolynomialRegression
+import org.nrg.testing.xnat.performance.regression.ReportableRegression
 import org.nrg.xnat.util.GraphUtils
 
 import java.util.function.Function
@@ -24,6 +28,9 @@ class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorable
             3 : 'lime!70!black'
     ]
     private static final int MAX_EQUIVALENCE_DISTANCE = 1
+    private static final List<ReportableRegression> CHARTABLE_REGRESSIONS = [
+            PolynomialRegression.LINEAR, PolynomialRegression.QUADRATIC, PolynomialRegression.CUBIC
+    ]
 
     @Override
     LatexDocument produceDocument(RepeatedMonitorableAction performanceWorkflow, List<CumulativeTimeSeriesData> historicalRecord) {
@@ -83,6 +90,22 @@ class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorable
                 .label(record.xnatVersion)
                 .coordinates(record.timeSeriesData.collect { new Pair<String, String>(String.valueOf(it.key), String.valueOf(it.value / 1000.0)) })
                 .timestamp(record.timestamp)
+                .regressions(CHARTABLE_REGRESSIONS.collect { regression ->
+                    final OLSMultipleLinearRegression performedRegression = regression.performRegression(record.timeSeriesData)
+                    final double[] regressionParams = performedRegression.estimateRegressionParameters()
+                    new RegressionCurve()
+                            .domainMax(String.valueOf(Math.round(1.05 * record.timeSeriesData.values()[-1])))
+                            .reference("${record.xnatVersion}-${regression.regressionName()}")
+                            .displayName(regression.regressionName())
+                            .function(
+                                    (0 .. regressionParams.size()).collect { termIndex ->
+                                        termIndex == 0 ?
+                                                String.valueOf(regressionParams[0]) :
+                                                "${regressionParams[termIndex]}*${regression.regressionTerms()[termIndex - 1].pgfPlotRepresentation()}"
+                                    }.join(' + ')
+                            )
+
+                })
     }
 
 }
