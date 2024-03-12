@@ -1,0 +1,11 @@
+\begin{scope}
+    \addtolength{\tabcolsep}{-0.3em}
+    \node [right, shape=rectangle, align=left](regressiontable) at (7,5) {
+        Add regression options: \\
+        \begin{tabular}{|%REGRESSION_HEADERS%|}
+            \hline
+            %REGRESSION_TABLE_DATA%
+            \hline
+        \end{tabular}
+    };
+\end{scope}
