@@ -12,6 +12,7 @@ import org.nrg.testing.latex.RegressionCurve
 import org.nrg.testing.latex.ScatterPlotDataset
 import org.nrg.testing.xnat.performance.actions.RepeatedMonitorableAction
 import org.nrg.testing.xnat.performance.persistence.CumulativeTimeSeriesData
+import org.nrg.testing.xnat.performance.regression.ExponentialRegression
 import org.nrg.testing.xnat.performance.regression.PolynomialRegression
 import org.nrg.testing.xnat.performance.regression.ReportableRegression
 import org.nrg.xnat.util.GraphUtils
@@ -29,7 +30,7 @@ class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorable
     ]
     private static final int MAX_EQUIVALENCE_DISTANCE = 1
     private static final List<ReportableRegression> CHARTABLE_REGRESSIONS = [
-            PolynomialRegression.LINEAR, PolynomialRegression.QUADRATIC, PolynomialRegression.CUBIC
+            PolynomialRegression.LINEAR, PolynomialRegression.QUADRATIC, PolynomialRegression.CUBIC, new ExponentialRegression()
     ]
 
     @Override
