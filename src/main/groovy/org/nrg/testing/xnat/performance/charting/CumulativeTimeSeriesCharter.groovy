@@ -92,13 +92,15 @@ class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorable
                 .timestamp(record.timestamp)
                 .regressions(CHARTABLE_REGRESSIONS.collect { regression ->
                     final OLSMultipleLinearRegression performedRegression = regression.performRegression(record.timeSeriesData)
-                    final double[] regressionParams = performedRegression.estimateRegressionParameters()
+                    final List<String> regressionParams = performedRegression.estimateRegressionParameters().collect { asDouble ->
+                        new BigDecimal(asDouble).toPlainString()
+                    }
                     new RegressionCurve()
-                            .domainMax(String.valueOf(Math.round(1.05 * record.timeSeriesData.values()[-1])))
+                            .domainMax(String.valueOf(Math.round(1.05 * record.timeSeriesData.keySet()[-1])))
                             .reference("${record.xnatVersion}-${regression.regressionName()}")
                             .displayName(regression.regressionName())
                             .function(
-                                    (0 .. regressionParams.size()).collect { termIndex ->
+                                    (0 ..< regressionParams.size()).collect { termIndex ->
                                         termIndex == 0 ?
                                                 String.valueOf(regressionParams[0]) :
                                                 "${regressionParams[termIndex]}*${regression.regressionTerms()[termIndex - 1].pgfPlotRepresentation()}"

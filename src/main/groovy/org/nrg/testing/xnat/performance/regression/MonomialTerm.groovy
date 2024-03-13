@@ -12,7 +12,7 @@ class MonomialTerm extends RegressionTerm {
 
     @Override
     Function<Double, Double> function() {
-        { double x -> Math.pow(x, monomialDegree) }
+        { double x -> Math.pow(x, degree) }
     }
 
     @Override
