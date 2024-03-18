@@ -30,11 +30,11 @@ class MathTest {
     void testLinearRegression() {
         UnitTestUtils.assertDoubleEqual(
                 1,
-                PolynomialRegressionValidator.LINEAR.performRegression(TRUE_LINEAR).calculateRSquared()
+                PolynomialRegressionValidator.LINEAR.defineRegression().performRegression(TRUE_LINEAR).calculateRSquared()
         )
         UnitTestUtils.assertDoubleEqual(
                 0,
-                PolynomialRegressionValidator.LINEAR.performRegression(SYMMETRIC_QUADRATIC).calculateRSquared()
+                PolynomialRegressionValidator.LINEAR.defineRegression().performRegression(SYMMETRIC_QUADRATIC).calculateRSquared()
         )
     }
 
@@ -42,7 +42,7 @@ class MathTest {
     void testQuadraticRegression() {
         UnitTestUtils.assertDoubleEqual(
                 1,
-                PolynomialRegressionValidator.QUADRATIC.performRegression(TRUE_QUADRATIC).calculateRSquared()
+                PolynomialRegressionValidator.QUADRATIC.defineRegression().performRegression(TRUE_QUADRATIC).calculateRSquared()
         )
     }
 

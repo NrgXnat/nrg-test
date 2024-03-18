@@ -1,8 +1,8 @@
 package org.nrg.testing.xnat.performance.validator
 
 import groovy.util.logging.Log4j
-
-import java.util.function.Function
+import org.nrg.testing.xnat.performance.regression.PolynomialRegression
+import org.nrg.testing.xnat.performance.regression.ReportableRegression
 
 @Log4j
 /**
@@ -23,10 +23,8 @@ class PolynomialRegressionValidator extends HistoricalRegressionValidator<Polyno
     }
 
     @Override
-    List<Function<Double, Double>> regressionTerms() {
-        (1 .. degree).collect { monomialDegree ->
-            { double x -> Math.pow(x, monomialDegree) }
-        } as List<Function<Double, Double>>
+    ReportableRegression defineRegression() {
+        new PolynomialRegression(degree)
     }
 
 }
