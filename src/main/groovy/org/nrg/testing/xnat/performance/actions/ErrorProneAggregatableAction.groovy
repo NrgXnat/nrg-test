@@ -3,6 +3,7 @@ package org.nrg.testing.xnat.performance.actions
 import groovy.util.logging.Log4j
 import org.nrg.testing.latex.LatexDocument
 import org.nrg.testing.xnat.performance.PerformanceStateHelper
+import org.nrg.testing.xnat.performance.charting.ErrorProneActionTimeCharter
 import org.nrg.testing.xnat.performance.charting.PerformanceCharter
 import org.nrg.testing.xnat.performance.persistence.ErrorProneAggregatableRecord
 import org.nrg.testing.xnat.performance.validator.ErrorProneAggregatableValidator
@@ -59,13 +60,7 @@ class ErrorProneAggregatableAction implements
 
     @Override
     PerformanceCharter<ErrorProneAggregatableAction, ErrorProneAggregatableRecord> getPerformanceCharter() {
-        new PerformanceCharter<ErrorProneAggregatableAction, ErrorProneAggregatableRecord>() {
-            @Override
-            LatexDocument produceDocument(ErrorProneAggregatableAction performanceWorkflow, List<ErrorProneAggregatableRecord> historicalRecord) {
-                log.info('Charting not yet supported for this type of action')
-                null
-            }
-        }
+        new ErrorProneActionTimeCharter()
     }
 
 }
