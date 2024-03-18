@@ -1,14 +1,14 @@
 \begin{axis}[
-    width = \textwidth,
+    align = center,
     xlabel = %XLABEL%,
     ylabel = %YLABEL%,
-    symbolic x coords = {%CHART_LABELS%},
-    nodes near coords,
-    xtick = {%CHART_LABELS%},
-    ymin = 0,
+    symbolic y coords = {%CHART_LABELS%},
+    ytick = {%CHART_LABELS%},
+    xmin = 0,
     xtick pos = left,
     ytick pos = left,
-    xticklabel style = {major tick length = 0pt},
-    title = {%CHART_TITLE%}]
+    title = {%CHART_TITLE%},
+    %ADDITIONAL_PLOT_OPTS%
+    ]
     %PLOTS%
 \end{axis}

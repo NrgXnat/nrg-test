@@ -1,9 +1,12 @@
 package org.nrg.testing.xnat.performance.persistence
 
-class ErrorProneAggregatableRecord implements CheckablePerformanceEntry<ErrorProneAggregatableRecord> {
+class ErrorProneAggregatableRecord extends OverallTimeRecord<ErrorProneAggregatableRecord> {
 
     int successCount
     int failureCount
-    long overallTimeInMillis
+
+    String successRateAsPercent() {
+        (100 * successCount / (successCount + failureCount)).round(1).toPlainString()
+    }
 
 }

@@ -12,7 +12,6 @@ import org.nrg.testing.latex.RegressionCurve
 import org.nrg.testing.latex.ScatterPlotDataset
 import org.nrg.testing.xnat.performance.actions.RepeatedMonitorableAction
 import org.nrg.testing.xnat.performance.persistence.CumulativeTimeSeriesData
-import org.nrg.testing.xnat.performance.regression.ExponentialRegression
 import org.nrg.testing.xnat.performance.regression.PolynomialRegression
 import org.nrg.testing.xnat.performance.regression.ReportableRegression
 import org.nrg.xnat.util.GraphUtils
@@ -30,7 +29,7 @@ class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorable
     ]
     private static final int MAX_EQUIVALENCE_DISTANCE = 1
     private static final List<ReportableRegression> CHARTABLE_REGRESSIONS = [
-            PolynomialRegression.LINEAR, PolynomialRegression.QUADRATIC, PolynomialRegression.CUBIC, new ExponentialRegression()
+            PolynomialRegression.LINEAR, PolynomialRegression.QUADRATIC, PolynomialRegression.CUBIC
     ]
 
     @Override
@@ -40,9 +39,7 @@ class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorable
             datasetComparisonGraph.addNode(timeSeries)
         }
         CollectionUtils.subsetsOfSize2(historicalRecord).each { pair ->
-            final double euclidean = pair.v1.calculateNormalizedDistanceTo(pair.v2)
             final double normalized = pair.v1.calculateNormalizedAverageAbsoluteValueDistance(pair.v2)
-            log.info("Normalized Euclidean distance from ${pair.v1.xnatVersion} -> ${pair.v2.xnatVersion}: ${euclidean}")
             log.info("Normalized absolute value distance from ${pair.v1.xnatVersion} -> ${pair.v2.xnatVersion}: ${normalized}")
             if (normalized < MAX_EQUIVALENCE_DISTANCE) {
                 datasetComparisonGraph.putEdge(pair.v1, pair.v2)

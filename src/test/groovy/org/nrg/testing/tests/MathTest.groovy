@@ -49,8 +49,8 @@ class MathTest {
     @Test
     void testTimeSeriesDistance() {
         UnitTestUtils.assertDoubleEqual(
-                2.5,
-                new CumulativeTimeSeriesData(timeSeriesData: [1: 10000, 2: 20000]).calculateNormalizedDistanceTo(
+                2500/207,
+                new CumulativeTimeSeriesData(timeSeriesData: [1: 10000, 2: 20000]).calculateNormalizedAverageAbsoluteValueDistance(
                         new CumulativeTimeSeriesData(timeSeriesData: [1: 13000, 2: 16000])
                 )
         )
