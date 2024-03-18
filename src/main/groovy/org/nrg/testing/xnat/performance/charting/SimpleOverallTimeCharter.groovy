@@ -9,7 +9,12 @@ class SimpleOverallTimeCharter extends GenericBarGraphCharter<SimpleTimedAction,
 
     @Override
     BarGraph getBaseBarGraph() {
-        new BarGraph().additionalPlotOptions(['nodes near coords', 'nodes near coords align = horizontal'])
+        new BarGraph().additionalPlotOptions([
+                'nodes near coords',
+                'nodes near coords align = horizontal',
+                'point meta = x', // show seconds as node label
+                'enlarge x limits = {value=0.2, upper}' // make node labels not overlap with axes
+        ])
     }
 
     @Override
