@@ -21,14 +21,14 @@ import java.util.function.Function
 @Log4j
 class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorableAction, CumulativeTimeSeriesData> {
 
-    private static final Map<Integer, String> COLORS = [
+    protected static final Map<Integer, String> COLORS = [
             0 : 'black',
             1 : 'red',
             2 : 'blue!80!white',
             3 : 'lime!70!black'
     ]
-    private static final int MAX_EQUIVALENCE_DISTANCE = 1
-    private static final List<ReportableRegression> CHARTABLE_REGRESSIONS = [
+    protected static final int MAX_EQUIVALENCE_DISTANCE = 1
+    protected static final List<ReportableRegression> CHARTABLE_REGRESSIONS = [
             PolynomialRegression.LINEAR, PolynomialRegression.QUADRATIC, PolynomialRegression.CUBIC
     ]
 
@@ -70,7 +70,7 @@ class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorable
         scatterPlot
     }
 
-    private static ScatterPlotDataset datasetFromIndex(int index, CumulativeTimeSeriesData record) {
+    protected static ScatterPlotDataset datasetFromIndex(int index, CumulativeTimeSeriesData record) {
         final Function<Integer, String> indexToShape = { int i ->
             switch (i) {
                 case 0 .. 3:

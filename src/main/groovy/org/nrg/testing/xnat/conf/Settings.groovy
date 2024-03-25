@@ -12,6 +12,9 @@ import org.nrg.testing.file.FileLocation
 import org.nrg.testing.util.RandomHelper
 import org.nrg.testing.xnat.performance.reset.PerformanceServerResetScript
 import org.nrg.testing.xnat.performance.reset.XnatResetScriptLookup
+import org.nrg.testing.xnat.performance.reset.plugin.XnatPluginInstaller
+import org.nrg.testing.xnat.performance.reset.plugin.XnatPluginManagementScriptLookup
+import org.nrg.testing.xnat.performance.reset.plugin.XnatPluginUninstaller
 import org.nrg.testing.xnat.ssh.SSHConnection
 import org.nrg.testing.xnat.ssh.TomcatController
 import org.nrg.testing.xnat.ssh.TomcatControllerLookup
@@ -109,7 +112,10 @@ class Settings {
     public static final Backend CS_PREFERRED_BACKEND = properties.preferredBackend
     public static final boolean PERFORMANCE_TESTS_ALLOWED = properties.performanceAllowedSetting
     public static final PerformanceServerResetScript PERFORMANCE_RESET_SCRIPT = XnatResetScriptLookup.lookup(properties.performanceResetScriptId)
+    public static final XnatPluginInstaller PERFORMANCE_PLUGIN_INSTALLER = XnatPluginManagementScriptLookup.lookupInstaller(properties.performancePluginInstallId)
+    public static final XnatPluginUninstaller PERFORMANCE_PLUGIN_UNINSTALLER = XnatPluginManagementScriptLookup.lookupUninstaller(properties.performancePluginUninstallId)
     public static final boolean PERFORMANCE_SET_BASELINES = properties.performanceSetBaselineSetting
+    public static final boolean PERFORMANCE_NEW_TESTS_ONLY = properties.performanceNewTestsOnlySetting
     public static final boolean PERFORMANCE_EXPORT_ONLY = properties.performanceExportOnlySetting
     public static final boolean PERFORMANCE_COMPILE_PDF = properties.performanceCompilePdfSetting
     public static final String DQR_PACS_AE_TITLE = properties.dqrPacsAeTitle

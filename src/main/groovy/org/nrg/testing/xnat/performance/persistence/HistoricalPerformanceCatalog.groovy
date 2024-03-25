@@ -13,4 +13,10 @@ class HistoricalPerformanceCatalog<X extends CheckablePerformanceEntry<X>> {
         } ?: entries.last()
     }
 
+    X lookupEntryByVersion(String version) {
+        entries.find { entry ->
+            entry.xnatVersion == version
+        }
+    }
+
 }

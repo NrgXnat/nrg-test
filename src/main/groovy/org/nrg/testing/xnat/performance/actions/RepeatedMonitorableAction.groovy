@@ -2,9 +2,12 @@ package org.nrg.testing.xnat.performance.actions
 
 import groovy.util.logging.Log4j
 import org.nrg.testing.xnat.performance.PerformanceStateHelper
+import org.nrg.testing.xnat.performance.PerformanceUtils
+import org.nrg.testing.xnat.performance.charting.ComparativeTimeSeriesCharter
 import org.nrg.testing.xnat.performance.charting.CumulativeTimeSeriesCharter
 import org.nrg.testing.xnat.performance.charting.PerformanceCharter
 import org.nrg.testing.xnat.performance.persistence.CumulativeTimeSeriesData
+import org.nrg.testing.xnat.performance.persistence.HistoricalPerformanceCatalog
 import org.nrg.testing.xnat.performance.validator.PerformanceValidator
 import org.nrg.xnat.interfaces.XnatInterface
 
@@ -35,6 +38,7 @@ class RepeatedMonitorableAction implements
     int actionsPerSnapshot = 10
     Consumer<XnatInterface> performanceTestAction
     String actionDescription
+    List<RequestedComparison> requestedComparisons = []
 
     RepeatedMonitorableAction(String identifier) {
         setIdentifier(identifier)
@@ -57,6 +61,15 @@ class RepeatedMonitorableAction implements
 
     RepeatedMonitorableAction actionDescription(String actionDescription) {
         setActionDescription(actionDescription)
+        this
+    }
+
+    RepeatedMonitorableAction compareTo(String otherTestId, String otherTestDescription, String otherTestShortKey) {
+        requestedComparisons << new RequestedComparison(
+                otherTestId: otherTestId,
+                otherTestDescription: otherTestDescription,
+                otherTestShortKey: otherTestShortKey
+        )
         this
     }
 
@@ -84,6 +97,38 @@ class RepeatedMonitorableAction implements
     @Override
     PerformanceCharter<RepeatedMonitorableAction, CumulativeTimeSeriesData> getPerformanceCharter() {
         new CumulativeTimeSeriesCharter()
+    }
+
+    @Override
+    List<PerformanceCharter<RepeatedMonitorableAction, CumulativeTimeSeriesData>> getComparativeCharters() {
+        final HistoricalPerformanceCatalog<CumulativeTimeSeriesData> selfCatalog = PerformanceUtils.readHistory(identifier)
+        final List<String> selfCatalogVersions = selfCatalog.entries*.xnatVersion
+
+        requestedComparisons.collectMany { requestedComparison ->
+            final HistoricalPerformanceCatalog<CumulativeTimeSeriesData> otherCatalog = PerformanceUtils.readHistory(requestedComparison.otherTestId)
+            otherCatalog.entries*.xnatVersion.findAll { otherVersion ->
+                otherVersion in selfCatalogVersions
+            }.collect { version ->
+                new ComparativeTimeSeriesCharter(
+                        version: version,
+                        otherTestId: requestedComparison.otherTestId,
+                        otherTestDescription: requestedComparison.otherTestDescription,
+                        cachedHistory: new HistoricalPerformanceCatalog<CumulativeTimeSeriesData>(entries: [
+                                selfCatalog.lookupEntryByVersion(version),
+                                new CumulativeTimeSeriesData(
+                                        timeSeriesData: otherCatalog.lookupEntryByVersion(version).timeSeriesData,
+                                        xnatVersion: "${version}-${requestedComparison.otherTestShortKey}"
+                                )
+                        ])
+                )
+            }
+        }
+    }
+
+    private class RequestedComparison {
+        String otherTestId
+        String otherTestDescription
+        String otherTestShortKey
     }
 
 }

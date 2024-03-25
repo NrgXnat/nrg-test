@@ -59,6 +59,10 @@ trait CheckablePerformanceWorkflow<
         (validator ?: getDefaultValidator()).validate(identifier, checkableEntry)
     }
 
+    List<PerformanceCharter<T, V>> getComparativeCharters() {
+        []
+    }
+
     abstract V produceCheckableEntry(PerformanceStateHelper stateHelper)
 
     abstract PerformanceValidator<V> getDefaultValidator()

@@ -31,7 +31,6 @@ import org.nrg.xnat.pogo.Subject
 import org.nrg.xnat.pogo.XnatPlugin
 import org.nrg.xnat.pogo.users.User
 import org.nrg.xnat.subinterfaces.XnatFunctionalitySubinterface
-import org.testng.ITestContext
 import org.testng.ITestNGMethod
 import org.testng.SkipException
 import org.testng.annotations.AfterClass
@@ -57,7 +56,7 @@ abstract class BaseXnatTest extends BaseTestCase {
     public static final String CS_BACKENDS_DATA_PROVIDER = 'backend'
 
     @BeforeSuite(alwaysRun = true)
-    void setupXnatTests(ITestContext testContext) {
+    void setupXnatTests() {
         EmailQuery.setStartTime()
         validateSettings()
         constructRestDriver()
@@ -140,7 +139,7 @@ abstract class BaseXnatTest extends BaseTestCase {
     }
 
     @BeforeMethod(alwaysRun = true)
-    void setupXnatTest(Method m, ITestContext testContext) {
+    void setupXnatTest(Method m) {
         initializeTestRandomVariables()
         checkTestRequirements(m)
     }

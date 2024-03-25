@@ -66,8 +66,11 @@ class XNATProperties extends BaseProperties {
     public static final String CS_SUPPORTED_BACKENDS = 'cs.backends'
     public static final String ALLOW_PERFORMANCE_TESTS = 'xnat.performance.allow'
     public static final String PERFORMANCE_RESET_SCRIPT_ID = 'xnat.performance.resetId'
+    public static final String PERFORMANCE_INSTALL_PLUGIN_SCRIPT = 'xnat.performance.plugin.install'
+    public static final String PERFORMANCE_UNINSTALL_PLUGIN_SCRIPT = 'xnat.performance.plugin.uninstall'
     public static final String PERFORMANCE_SET_BASELINE = 'xnat.performance.setBaseline'
     public static final String PERFORMANCE_EXPORT_ONLY = 'xnat.performance.exportOnly'
+    public static final String PERFORMANCE_NEW_TESTS_ONLY = 'xnat.performance.newTestsOnly'
     public static final String PERFORMANCE_COMPILE_PDF = 'xnat.performance.compilePdf'
     public static final String DQR_PACS_AE_TITLE = 'dqr.pacs.ae.title'
     public static final String DQR_PACS_IP_ADDRESS = 'dqr.pacs.ip.address'
@@ -329,8 +332,20 @@ class XNATProperties extends BaseProperties {
         getStringProperty(PERFORMANCE_RESET_SCRIPT_ID, null)
     }
 
+    String getPerformancePluginInstallId() {
+        getStringProperty(PERFORMANCE_INSTALL_PLUGIN_SCRIPT, null)
+    }
+
+    String getPerformancePluginUninstallId() {
+        getStringProperty(PERFORMANCE_UNINSTALL_PLUGIN_SCRIPT, null)
+    }
+
     boolean getPerformanceSetBaselineSetting() {
         getBooleanProperty(PERFORMANCE_SET_BASELINE, false)
+    }
+
+    boolean getPerformanceNewTestsOnlySetting() {
+        getBooleanProperty(PERFORMANCE_NEW_TESTS_ONLY, false)
     }
 
     boolean getPerformanceExportOnlySetting() {

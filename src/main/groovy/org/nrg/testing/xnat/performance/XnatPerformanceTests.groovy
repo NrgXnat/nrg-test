@@ -1,13 +1,16 @@
 package org.nrg.testing.xnat.performance
 
 import groovy.util.logging.Log4j
+import org.nrg.testing.annotations.PerformanceTestPlugin
 import org.nrg.testing.xnat.BaseXnatRestTest
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.performance.actions.CheckablePerformanceWorkflow
 import org.nrg.testing.xnat.ssh.SSHConnection
+import org.testng.annotations.AfterSuite
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 
+import java.lang.reflect.Method
 import java.util.function.Consumer
 
 import static org.testng.AssertJUnit.fail
@@ -16,19 +19,67 @@ import static org.testng.AssertJUnit.fail
 @Test(groups = 'performance')
 class XnatPerformanceTests extends BaseXnatRestTest {
 
+    protected static final List<CheckablePerformanceWorkflow> executedTests = []
+    protected static final Set<String> knownTempPlugins = []
+
     @BeforeMethod(alwaysRun = true)
-    protected void clearXnat() {
-        log.fatal('BeforeMethod for performance test called')
-        if (Settings.PERFORMANCE_TESTS_ALLOWED && !Settings.PERFORMANCE_EXPORT_ONLY) {
-            log.info("Performing hard reset on XNAT server...")
-            Settings.PERFORMANCE_RESET_SCRIPT.resetXnatServer()
+    protected void clearXnat(Method method) {
+        if (performanceTestsRunning()) {
+            final PerformanceTestPlugin performanceTestPlugin = method.getAnnotation(PerformanceTestPlugin)
+            final Set<String> requestedPlugins = ((performanceTestPlugin != null) ? performanceTestPlugin.value() : []) as Set<String>
+            knownTempPlugins.addAll(requestedPlugins)
+
+            knownTempPlugins.each { plugin ->
+                if (plugin in requestedPlugins) {
+                    log.info("Attempting to install plugin '${plugin}' temporarily for a test...")
+                    Settings.PERFORMANCE_PLUGIN_INSTALLER.installPlugin(plugin)
+                } else {
+                    uninstallPlugin(plugin)
+                }
+            }
+
+            hardResetXnat()
             SSHConnection.waitForTomcat()
             setupXnat()
         }
     }
 
+    @AfterSuite(alwaysRun = true)
+    protected void uninstallPlugins() {
+        if (performanceTestsRunning()) {
+            knownTempPlugins.each { plugin ->
+                uninstallPlugin(plugin)
+            }
+            hardResetXnat()
+        }
+    }
+
+    @AfterSuite(alwaysRun = true)
+    protected void produceComparativeCharts() {
+        executedTests.each { test ->
+            test.getComparativeCharters().each { charter ->
+                log.info("Producing comparative charts for ${test.identifier}...")
+                charter.chart(test)
+            }
+        }
+    }
+
+    protected void uninstallPlugin(String plugin) {
+        log.info("Attempting to remove plugin '${plugin}' from XNAT (which may have already been done)...")
+        Settings.PERFORMANCE_PLUGIN_UNINSTALLER.uninstallPlugin(plugin)
+    }
+
+    protected void hardResetXnat() {
+        log.info("Performing hard reset on XNAT server...")
+        Settings.PERFORMANCE_RESET_SCRIPT.resetXnatServer()
+    }
+
     protected PerformanceScenarioBuilder performanceScenario() {
         new PerformanceScenarioBuilder()
+    }
+
+    protected boolean performanceTestsRunning() {
+        Settings.PERFORMANCE_TESTS_ALLOWED && !Settings.PERFORMANCE_EXPORT_ONLY
     }
 
     class PerformanceScenarioBuilder {
@@ -46,16 +97,26 @@ class XnatPerformanceTests extends BaseXnatRestTest {
         }
 
         void run() {
-            final String failureResult = Settings.PERFORMANCE_EXPORT_ONLY ?
-                    null : new PerformanceScenario(setup, tests).run(new PerformanceStateHelper(restDriver))
+            final String failureResult = attemptToRun() ?
+                    new PerformanceScenario(setup, tests).run(new PerformanceStateHelper(restDriver)) : null
 
             tests.each { test ->
                 test.getPerformanceCharter().chart(test)
+                executedTests << test
             }
 
             if (failureResult) {
                 fail(failureResult)
             }
+        }
+
+        private boolean attemptToRun() {
+            !Settings.PERFORMANCE_EXPORT_ONLY &&
+                    (!Settings.PERFORMANCE_NEW_TESTS_ONLY || tests.any { test ->
+                        !PerformanceUtils.readHistory(test.identifier).entries.any { record ->
+                            record.xnatVersion == Settings.XNAT_VERSION_AS_STRING
+                        }
+                    })
         }
     }
 

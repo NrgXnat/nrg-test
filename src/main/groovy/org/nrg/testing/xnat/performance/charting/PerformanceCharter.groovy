@@ -16,10 +16,11 @@ abstract class PerformanceCharter<
     private static final int MAX_COMPILE_DURATION_MILLIS = 10000
 
     void chart(T performanceWorkflow) {
-        final HistoricalPerformanceCatalog<V> history = PerformanceUtils.readHistory(performanceWorkflow.identifier)
-        final LatexDocument chart = produceDocument(performanceWorkflow, history.entries)
+        final T transformedWorkflow = transformPerformanceWorkflow(performanceWorkflow)
+        final HistoricalPerformanceCatalog<V> history = readHistoryFor(transformedWorkflow)
+        final LatexDocument chart = produceDocument(transformedWorkflow, history.entries)
         if (chart) {
-            final File chartFile = PerformanceUtils.chartFor(performanceWorkflow.identifier)
+            final File chartFile = PerformanceUtils.chartFor(transformedWorkflow.identifier)
             chartFile.text = chart.produceSourceDocument()
             if (Settings.PERFORMANCE_COMPILE_PDF) {
                 log.info('Attempting to compile result to PDF...')
@@ -37,5 +38,13 @@ abstract class PerformanceCharter<
     }
 
     abstract LatexDocument produceDocument(T performanceWorkflow, List<V> historicalRecord)
+
+    HistoricalPerformanceCatalog<V> readHistoryFor(T performanceWorkflow) {
+        PerformanceUtils.readHistory(performanceWorkflow.identifier)
+    }
+
+    T transformPerformanceWorkflow(T performanceWorkflow) {
+        performanceWorkflow
+    }
 
 }
