@@ -72,11 +72,13 @@ class XNATProperties extends BaseProperties {
     public static final String PERFORMANCE_EXPORT_ONLY = 'xnat.performance.exportOnly'
     public static final String PERFORMANCE_NEW_TESTS_ONLY = 'xnat.performance.newTestsOnly'
     public static final String PERFORMANCE_COMPILE_PDF = 'xnat.performance.compilePdf'
-    public static final String DQR_PACS_AE_TITLE = 'dqr.pacs.ae.title'
-    public static final String DQR_PACS_IP_ADDRESS = 'dqr.pacs.ip.address'
-    public static final String DQR_PACS_PORT = 'dqr.pacs.port'
-    public static final String DQR_SCP_RECEIVER_AE_TITLE = 'dqr.scp.receiver.ae.title'
-    public static final String DQR_SCP_RECEIVER_PORT = 'dqr.scp.receiver.port'
+    public static final String DQR_PACS_DIMSE_AE_TITLE = 'dqr.pacs.dimse.aeTitle'
+    public static final String DQR_PACS_DIMSE_HOST = 'dqr.pacs.dimse.host'
+    public static final String DQR_PACS_DIMSE_PORT = 'dqr.pacs.dimse.port'
+    public static final String DQR_PACS_DICOMWEB_AE_TITLE = 'dqr.pacs.dicomweb.aeTitle'
+    public static final String DQR_PACS_DICOMWEB_ROOT_URL = 'dqr.pacs.dicomweb.rootUrl'
+    public static final String DQR_SCP_RECEIVER_AE_TITLE = 'dqr.scpReceiver.aeTitle'
+    public static final String DQR_SCP_RECEIVER_PORT = 'dqr.scpReceiver.port'
 
     XNATProperties() {
         super('xnat.config', 'local.properties')
@@ -356,16 +358,24 @@ class XNATProperties extends BaseProperties {
         getBooleanProperty(PERFORMANCE_COMPILE_PDF, false)
     }
 
-    String getDqrPacsAeTitle() {
-        getStringProperty(DQR_PACS_AE_TITLE, null)
+    String getDqrPacsDimseAeTitle() {
+        getStringProperty(DQR_PACS_DIMSE_AE_TITLE, null)
     }
 
-    String getDqrPacsIpAddress() {
-        getStringProperty(DQR_PACS_IP_ADDRESS, null)
+    String getDqrPacsDimseHost() {
+        getStringProperty(DQR_PACS_DIMSE_HOST, null)
     }
 
-    int getDqrPacsPort() {
-        getIntProperty(DQR_PACS_PORT, 4242)
+    int getDqrPacsDimsePort() {
+        getIntProperty(DQR_PACS_DIMSE_PORT, 4242)
+    }
+
+    String getDqrPacsDicomwebAeTitle() {
+        getStringProperty(DQR_PACS_DICOMWEB_AE_TITLE, null)
+    }
+
+    String getDqrPacsDicomwebRootUrl() {
+        getStringProperty(DQR_PACS_DICOMWEB_ROOT_URL, null)
     }
 
     String getDqrScpReceiverAeTitle() {

@@ -33,8 +33,16 @@ class Version implements Comparable<Version> {
         return this.compareTo(that) < 0
     }
 
+    boolean lessThanOrEqualTo(@Nullable final Version that) {
+        return this.compareTo(that) <= 0
+    }
+
     boolean greaterThan(@Nullable final Version that) {
         return this.compareTo(that) > 0
+    }
+
+    boolean greaterThanOrEqualTo(@Nullable final Version that) {
+        return this.compareTo(that) >= 0
     }
 
     boolean equals(@Nullable final Version that) {

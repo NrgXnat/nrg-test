@@ -118,9 +118,11 @@ class Settings {
     public static final boolean PERFORMANCE_NEW_TESTS_ONLY = properties.performanceNewTestsOnlySetting
     public static final boolean PERFORMANCE_EXPORT_ONLY = properties.performanceExportOnlySetting
     public static final boolean PERFORMANCE_COMPILE_PDF = properties.performanceCompilePdfSetting
-    public static final String DQR_PACS_AE_TITLE = properties.dqrPacsAeTitle
-    public static final String DQR_PACS_IP_ADDRESS = properties.dqrPacsIpAddress
-    public static final int DQR_PACS_PORT = properties.dqrPacsPort
+    public static final String DQR_PACS_DIMSE_AE_TITLE = properties.dqrPacsDimseAeTitle
+    public static final String DQR_PACS_DIMSE_HOST = properties.dqrPacsDimseHost
+    public static final int DQR_PACS_DIMSE_PORT = properties.dqrPacsDimsePort
+    public static final String DQR_PACS_DICOMWEB_AE_TITLE = properties.dqrPacsDicomwebAeTitle
+    public static final String DQR_PACS_DICOMWEB_ROOT_URL = properties.dqrPacsDicomwebRootUrl
     public static final String DQR_SCP_RECEIVER_AE_TITLE = properties.dqrScpReceiverAeTitle
     public static final int DQR_SCP_RECEIVER_PORT = properties.dqrScpReceiverPort
 
