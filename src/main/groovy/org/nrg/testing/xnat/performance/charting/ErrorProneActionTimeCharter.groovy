@@ -13,7 +13,7 @@ class ErrorProneActionTimeCharter extends GenericBarGraphCharter<ErrorProneAggre
         new BarGraph().additionalPlotOptions([
                 'colorbar',
                 'colorbar style = {xshift = 1cm, title = Success rate}',
-                'colormap={successcolormap}{color(0)=(red) color(1000)=(green)}',
+                'colormap={successcolormap}{rgb255(0)=(226, 220, 245) rgb255(1000)=(76, 62, 118)}',
                 'point meta = explicit'
         ])
     }
