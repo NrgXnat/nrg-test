@@ -5,6 +5,7 @@ import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.performance.CheckablePerformanceResult
 import org.nrg.testing.xnat.performance.PerformanceStateHelper
 import org.nrg.testing.xnat.performance.charting.PerformanceCharter
+import org.nrg.testing.xnat.performance.charting.RequestedComparison
 import org.nrg.testing.xnat.performance.persistence.CheckablePerformanceEntry
 import org.nrg.testing.xnat.performance.validator.PerformanceValidator
 import org.nrg.xnat.pogo.users.User
@@ -17,6 +18,7 @@ trait CheckablePerformanceWorkflow<
     String identifier
     PerformanceUserProvider userProvider
     String title
+    List<RequestedComparison> requestedComparisons = []
     def validator // typing this as PerformanceValidator<V> produces bad class file
 
     T withSetup(Runnable setup) {
@@ -49,10 +51,20 @@ trait CheckablePerformanceWorkflow<
         this as T
     }
 
+    T compareTo(String otherTestId, String otherTestDescription, String otherTestShortKey) {
+        requestedComparisons << new RequestedComparison(
+                otherTestId: otherTestId,
+                otherTestDescription: otherTestDescription,
+                otherTestShortKey: otherTestShortKey
+        )
+        this as T
+    }
+
     CheckablePerformanceResult run(PerformanceStateHelper stateHelper) {
         if (setup != null) {
             setup.run()
         }
+        userProvider?.setup(stateHelper)
         final V checkableEntry = produceCheckableEntry(stateHelper)
         checkableEntry.setTimestamp(System.currentTimeMillis())
         checkableEntry.setXnatVersion(Settings.XNAT_VERSION_AS_STRING)

@@ -2,6 +2,7 @@ package org.nrg.testing.xnat.performance.actions
 
 import groovy.util.logging.Log4j
 import org.nrg.testing.xnat.performance.PerformanceStateHelper
+import org.nrg.testing.xnat.performance.charting.ComparativeOverallTimeCharter
 import org.nrg.testing.xnat.performance.charting.PerformanceCharter
 import org.nrg.testing.xnat.performance.charting.SimpleOverallTimeCharter
 import org.nrg.testing.xnat.performance.persistence.SimpleOverallTimeRecord
@@ -60,6 +61,11 @@ class SimpleTimedAction implements
     @Override
     PerformanceCharter<SimpleTimedAction, SimpleOverallTimeRecord> getPerformanceCharter() {
         new SimpleOverallTimeCharter()
+    }
+
+    @Override
+    List<PerformanceCharter<SimpleTimedAction, SimpleOverallTimeRecord>> getComparativeCharters() {
+        (requestedComparisons.isEmpty()) ? [] : [new ComparativeOverallTimeCharter()]
     }
 
 }

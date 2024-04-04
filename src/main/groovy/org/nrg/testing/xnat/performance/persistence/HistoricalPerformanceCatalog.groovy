@@ -19,4 +19,14 @@ class HistoricalPerformanceCatalog<X extends CheckablePerformanceEntry<X>> {
         }
     }
 
+    List<String> findVersionOverlapWithOtherCatalogs(Collection<HistoricalPerformanceCatalog<X>> otherCatalogs) {
+        final List<String> selfCatalogVersions = entries*.xnatVersion
+        final List<List<String>> otherCatalogsVersions = otherCatalogs.entries*.xnatVersion
+        selfCatalogVersions.findAll { selfVersion ->
+            otherCatalogsVersions.every { individualOtherCatalog ->
+                selfVersion in individualOtherCatalog
+            }
+        }
+    }
+
 }

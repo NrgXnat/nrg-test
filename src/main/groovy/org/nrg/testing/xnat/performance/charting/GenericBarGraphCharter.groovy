@@ -1,6 +1,6 @@
 package org.nrg.testing.xnat.performance.charting
 
-import org.nrg.testing.latex.Bar
+import org.nrg.testing.latex.DataPoint
 import org.nrg.testing.latex.LatexDocument
 import org.nrg.testing.latex.BarGraph
 import org.nrg.testing.xnat.performance.actions.CheckablePerformanceWorkflow
@@ -12,7 +12,7 @@ abstract class GenericBarGraphCharter<
 
     abstract BarGraph getBaseBarGraph()
 
-    abstract Bar generateBarFrom(V record, List<V> allRecords)
+    abstract String getPointMetaFrom(V record)
 
     @Override
     LatexDocument produceDocument(T performanceWorkflow, List<V> historicalRecord) {
@@ -21,8 +21,12 @@ abstract class GenericBarGraphCharter<
                 .ylabel('XNAT version')
                 .xlabel('Overall time in seconds')
         historicalRecord.each { record ->
-            barGraph.bars << generateBarFrom(record, historicalRecord)
+            barGraph.datasetFor(record.chartGrouping).dataPoints << new DataPoint()
+                    .x(convertAndDisplay(record.overallTimeInMillis))
+                    .y(record.xnatVersion)
+                    .pointMeta(getPointMetaFrom(record))
         }
+
         barGraph
     }
 

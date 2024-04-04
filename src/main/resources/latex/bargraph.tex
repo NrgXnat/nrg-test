@@ -2,14 +2,14 @@
     align = center,
     xlabel = %XLABEL%,
     ylabel = %YLABEL%,
-    symbolic y coords = {%CHART_LABELS%},
-    ytick = {%CHART_LABELS%},
-    xmin = 0,
     xtick pos = left,
     ytick pos = left,
+    ytick = data,
+    xmin = 0,
+    enlarge x limits = {value = 0.2, upper}, % make node labels not overlap with axes
     title = {%CHART_TITLE%},
     title style = {text width = 0.8\textwidth},
     %ADDITIONAL_PLOT_OPTS%
-    ]
+]
     %PLOTS%
 \end{axis}

@@ -1,5 +1,6 @@
 package org.nrg.testing.xnat.performance.persistence
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonPropertyOrder
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 
@@ -10,5 +11,16 @@ trait CheckablePerformanceEntry<X extends CheckablePerformanceEntry<X>> {
     boolean baseline = false
     Long timestamp
     String xnatVersion
+    @JsonIgnore private String chartGrouping
+
+    @JsonIgnore
+    String getChartGrouping() {
+        chartGrouping
+    }
+
+    @JsonIgnore
+    void setChartGrouping(String chartGrouping) {
+        this.chartGrouping = chartGrouping
+    }
 
 }

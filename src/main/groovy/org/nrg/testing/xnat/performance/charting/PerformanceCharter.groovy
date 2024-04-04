@@ -20,7 +20,7 @@ abstract class PerformanceCharter<
         final HistoricalPerformanceCatalog<V> history = readHistoryFor(transformedWorkflow)
         final LatexDocument chart = produceDocument(transformedWorkflow, history.entries)
         if (chart) {
-            final File chartFile = PerformanceUtils.chartFor(transformedWorkflow.identifier)
+            final File chartFile = PerformanceUtils.chartFor(remapIdentifier(transformedWorkflow))
             chartFile.text = chart.produceSourceDocument()
             if (Settings.PERFORMANCE_COMPILE_PDF) {
                 log.info('Attempting to compile result to PDF...')
@@ -45,6 +45,10 @@ abstract class PerformanceCharter<
 
     T transformPerformanceWorkflow(T performanceWorkflow) {
         performanceWorkflow
+    }
+
+    String remapIdentifier(T performanceWorkflow) {
+        performanceWorkflow.identifier
     }
 
 }
