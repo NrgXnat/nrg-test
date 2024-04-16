@@ -5,6 +5,7 @@ import io.restassured.RestAssured
 import io.restassured.config.RestAssuredConfig
 import io.restassured.path.json.mapper.factory.Jackson2ObjectMapperFactory
 import io.restassured.specification.RequestSpecification
+import org.apache.commons.io.FileUtils
 import org.nrg.testing.enums.TestData
 import org.nrg.testing.util.RandomHelper
 import org.nrg.testing.xnat.components.ComponentizedTest
@@ -24,11 +25,10 @@ import org.testng.annotations.AfterSuite
 import org.testng.annotations.BeforeSuite
 
 import java.lang.reflect.Type
+import java.nio.file.Paths
 import java.util.concurrent.Callable
 
 import static io.restassured.config.ObjectMapperConfig.objectMapperConfig
-import static org.hamcrest.MatcherAssert.assertThat
-import static org.testng.AssertJUnit.fail
 
 class BaseXnatRestTest extends BaseXnatTest {
 
@@ -54,6 +54,11 @@ class BaseXnatRestTest extends BaseXnatTest {
         suiteTestProjects.each { project ->
             restDriver.deleteProjectSilently(mainAdminUser, project)
         }
+    }
+
+    @AfterSuite(alwaysRun = true)
+    protected void deleteDownloadedTempData() {
+        FileUtils.deleteDirectory(Paths.get(Settings.TEMP_SUBDIR).toFile())
     }
 
     @AfterClass(alwaysRun = true)

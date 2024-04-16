@@ -2,7 +2,7 @@ package org.nrg.testing.xnat.performance.persistence
 
 import static java.lang.Math.abs
 
-class CumulativeTimeSeriesData implements CheckablePerformanceEntry<CumulativeTimeSeriesData> {
+class CumulativeTimeSeriesData extends OverallTimeRecord<CumulativeTimeSeriesData> {
 
     Map<Integer, Long> timeSeriesData
 
@@ -13,6 +13,11 @@ class CumulativeTimeSeriesData implements CheckablePerformanceEntry<CumulativeTi
         100 * (0 ..< dataset1.size()).sum { index ->
             (abs(dataset1[index] - dataset2[index]) / (dataset1[index] + dataset2[index]))
         } / dataset1.size()
+    }
+
+    @Override
+    long getOverallTimeInMillis() {
+        timeSeriesData.values().max()
     }
 
 }

@@ -101,7 +101,7 @@ class XnatPerformanceTests extends BaseXnatRestTest {
                     new PerformanceScenario(setup, tests).run(new PerformanceStateHelper(restDriver)) : null
 
             tests.each { test ->
-                test.getPerformanceCharter().chart(test)
+                test.getEffectiveCharter().chart(test)
                 executedTests << test
             }
 

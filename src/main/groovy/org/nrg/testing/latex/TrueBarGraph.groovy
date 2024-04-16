@@ -5,7 +5,8 @@ class TrueBarGraph extends BarGraph {
     private static final List<String> BAR_COLORS = [
             'blue!20!white',
             'black',
-            'orange!20!white'
+            'orange!20!white',
+            'white'
     ]
 
     @Override

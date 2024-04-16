@@ -5,8 +5,10 @@ import org.nrg.testing.latex.LatexDocument
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.performance.PerformanceUtils
 import org.nrg.testing.xnat.performance.actions.CheckablePerformanceWorkflow
+import org.nrg.testing.xnat.performance.actions.SimpleTimedAction
 import org.nrg.testing.xnat.performance.persistence.CheckablePerformanceEntry
 import org.nrg.testing.xnat.performance.persistence.HistoricalPerformanceCatalog
+import org.nrg.testing.xnat.performance.persistence.SimpleOverallTimeRecord
 
 @Log4j
 abstract class PerformanceCharter<
@@ -39,8 +41,39 @@ abstract class PerformanceCharter<
 
     abstract LatexDocument produceDocument(T performanceWorkflow, List<V> historicalRecord)
 
+    List<PerformanceCharter<T, V>> deriveComparativeCharters(T performanceWorkflow, List<RequestedComparison> requestedComparisons) {
+        []
+    }
+
     HistoricalPerformanceCatalog<V> readHistoryFor(T performanceWorkflow) {
         PerformanceUtils.readHistory(performanceWorkflow.identifier)
+    }
+
+    HistoricalPerformanceCatalog<V> readAndCombineComparedHistoryFor(T performanceWorkflow) {
+        final HistoricalPerformanceCatalog<V> selfCatalog = PerformanceUtils.readHistory(performanceWorkflow.identifier)
+        final Map<RequestedComparison, HistoricalPerformanceCatalog<V>> comparedCatalogs =
+                performanceWorkflow.requestedComparisons.collectEntries { comparison ->
+                    [(comparison) : PerformanceUtils.readHistory(comparison.otherTestId)]
+                }
+
+        final List<String> supportedVersions = selfCatalog.findVersionOverlapWithOtherCatalogs(comparedCatalogs.values())
+
+        final HistoricalPerformanceCatalog<V> combinedHistory = new HistoricalPerformanceCatalog<>()
+        selfCatalog.entries.findAll { entry ->
+            if (entry.xnatVersion in supportedVersions) {
+                entry.setChartGrouping('standard')
+                combinedHistory.entries << entry
+            }
+        }
+        comparedCatalogs.each { comparison, history ->
+            history.entries.findAll { entry ->
+                if (entry.xnatVersion in supportedVersions) {
+                    entry.setChartGrouping(comparison.otherTestDescription)
+                    combinedHistory.entries << entry
+                }
+            }
+        }
+        combinedHistory
     }
 
     T transformPerformanceWorkflow(T performanceWorkflow) {

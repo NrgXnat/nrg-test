@@ -59,13 +59,8 @@ class SimpleTimedAction implements
     }
 
     @Override
-    PerformanceCharter<SimpleTimedAction, SimpleOverallTimeRecord> getPerformanceCharter() {
+    PerformanceCharter<SimpleTimedAction, SimpleOverallTimeRecord> getDefaultPerformanceCharter() {
         new SimpleOverallTimeCharter()
-    }
-
-    @Override
-    List<PerformanceCharter<SimpleTimedAction, SimpleOverallTimeRecord>> getComparativeCharters() {
-        (requestedComparisons.isEmpty()) ? [] : [new ComparativeOverallTimeCharter()]
     }
 
 }

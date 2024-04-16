@@ -160,7 +160,6 @@ class Settings {
     static String generateTempSubdir() {
         final Path dirPath = Paths.get(TEMP, DIRECTORY_NAME)
         FileIOUtils.mkdirs(dirPath)
-        dirPath.toFile().deleteOnExit()
         dirPath.toString()
     }
 

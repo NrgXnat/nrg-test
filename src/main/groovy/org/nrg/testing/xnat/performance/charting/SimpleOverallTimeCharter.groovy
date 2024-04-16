@@ -17,4 +17,9 @@ class SimpleOverallTimeCharter extends GenericBarGraphCharter<SimpleTimedAction,
         null
     }
 
+    @Override
+    List<PerformanceCharter<SimpleTimedAction, SimpleOverallTimeRecord>> deriveComparativeCharters(SimpleTimedAction performanceWorkflow, List<RequestedComparison> requestedComparisons) {
+        [new ComparativeOverallTimeCharter()]
+    }
+
 }

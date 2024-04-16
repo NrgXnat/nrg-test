@@ -20,6 +20,7 @@ trait CheckablePerformanceWorkflow<
     String title
     List<RequestedComparison> requestedComparisons = []
     def validator // typing this as PerformanceValidator<V> produces bad class file
+    def charter
 
     T withSetup(Runnable setup) {
         setSetup(setup)
@@ -46,18 +47,27 @@ trait CheckablePerformanceWorkflow<
         this as T
     }
 
+    T chartUsing(PerformanceCharter<T, V> charter) {
+        setCharter(charter)
+        this as T
+    }
+
     T title(String title) {
         setTitle(title)
         this as T
     }
 
-    T compareTo(String otherTestId, String otherTestDescription, String otherTestShortKey) {
+    T compareTo(String otherTestId, String otherTestDescription, String otherTestShortKey = null) {
         requestedComparisons << new RequestedComparison(
                 otherTestId: otherTestId,
                 otherTestDescription: otherTestDescription,
                 otherTestShortKey: otherTestShortKey
         )
         this as T
+    }
+
+    T compareTo(CheckablePerformanceWorkflow otherTest, String otherTestDescription, String otherTestShortKey = null) {
+        compareTo(otherTest.identifier, otherTestDescription, otherTestShortKey)
     }
 
     CheckablePerformanceResult run(PerformanceStateHelper stateHelper) {
@@ -72,13 +82,18 @@ trait CheckablePerformanceWorkflow<
     }
 
     List<PerformanceCharter<T, V>> getComparativeCharters() {
-        []
+        requestedComparisons.isEmpty() ? [] : getEffectiveCharter().deriveComparativeCharters(this as T, requestedComparisons)
+    }
+
+    PerformanceCharter<T, V> getEffectiveCharter() {
+        setCharter(charter ?: getDefaultPerformanceCharter())
+        charter
     }
 
     abstract V produceCheckableEntry(PerformanceStateHelper stateHelper)
 
     abstract PerformanceValidator<V> getDefaultValidator()
 
-    abstract PerformanceCharter<T, V> getPerformanceCharter()
+    abstract PerformanceCharter<T, V> getDefaultPerformanceCharter()
 
 }

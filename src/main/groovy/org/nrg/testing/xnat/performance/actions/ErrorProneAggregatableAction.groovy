@@ -59,7 +59,7 @@ class ErrorProneAggregatableAction implements
     }
 
     @Override
-    PerformanceCharter<ErrorProneAggregatableAction, ErrorProneAggregatableRecord> getPerformanceCharter() {
+    PerformanceCharter<ErrorProneAggregatableAction, ErrorProneAggregatableRecord> getDefaultPerformanceCharter() {
         new ErrorProneActionTimeCharter()
     }
 

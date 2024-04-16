@@ -10,8 +10,10 @@ import org.nrg.testing.latex.LatexDocument
 import org.nrg.testing.latex.MultipleDatasetScatterPlot
 import org.nrg.testing.latex.RegressionCurve
 import org.nrg.testing.latex.ScatterPlotDataset
+import org.nrg.testing.xnat.performance.PerformanceUtils
 import org.nrg.testing.xnat.performance.actions.RepeatedMonitorableAction
 import org.nrg.testing.xnat.performance.persistence.CumulativeTimeSeriesData
+import org.nrg.testing.xnat.performance.persistence.HistoricalPerformanceCatalog
 import org.nrg.testing.xnat.performance.regression.PolynomialRegression
 import org.nrg.testing.xnat.performance.regression.ReportableRegression
 import org.nrg.xnat.util.GraphUtils
@@ -68,6 +70,29 @@ class CumulativeTimeSeriesCharter extends PerformanceCharter<RepeatedMonitorable
         scatterPlot.datasets.sort { it.timestamp }.reverse(true)
 
         scatterPlot
+    }
+
+    @Override
+    List<PerformanceCharter<RepeatedMonitorableAction, CumulativeTimeSeriesData>> deriveComparativeCharters(RepeatedMonitorableAction performanceWorkflow, List<RequestedComparison> requestedComparisons) {
+        final HistoricalPerformanceCatalog<CumulativeTimeSeriesData> selfCatalog = PerformanceUtils.readHistory(performanceWorkflow.identifier)
+
+        requestedComparisons.collectMany { requestedComparison ->
+            final HistoricalPerformanceCatalog<CumulativeTimeSeriesData> otherCatalog = PerformanceUtils.readHistory(requestedComparison.otherTestId)
+            selfCatalog.findVersionOverlapWithOtherCatalogs([otherCatalog]).collect { version ->
+                new ComparativeTimeSeriesCharter(
+                        version: version,
+                        otherTestId: requestedComparison.otherTestId,
+                        otherTestDescription: requestedComparison.otherTestDescription,
+                        cachedHistory: new HistoricalPerformanceCatalog<CumulativeTimeSeriesData>(entries: [
+                                selfCatalog.lookupEntryByVersion(version),
+                                new CumulativeTimeSeriesData(
+                                        timeSeriesData: otherCatalog.lookupEntryByVersion(version).timeSeriesData,
+                                        xnatVersion: "${version}-${requestedComparison.otherTestShortKey}"
+                                )
+                        ])
+                )
+            }
+        }
     }
 
     protected static ScatterPlotDataset datasetFromIndex(int index, CumulativeTimeSeriesData record) {

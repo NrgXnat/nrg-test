@@ -2,12 +2,9 @@ package org.nrg.testing.xnat.performance.actions
 
 import groovy.util.logging.Log4j
 import org.nrg.testing.xnat.performance.PerformanceStateHelper
-import org.nrg.testing.xnat.performance.PerformanceUtils
-import org.nrg.testing.xnat.performance.charting.ComparativeTimeSeriesCharter
 import org.nrg.testing.xnat.performance.charting.CumulativeTimeSeriesCharter
 import org.nrg.testing.xnat.performance.charting.PerformanceCharter
 import org.nrg.testing.xnat.performance.persistence.CumulativeTimeSeriesData
-import org.nrg.testing.xnat.performance.persistence.HistoricalPerformanceCatalog
 import org.nrg.testing.xnat.performance.validator.PerformanceValidator
 import org.nrg.xnat.interfaces.XnatInterface
 
@@ -85,31 +82,8 @@ class RepeatedMonitorableAction implements
     }
 
     @Override
-    PerformanceCharter<RepeatedMonitorableAction, CumulativeTimeSeriesData> getPerformanceCharter() {
+    PerformanceCharter<RepeatedMonitorableAction, CumulativeTimeSeriesData> getDefaultPerformanceCharter() {
         new CumulativeTimeSeriesCharter()
-    }
-
-    @Override
-    List<PerformanceCharter<RepeatedMonitorableAction, CumulativeTimeSeriesData>> getComparativeCharters() {
-        final HistoricalPerformanceCatalog<CumulativeTimeSeriesData> selfCatalog = PerformanceUtils.readHistory(identifier)
-
-        requestedComparisons.collectMany { requestedComparison ->
-            final HistoricalPerformanceCatalog<CumulativeTimeSeriesData> otherCatalog = PerformanceUtils.readHistory(requestedComparison.otherTestId)
-            selfCatalog.findVersionOverlapWithOtherCatalogs([otherCatalog]).collect { version ->
-                new ComparativeTimeSeriesCharter(
-                        version: version,
-                        otherTestId: requestedComparison.otherTestId,
-                        otherTestDescription: requestedComparison.otherTestDescription,
-                        cachedHistory: new HistoricalPerformanceCatalog<CumulativeTimeSeriesData>(entries: [
-                                selfCatalog.lookupEntryByVersion(version),
-                                new CumulativeTimeSeriesData(
-                                        timeSeriesData: otherCatalog.lookupEntryByVersion(version).timeSeriesData,
-                                        xnatVersion: "${version}-${requestedComparison.otherTestShortKey}"
-                                )
-                        ])
-                )
-            }
-        }
     }
 
 }

@@ -16,18 +16,30 @@ abstract class GenericBarGraphCharter<
 
     @Override
     LatexDocument produceDocument(T performanceWorkflow, List<V> historicalRecord) {
+        if (historicalRecord.size() == 0) {
+            return null
+        }
+
         final BarGraph barGraph = getBaseBarGraph()
                 .title(performanceWorkflow.title)
                 .ylabel('XNAT version')
-                .xlabel('Overall time in seconds')
+                .xlabel(getXLabel())
         historicalRecord.each { record ->
             barGraph.datasetFor(record.chartGrouping).dataPoints << new DataPoint()
-                    .x(convertAndDisplay(record.overallTimeInMillis))
+                    .x(convertAndDisplay(extractTimeFromRecord(record)))
                     .y(record.xnatVersion)
                     .pointMeta(getPointMetaFrom(record))
         }
 
         barGraph
+    }
+
+    String getXLabel() {
+        'Overall time in seconds'
+    }
+
+    long extractTimeFromRecord(V record) {
+        record.overallTimeInMillis
     }
 
     protected String convertAndDisplay(long millis) {
