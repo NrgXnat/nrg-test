@@ -10,18 +10,16 @@ import org.nrg.testing.annotations.JiraKey
 import org.nrg.testing.annotations.TestRequires
 import org.nrg.testing.annotations.XnatVersionLink
 import org.nrg.testing.email.EmailQuery
-import org.nrg.testing.enums.PluginDependencyCheckState
 import org.nrg.testing.enums.TestBehavior
 import org.nrg.testing.enums.TestData
 import org.nrg.testing.jira.JIRAProperties
 import org.nrg.testing.jira.JIRASettings
 import org.nrg.testing.listeners.adapters.git.GitLogListener
 import org.nrg.testing.listeners.adapters.jira.JIRATestListener
-import org.nrg.testing.util.Version
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.conf.XNATProperties
 import org.nrg.testing.xnat.conf.XnatConfig
-import org.nrg.testing.xnat.plugins.PluginDependencyCheck
+
 import org.nrg.testing.xnat.plugins.PluginDependencyManager
 import org.nrg.testing.xnat.rest.XnatRestDriver
 import org.nrg.xnat.interfaces.XnatInterface
@@ -30,7 +28,10 @@ import org.nrg.xnat.pogo.SiteConfig
 import org.nrg.xnat.pogo.Subject
 import org.nrg.xnat.pogo.XnatPlugin
 import org.nrg.xnat.pogo.users.User
-import org.nrg.xnat.subinterfaces.XnatFunctionalitySubinterface
+import org.nrg.xnat.subinterfaces.CoreXnatFunctionalitySubinterface
+import org.nrg.xnat.versions.Version
+import org.nrg.xnat.versions.plugins.PluginDependencyCheck
+import org.nrg.xnat.versions.plugins.PluginDependencyCheckState
 import org.testng.ITestNGMethod
 import org.testng.SkipException
 import org.testng.annotations.AfterClass
@@ -292,7 +293,6 @@ abstract class BaseXnatTest extends BaseTestCase {
         new Version(getInstalledPlugin(pluginId))
     }
 
-
     protected abstract void setupXnat()
 
     protected abstract List<User> createGenericUsers(int numUsers)
@@ -392,7 +392,7 @@ abstract class BaseXnatTest extends BaseTestCase {
         xnatInterface
     }
 
-    protected List<Class<? extends XnatFunctionalitySubinterface>> additionalRegisteredSubinterfaces() {
+    protected List<Class<? extends CoreXnatFunctionalitySubinterface>> additionalRegisteredSubinterfaces() {
         []
     }
 

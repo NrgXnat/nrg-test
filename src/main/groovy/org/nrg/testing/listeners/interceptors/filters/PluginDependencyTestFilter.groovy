@@ -3,14 +3,14 @@ package org.nrg.testing.listeners.interceptors.filters
 import groovy.util.logging.Log4j
 import org.nrg.testing.TestNgUtils
 import org.nrg.testing.annotations.TestRequires
-import org.nrg.testing.enums.PluginDependencyCheckState
 import org.nrg.testing.enums.TestBehavior
-import org.nrg.testing.xnat.plugins.GeneralPluginRequirement
-import org.nrg.testing.xnat.plugins.PluginDependencyCheck
 import org.nrg.testing.xnat.plugins.PluginDependencyManager
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.xnat.interfaces.XnatInterface
 import org.nrg.xnat.pogo.XnatPlugin
+import org.nrg.xnat.versions.plugins.GeneralPluginRequirement
+import org.nrg.xnat.versions.plugins.PluginDependencyCheck
+import org.nrg.xnat.versions.plugins.PluginDependencyCheckState
 import org.testng.IMethodInstance
 
 @Log4j

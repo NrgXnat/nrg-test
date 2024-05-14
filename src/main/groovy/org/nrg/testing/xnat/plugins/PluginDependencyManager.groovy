@@ -1,8 +1,10 @@
 package org.nrg.testing.xnat.plugins
 
 import org.nrg.testing.annotations.TestRequires
-import org.nrg.testing.enums.PluginDependencyCheckState
 import org.nrg.xnat.pogo.XnatPlugin
+import org.nrg.xnat.versions.plugins.GeneralPluginRequirement
+import org.nrg.xnat.versions.plugins.PluginDependencyCheck
+import org.nrg.xnat.versions.plugins.PluginDependencyCheckState
 
 class PluginDependencyManager {
 
@@ -13,7 +15,11 @@ class PluginDependencyManager {
                 requirements << GeneralPluginRequirement.fromString(pluginString)
             }
             requiresAnnotation.specificPluginRequirements().each { pluginRequirement ->
-                requirements << GeneralPluginRequirement.fromAnnotation(pluginRequirement)
+                requirements << new GeneralPluginRequirement(
+                        pluginId: pluginRequirement.pluginId(),
+                        minimumPluginVersion: pluginRequirement.minimumSupportedVersion(),
+                        maximumPluginVersion: pluginRequirement.maximumSupportedVersion()
+                )
             }
         }
         requirements
