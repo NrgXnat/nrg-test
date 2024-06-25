@@ -18,8 +18,7 @@ import org.nrg.xnat.pogo.Project
 import org.nrg.xnat.pogo.dicom.DicomScpReceiver
 import org.nrg.xnat.pogo.users.User
 import org.nrg.xnat.rest.Credentials
-import org.nrg.xnat.rest.ForbiddenException
-import org.nrg.xnat.rest.NotFoundException
+import org.nrg.xnat.rest.HttpStatusException
 import org.testng.annotations.AfterClass
 import org.testng.annotations.AfterSuite
 import org.testng.annotations.BeforeSuite
@@ -148,76 +147,68 @@ class BaseXnatRestTest extends BaseXnatTest {
         test.run(this)
     }
 
-    protected static TestComponent expect403(TestComponent baseAction) {
+    protected static TestComponent expectStatusCode(TestComponent baseAction, int... expectedStatusCodes) {
         new TestComponent() {
             @Override
             void perform(BaseXnatRestTest xnatRestTest, Project project) {
                 try {
                     baseAction.perform(xnatRestTest, project)
                     throw new RuntimeException("${baseAction.class.simpleName ?: '[anonymous class]'} action attempt should have failed!")
-                } catch (ForbiddenException ignored) {
-                    // expected
+                } catch (HttpStatusException encountered) {
+                    if (!(encountered.statusCode in expectedStatusCodes)) {
+                        throw encountered
+                    }
                 }
             }
         }
+    }
+
+    protected static TestComponent expect403(TestComponent baseAction) {
+        expectStatusCode(baseAction, 403)
     }
 
     protected static TestComponent expect404(TestComponent baseAction) {
-        new TestComponent() {
-            @Override
-            void perform(BaseXnatRestTest xnatRestTest, Project project) {
-                try {
-                    baseAction.perform(xnatRestTest, project)
-                    throw new RuntimeException("${baseAction.class.simpleName ?: '[anonymous class]'} action attempt should have failed!")
-                } catch (NotFoundException ignored) {
-                    // expected
-                }
-            }
-        }
+        expectStatusCode(baseAction, 404)
+    }
+
+    protected void expectStatusCode(Runnable action, int... expectedStatusCode) {
+        expectStatusCode(
+                new TestComponent() {
+                    @Override
+                    void perform(BaseXnatRestTest xnatRestTest, Project project) {
+                        action.run()
+                    }
+                },
+                expectedStatusCode
+        ).perform(this, null)
+    }
+
+    protected void expectStatusCode(Callable<Void> action, int... expectedStatusCode) {
+        expectStatusCode(
+                new TestComponent() {
+                    @Override
+                    void perform(BaseXnatRestTest xnatRestTest, Project project) {
+                        action.call()
+                    }
+                },
+                expectedStatusCode
+        ).perform(this, null)
     }
 
     protected void expect403(Runnable action) {
-        expect403(
-                new TestComponent() {
-                    @Override
-                    void perform(BaseXnatRestTest xnatRestTest, Project project) {
-                        action.run()
-                    }
-                }
-        ).perform(this, null)
+        expectStatusCode(action, 403)
     }
 
     protected void expect403(Callable<Void> action) {
-        expect403(
-                new TestComponent() {
-                    @Override
-                    void perform(BaseXnatRestTest xnatRestTest, Project project) {
-                        action.call()
-                    }
-                }
-        ).perform(this, null)
+        expectStatusCode(action, 403)
     }
 
     protected void expect404(Runnable action) {
-        expect404(
-                new TestComponent() {
-                    @Override
-                    void perform(BaseXnatRestTest xnatRestTest, Project project) {
-                        action.run()
-                    }
-                }
-        ).perform(this, null)
+        expectStatusCode(action, 404)
     }
 
     protected void expect404(Callable<Void> action) {
-        expect404(
-                new TestComponent() {
-                    @Override
-                    void perform(BaseXnatRestTest xnatRestTest, Project project) {
-                        action.call()
-                    }
-                }
-        ).perform(this, null)
+        expectStatusCode(action, 404)
     }
 
 }
