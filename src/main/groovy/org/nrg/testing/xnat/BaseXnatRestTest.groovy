@@ -171,6 +171,10 @@ class BaseXnatRestTest extends BaseXnatTest {
         expectStatusCode(baseAction, 404)
     }
 
+    protected static TestComponent expectPermissionsIssue(TestComponent baseAction) {
+        expectStatusCode(baseAction, 401, 403)
+    }
+
     protected void expectStatusCode(Runnable action, int... expectedStatusCode) {
         expectStatusCode(
                 new TestComponent() {
@@ -209,6 +213,14 @@ class BaseXnatRestTest extends BaseXnatTest {
 
     protected void expect404(Callable<Void> action) {
         expectStatusCode(action, 404)
+    }
+
+    protected void expectPermissionsIssue(Runnable action) {
+        expectStatusCode(action, 401, 403)
+    }
+
+    protected void expectPermissionsIssue(Callable<Void> action) {
+        expectStatusCode(action, 401, 403)
     }
 
 }
