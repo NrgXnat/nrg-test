@@ -9,54 +9,77 @@ $ mvn clean test -Dxnat.config=myxsync.properties -Dxnat.main.password=passw0rd 
 ```
 
 ## Configuration ##
-Each specific configuration setting may be done as a command line argument, or from the standard .properties file. Instead of defaulting to using local.properties, another file may be specified on the command line with -Dxnat.config=your_file (the analogous setting for jira.properties (discussed later) is jira.config). For security reasons, it's a better idea to use the command line for secure values such as passwords, although you may still use the .properties file (with warnings). Any arguments marked "Required" must be specified somewhere for every project, or the tests will not run correctly, while "Optional" parameters can sometimes be left out depending on the property and project. Parameters marked with an asterisk are only used by the tests using the [NRG_Selenium](https://bitbucket.org/xnatdev/nrg_selenium) framework (which extends this one).
+Each specific configuration setting may be done as a command line argument, or from the standard .properties file. Instead of defaulting to using local.properties, another file may be specified on the command line with -Dxnat.config=your_file (the analogous setting for jira.properties (discussed later) is jira.config). For security reasons, it's a better idea to use the command line for secure values such as passwords, although you may still use the .properties file (with warnings). Parameters marked with an asterisk are only used by the tests using the [NRG_Selenium](https://bitbucket.org/xnatdev/nrg_selenium) framework (which extends this one).
 
-* xnat.main.user: (Required) - The username of a non-admin account. This account need not exist unless xnat.init is false.
-* xnat.main.password: (Required) - The password of a non-admin account. This account need not exist unless xnat.init is false.
-* xnat.mainAdmin.user: (Optional) - The username of an admin account. This account need not exist.
-* xnat.mainAdmin.password: (Optional) - The password of an admin account. This account need not exist.
-* xnat.admin.user: (Optional) - The username of an admin account. This account must exist and is used to create the main accounts.
-* xnat.admin.password: (Optional) - The password of an admin account. This account must exist and is used to create the main accounts.
-* xnat.version: (Required) - The version of XNAT the server is running. Currently supported: 1.6dev, 1.7.2, 1.7.3, 1.7.4, 1.7.5, 1.7.5.2, 1.7.6, 1.7.7, 1.7dev, 1.8.0
-* xnat.users.email: (Required) - The email address for the selenium user accounts. This must be a gmail account.
-* xnat.users.email.password: (Optional) - The password for the email address for the main user accounts.
-* xnat.baseurl: (Required) - The URL for the test environment.
-* xnat.defaultTimeout*: (Optional) - Timeout in seconds for certain Selenium operations. Defaults to 30.
-* xnat.browser*: (Optional) - Browser to run the tests in, which must be installed on your system. Currently supports Firefox and (Windows) Chrome. Defaults to Firefox.
-* xnat.init*: (Optional) - Should main XNAT accounts be set up? Useful to turn off to speed up debugging, when the accounts already exist, or when admin credentials are not provided. Defaults to true.
-* xnat.dicom.host: (Optional) - Host for XNAT DICOM Receiver. Defaults to the host specified in xnat.baseurl.
-* xnat.dicom.port: (Optional) - Port number for XNAT DICOM Receiver. Defaults to 8104.
-* xnat.dicom.aetitle: (Optional) - DICOM AE Title for XNAT DICOM Receiver. Defaults to "XNAT".
-* * xnat.dicom.callingaetitle: (Optional) - The calling AE Title used to identify this application when sending a c-store request to the XNAT DICOM Receiver. Defaults to "GRXNAT".
-* xnat.jira: (Optional) - Should a testing cycle be created in JIRA according to settings found in jira.properties? Defaults to false.
-* xnat.requireAdmin: (Optional) - Are admin accounts required/allowed? Defaults to true.
-* xnat.notifiedEmails: (Optional) - Comma-separated list of emails to which results will be sent on test completion. If true, requires xnat.users.email.password to be set.
-* xnat.notifyOnSuccess: (Optional) - Should summary email be sent when all tests pass? Defaults to false (as long as prerequisite properties are set).
-* xnat.notificationTitle: (Optional) - What name should be used for the test suite in the summary email? This is optional for running tests in general, but required for the summary email to be sent.
-* xnat.dependencies: (Optional) - Can be set to false to disable dependency checks between certain tests. Defaults to true.
-* xnat.pipeline.useDynamicOrdering*: (Optional) - For use in pipeline tests only: if set to true, uses a [Multiprocessor scheduling](https://bitbucket.org/xnatdev/multiprocessor-scheduling) algorithm to order tests. Otherwise uses the order in which methods are defined in class. Defaults to false.
-* xnat.pipeline.slots*: (Optional) - Number of pipeline queue slots. Used only in pipeline tests. Required if xnat.pipeline.useDynamicOrdering is true.
-* xnat.timelogs: (Optional) - Can be set to true to generate summary CSVs of tests with runtimes and simple statistics. Defaults to false.
-* xnat.gitLogs: (Optional) - Can be set to true to turn XNAT and tomcat logs into git repos (requires test_logger XNAT plugin). Defaults to false.
-* xnat.basic: (Optional) - Can be set to true to only run methods/classes annotated with `@Basic` (marking either the test or the class is sufficient). If false (or left out), all allowed tests will be run.
-* xnat.db.url: (Optional) - URL for XNAT database if tests need DB access.
-* xnat.db.user: (Optional) - User for XNAT database if tests need DB access.
-* xnat.db.password: (Optional) - Password for XNAT database if tests need DB access.
-* xnat.captureDom*: (Optional) - Specify whether or not the state of the DOM (contents of body in the DOM) should be recorded when a test fails. Defaults to false.
-* xnat.ssh.user: (Optional) - Username for an account to use for SSH. Required by some tests.
-* xnat.ssh.key: (Optional) - Name of SSH private key. Required by some tests.
-* xnat.producePdf: (Optional) - If set to true, results from JIRA will be scraped to export the test cycle as a PDF. Requires pdflatex (pdflatex must be on $PATH). Defaults to false.
-* xnat.setupMrscan: (Optional) - If set to true, the xnat:mrScanData data type will be set-up on the XNAT server in startup. Defaults to false.
-* xnat.testBehavior.expectedFailures: (Optional) - For tests or classes annotated with `@ExpectedFailure`, how should the behavior be handled? Supported values: run, skip, ignore. Defaults to skip.
-* xnat.testBehavior.missingPlugins: (Optional) - For tests or classes annotated with plugin dependencies, how should these tests be handled when one or more of the required plugins is not installed? Supported values: skip, ignore. Defaults to ignore.
-* xnat.temp: (Optional) - Path to a directory to use as temp storage. Defaults to the system-provided default.
-* mail.smtp.host: (Optional) - Host to use as the smtp relay if the summary email is being used. Defaults to localhost.
-* mail.smtp.port: (Optional) - Port to use for smtp if the summary email is being used. Defaults to 25.
-* cs.swarm.canEnable: (Optional) - Specifies whether or not the XNAT server being tested has backend support for Docker swarm. Defaults to false.
-* cs.swarm.timeout: (Optional) - Timing parameter used in Docker Swarm tests. Defaults to 5.
-* tomcat.version: (Optional) - Name for the service for tomcat. Used over SSH for tests requiring tomcat restart. Defaults to tomcat7.
-* firefox.path*: (Optional) - Path to the firefox binary if pointing to a custom installation location is needed. Defaults to firefox application on the $PATH.
-
+* xnat.main.user: The username of a _non-admin_ account. Because this account is frequently used for permissions checks, it should _not_ be the same as any of the admin accounts below. This account need not exist already on the system unless xnat.init is false.
+* xnat.selenium.user: An alias for xnat.main.user and completely interchangeable with it.
+* xnat.main.password: The password of the user specified by xnat.main.user. If the user already exists in XNAT, the password much match the existing user's password. If the user does not already exist in XNAT, it will be automatically created with this value as its password.
+* xnat.selenium.password: An alias for xnat.main.password and completely interchangeable with it.
+* xnat.mainAdmin.user: The username of an _admin_ account. This account need not exist already on the system unless xnat.init is false. Using the same user as xnat.admin.user for this property is fine and expected. It is only provided as a separate account if you wish to _only_ use the default admin account to set up the accounts for the tests.
+* xnat.seleniumAdmin.user: An alias for xnat.mainAdmin.user and completely interchangeable with it.
+* xnat.mainAdmin.password: The password of the user specified by xnat.mainAdmin.user. If the user already exists in XNAT, the password much match the existing user's password. If the user does not already exist in XNAT, it will be automatically created with this value as its password.
+* xnat.seleniumAdmin.password: An alias for xnat.mainAdmin.password and completely interchangeable with it.
+* xnat.admin.user: The username of an admin account. This account must exist and is used to create the main accounts.
+* xnat.admin.password: The password of the user specified by xnat.admin.user.
+* xnat.version: The version of XNAT the server is running. The version is used in order to decide how to talk to XNAT, whether it be in the APIs or UI for selenium tests. Previous behavior years ago was to pull the version of XNAT from the API automatically, but this precluded highly customized versions of XNAT with distinct versioning schemes.
+* xnat.users.email: The email address for the user accounts. If the downstream tests are accessing the inbox for this account, it must be a google-based account (e.g. gmail address).
+* xnat.users.email.credentials: The local path relative to the test repository for the gmail API credentials.json file for accessing the account in xnat.users.email. Only required if the tests are actually checking the inbox for that account.
+* xnat.users.email.tokens: The local path relative to the test repository to store the files generated by Oauth for the account in xnat.users.email. Defaults to "tokens". Only used if the tests are actually checking the inbox for that account.
+* xnat.baseurl: The URL for the XNAT to test. Note that this should be the base URL for XNAT itself _not_ the login page.
+* xnat.dicom.host: Host for XNAT DICOM SCP Receiver. Defaults to the host derived from xnat.baseurl.
+* xnat.dicom.port: Port number for XNAT DICOM SCP Receiver. Defaults to 8104.
+* xnat.dicom.aetitle: DICOM AE Title for XNAT DICOM Receiver. Defaults to "XNAT".
+* xnat.dicom.callingaetitle: The calling AE Title used to identify this application when sending a C-STORE request to the XNAT DICOM SCP Receiver. Defaults to "GRXNAT".
+* dqr.pacs.dimse.host: Host to which the tests can connect with DIMSE to run tests for DQR.
+* dqr.pacs.dimse.aeTitle: DICOM AE Title used when communicating with the device specified by dqr.pacs.dimse.host.
+* dqr.pacs.dimse.port: Port to use for DIMSE communication with the device specified by dqr.pacs.dimse.host. Defaults to 4242.
+* dqr.pacs.dicomweb.rootUrl: URL for a test server providing DICOMweb functionality. Must be reachable (and configured for) the tested XNAT instance.
+* dqr.pacs.dicomweb.aeTitle: DICOM AE Title used to identify the server in dqr.pacs.dicomweb.rootUrl.
+* dqr.scpReceiver.aeTitle: AE Title to use on tested XNAT instance to retrieve images used in DQR tests.
+* dqr.scpReceiver.port: Port to use for SCP receiver identified by dqr.scpReceiver.aeTitle. Defaults to 8104.
+* cs.swarm.timeout: Timing parameter used in Docker Swarm tests. Defaults to 5.
+* cs.swarm.constraints: A list of swarm constraints that will be set in XNAT when running container-service tests with a swarm backend.
+* cs.backends: A comma separated list of supported container backends. The first in the list is used in some tests as the "preferred" backend. All available backends for the test server should be specified to maximize coverage. Available choices: docker, kubernetes, swarm. Defaults to docker.
+* xnat.db.url: URL for XNAT database if tests need direct DB access.
+* xnat.db.user: User for XNAT database if tests need direct DB access.
+* xnat.db.password: Password for XNAT database if tests need direct DB access.
+* xnat.ssh.user: Username for an account to use for connecting to the XNAT instance with SSH. Required by some tests.
+* xnat.ssh.key: Name of SSH private key relative to `~/.ssh` for user in xnat.ssh.user. Required by some tests. Defaults to `id_rsa`.
+* xnat.ssh.skipHostKeyVerification: Setting that can be enabled to skip host key verification in SSH connection. Defaults to false.
+* tomcat.control: Key for class in `TomcatControllerLookup.CONTROLLERS` to control (i.e. start, stop, restart) tomcat over SSH. Required by some tests using SSH.
+* xnat.performance.allow: Setting to allow the performance tests to run. See section below for more information. Defaults to false.
+* xnat.performance.resetId: Key for class in `XnatResetScriptLookup.RESET_SCRIPTS` to reset/reinitialize XNAT.
+* xnat.performance.plugin.install: Key for class in `XnatPluginManagementScriptLookup.INSTALL_SCRIPTS` to install a plugin on XNAT. Defaults to `default`.
+* xnat.performance.plugin.uninstall: Key for class in `XnatPluginManagementScriptLookup.UNINSTALL_SCRIPTS` to uninstall a plugin on XNAT. Defaults to `default`.
+* xnat.performance.setBaseline: Setting to set the current performance tests running as new baselines. Defaults to false.
+* xnat.performance.exportOnly: Setting to only export known performance results instead of running the tests again. Defaults to false.
+* xnat.performance.newTestsOnly: Setting to only run tests that do not already have a run on the specified XNAT version. Defaults to false.
+* xnat.performance.compilePdf: Setting to compile tex files for graphs of performance data. Requires pdflatex to be on the $PATH. Defaults to false.
+* xnat.testBehavior.expectedFailures: Defines the behavior for tests or classes annotated with `@ExpectedFailure`. Supported values: run, skip, ignore. Defaults to skip.
+* xnat.testBehavior.missingPlugins: Defines the behavior for tests or classes annotated with plugin dependencies when required plugins are not available. Supported values: skip, ignore. Defaults to ignore.
+* xnat.basic: Can be set to true to only run methods/classes annotated with `@Basic`. Individual test methods can be annotated as basic, or the annotation can be applied at the class level to identify all tests as basic. If false (or not specified), all allowed tests will be run.
+* xnat.temp: Path to a directory to use as temporary storage during test execution. Defaults to the system-provided default (i.e. from the value of the system property `java.io.tmpdir`).
+* xnat.dependencies: Can be set to false to disable dependency checks between certain tests. Defaults to true.
+* xnat.timelogs: Can be set to true to generate summary CSVs of tests with runtimes and simple statistics. Essentially deprecated. Defaults to false.
+* xnat.gitLogs: Can be set to true to turn XNAT and tomcat logs into git repos (requires `test_logger` XNAT plugin). Defaults to false.
+* xnat.setupMrscan: If set to true, the `xnat:mrScanData` data type will be set-up on the XNAT server in startup. Defaults to false.
+* xnat.requireAdmin: Can be set to false to indicate that admin accounts are not available for the tests. Defaults to true.
+* xnat.allowLogging: Boolean passed to REST-assured log verbose errors when a validation error is encountered. Can be disabled if tests would be run (not recommended) on a sensitive system where capturing logs would be problematic. Defaults to true.
+* xnat.notifiedEmails: Comma-separated list of emails to which results will be sent on test completion. Required if summary email feature is being used.
+* xnat.notificationTitle: Email subject/title for the test suite in the summary email. Required if summary email feature is being used.
+* xnat.notifyOnSuccess: If the summary email is being used, this boolean controls if the email will still be sent when all tests pass. Defaults to false.
+* mail.smtp.host: Host to use as the smtp relay if the summary email is being used. Defaults to localhost.
+* mail.smtp.port: Port to use for smtp if the summary email is being used. Defaults to 25.
+* xnat.jira: Can be set to true to enable the JIRA integration described below. Defaults to false.
+* xnat.producePdf: If set to true, results from JIRA will be scraped to export the test cycle as a PDF. Requires pdflatex (pdflatex must be on $PATH) and xnat.jira to be true. Defaults to false.
+* firefox.path*: Path to the firefox binary if pointing to a custom installation location is needed. Defaults to using firefox application on the $PATH.
+* selenium.headless*: Boolean to run the tests with the browser in headless mode (i.e. no GUI). Can be disabled for debugging, but defaults to true.
+* xnat.browser*: Browser to run the tests in, which must be installed on your system. Currently supports Firefox and (Windows) Chrome. Defaults to Firefox.
+* xnat.captureDom*: Settable to true to record the state of the DOM (contents of body in the DOM) when a test fails. Defaults to false.
+* xnat.defaultTimeout*: Timeout in seconds for several Selenium operations before failing the test. Defaults to 30.
+* xnat.init*: Setting to define if main XNAT accounts be set up. Useful to turn off to speed up debugging, when the accounts already exist, or when admin credentials are not provided. Defaults to true.
+* xnat.pipeline.useDynamicOrdering*: For use in pipeline tests only: if set to true, uses a [Multiprocessor scheduling](https://bitbucket.org/xnatdev/multiprocessor-scheduling) algorithm to order tests. Otherwise uses the order in which methods are defined in class. Defaults to false.
+* xnat.pipeline.slots*: Number of pipeline queue slots. Used only in pipeline tests. Required if xnat.pipeline.useDynamicOrdering is true.
 
 ### Additional XNAT servers ###
 Some test series (e.g. XSync) require more than one distinct XNAT server. To add a second XNAT server, you would add xnat2.required=true to the configuration properties file, and then specify relevant values for:
@@ -72,6 +95,12 @@ Some test series (e.g. XSync) require more than one distinct XNAT server. To add
 * xnat2.init
 
 As of right now, many of the more advanced features (SSH, DB, etc.) are only available on the primary XNAT.
+
+## Performance Tests ##
+The XNAT REST tests contain a subset of tests specifically designed at evaluating the performance of the application. Many of the tests are designed to add a lot of load on the XNAT instance (and the database especially), for example by adding 500 projects.
+As such, the tests are designed to fully "reset" the XNAT instance between each test. This allows the individual tests to be compared across different runs of XNAT, because otherwise the wildly different state of the server would produce a huge amount of noise in the results.
+Because this reset process is necessarily destructive on the state of the XNAT instance, _the performance tests do not run by default_; they must be specifically enabled with the `xnat.performance.allow` property.
+The most commonly used reset class (and plugin install/uninstall classes) act over SSH to modify the XNAT instance, so they require the corresponding `xnat.ssh` properties to be specified properly.
 
 ## JIRA Configuration ##
 All fields (except any marked Optional) are required if you wish to use JIRA integration. They may be set as command line arguments or in config/jira.properties.
