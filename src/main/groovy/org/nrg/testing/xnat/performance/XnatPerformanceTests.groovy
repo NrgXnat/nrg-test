@@ -41,6 +41,7 @@ class XnatPerformanceTests extends BaseXnatRestTest {
             hardResetXnat()
             SSHConnection.waitForTomcat()
             setupXnat()
+            createUserForAccessingMetrics()
         }
     }
 

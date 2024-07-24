@@ -125,6 +125,7 @@ class Settings {
     public static final String DQR_PACS_DICOMWEB_ROOT_URL = properties.dqrPacsDicomwebRootUrl
     public static final String DQR_SCP_RECEIVER_AE_TITLE = properties.dqrScpReceiverAeTitle
     public static final int DQR_SCP_RECEIVER_PORT = properties.dqrScpReceiverPort
+    public static final String METRICS_API_USER_ROLE = "MetricsApiAccessUser";
 
     private static File getSshKey() {
         Paths.get(System.getProperty('user.home'), '.ssh', SSH_KEY_NAME).toFile()
