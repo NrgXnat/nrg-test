@@ -85,7 +85,8 @@ class XnatPerformanceTests extends BaseXnatRestTest {
     @Override
     protected void createRequiredUsers() {
         final User metricsUser = Users.constructMainAccount('metrics', 'admin')
-        mainAdminInterface().assignUserToRoles(metricsUser, Settings.METRICS_API_USER_ROLE);
+        mainAdminInterface().createUser(metricsUser)
+        mainAdminInterface().assignUserToRoles(metricsUser, Settings.METRICS_API_USER_ROLE)
     }
 
     protected boolean performanceTestsRunning() {
