@@ -3,9 +3,11 @@ package org.nrg.testing.xnat.performance
 import groovy.util.logging.Log4j
 import org.nrg.testing.annotations.PerformanceTestPlugin
 import org.nrg.testing.xnat.BaseXnatRestTest
+import org.nrg.testing.xnat.Users
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.performance.actions.CheckablePerformanceWorkflow
 import org.nrg.testing.xnat.ssh.SSHConnection
+import org.nrg.xnat.pogo.users.User
 import org.testng.annotations.AfterSuite
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
@@ -41,7 +43,7 @@ class XnatPerformanceTests extends BaseXnatRestTest {
             hardResetXnat()
             SSHConnection.waitForTomcat()
             setupXnat()
-            createUserForAccessingMetrics()
+            createRequiredUsers()
         }
     }
 
@@ -77,6 +79,13 @@ class XnatPerformanceTests extends BaseXnatRestTest {
 
     protected PerformanceScenarioBuilder performanceScenario() {
         new PerformanceScenarioBuilder()
+    }
+
+
+    @Override
+    protected void createRequiredUsers() {
+        final User metricsUser = Users.constructMainAccount(mainUsername, mainPassword)
+        mainAdminInterface().assignUserToRoles(metricsUser, Settings.METRICS_API_USER_ROLE);
     }
 
     protected boolean performanceTestsRunning() {

@@ -84,10 +84,7 @@ class BaseXnatRestTest extends BaseXnatTest {
     }
 
 
-    @Override
-    protected void createUserForAccessingMetrics() {
-        final User metricsUser = Users.constructMainAccount(mainUsername, mainPassword)
-        mainAdminInterface().assignUserToRoles(metricsUser, Settings.METRICS_API_USER_ROLE);
+    protected void createRequiredUsers() {
     }
 
     @Override
