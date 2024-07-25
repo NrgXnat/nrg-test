@@ -101,6 +101,7 @@ The XNAT REST tests contain a subset of tests specifically designed at evaluatin
 As such, the tests are designed to fully "reset" the XNAT instance between each test. This allows the individual tests to be compared across different runs of XNAT, because otherwise the wildly different state of the server would produce a huge amount of noise in the results.
 Because this reset process is necessarily destructive on the state of the XNAT instance, _the performance tests do not run by default_; they must be specifically enabled with the `xnat.performance.allow` property.
 The most commonly used reset class (and plugin install/uninstall classes) act over SSH to modify the XNAT instance, so they require the corresponding `xnat.ssh` properties to be specified properly.
+The outputs of the performance tests are put and persisted in `src/test/resources/data/performance`.
 
 ## JIRA Configuration ##
 All fields (except any marked Optional) are required if you wish to use JIRA integration. They may be set as command line arguments or in config/jira.properties.
