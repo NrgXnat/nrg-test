@@ -11,7 +11,7 @@ class InternalXnatReset extends FixedScriptXnatReset {
         [
                 'sudo systemctl stop tomcat',
                 'dropdb xnat -U xnat',
-                'rm -rf /opt/data/archive/* /opt/data/build/* /opt/data/cache/* /opt/data/prearchive/*',
+                'sudo rm -rf /opt/data/archive/* /opt/data/build/* /opt/data/cache/* /opt/data/prearchive/*',
                 'createdb xnat -U xnat',
                 'curl -u admin:admin "http://localhost:8161/api/jolokia/search/*:destinationType=Queue,*" | jq -r \'.value | map(split(",")) | flatten | map(select(contains("destinationName"))) | map(split("=")) | map(.[1]) | unique | .[]\' | while read queue; do curl -u admin:admin "http://localhost:8161/api/jolokia/exec/org.apache.activemq:brokerName=localhost,destinationName=${queue},destinationType=Queue,type=Broker/purge()"; done',
                 'sudo systemctl start tomcat'
