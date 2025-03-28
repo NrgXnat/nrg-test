@@ -6,9 +6,10 @@ import org.nrg.xnat.pogo.users.User
 
 class PerformanceStateHelper {
 
+    String xnatDeploymentRepresentation
     private XnatRestDriver restDriver
 
-    PerformanceStateHelper(XnatRestDriver restDriver) {
+    PerformanceStateHelper(String xnatDeploymentRepresentation, XnatRestDriver restDriver) {
         this.restDriver = restDriver
     }
 

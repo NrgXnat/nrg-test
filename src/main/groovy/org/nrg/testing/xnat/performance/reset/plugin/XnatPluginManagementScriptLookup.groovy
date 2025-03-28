@@ -4,19 +4,19 @@ class XnatPluginManagementScriptLookup {
 
     private static final String DEFAULT = 'internal'
 
-    private static final Map<String, XnatPluginInstaller> INSTALL_SCRIPTS = [
-            (DEFAULT): new InternalPluginInstaller()
+    private static final Map<String, XnatComponentInstaller> INSTALL_SCRIPTS = [
+            (DEFAULT): new InternalComponentInstaller()
     ]
 
-    private static final Map<String, XnatPluginUninstaller> UNINSTALL_SCRIPTS = [
-            (DEFAULT): new InternalPluginUninstaller()
+    private static final Map<String, XnatComponentUninstaller> UNINSTALL_SCRIPTS = [
+            (DEFAULT): new InternalComponentUninstaller()
     ]
 
-    static XnatPluginInstaller lookupInstaller(String managerKey) {
+    static XnatComponentInstaller lookupInstaller(String managerKey) {
         INSTALL_SCRIPTS.get(managerKey) ?: INSTALL_SCRIPTS[DEFAULT]
     }
 
-    static XnatPluginUninstaller lookupUninstaller(String managerKey) {
+    static XnatComponentUninstaller lookupUninstaller(String managerKey) {
         UNINSTALL_SCRIPTS.get(managerKey) ?: UNINSTALL_SCRIPTS[DEFAULT]
     }
 

@@ -12,12 +12,14 @@ import org.nrg.testing.file.FileLocation
 import org.nrg.testing.util.RandomHelper
 import org.nrg.testing.xnat.performance.reset.PerformanceServerResetScript
 import org.nrg.testing.xnat.performance.reset.XnatResetScriptLookup
-import org.nrg.testing.xnat.performance.reset.plugin.XnatPluginInstaller
+import org.nrg.testing.xnat.performance.reset.plugin.XnatComponentInstaller
 import org.nrg.testing.xnat.performance.reset.plugin.XnatPluginManagementScriptLookup
-import org.nrg.testing.xnat.performance.reset.plugin.XnatPluginUninstaller
+import org.nrg.testing.xnat.performance.reset.plugin.XnatComponentUninstaller
 import org.nrg.testing.xnat.ssh.SSHConnection
 import org.nrg.testing.xnat.ssh.TomcatController
 import org.nrg.testing.xnat.ssh.TomcatControllerLookup
+import org.nrg.xnat.pogo.CustomXnatDeployment
+import org.nrg.xnat.pogo.XnatDeployment
 import org.nrg.xnat.pogo.containers.Backend
 import org.nrg.xnat.pogo.containers.SwarmConstraint
 import org.nrg.xnat.versions.XnatVersion
@@ -112,8 +114,9 @@ class Settings {
     public static final Backend CS_PREFERRED_BACKEND = properties.preferredBackend
     public static final boolean PERFORMANCE_TESTS_ALLOWED = properties.performanceAllowedSetting
     public static final PerformanceServerResetScript PERFORMANCE_RESET_SCRIPT = XnatResetScriptLookup.lookup(properties.performanceResetScriptId)
-    public static final XnatPluginInstaller PERFORMANCE_PLUGIN_INSTALLER = XnatPluginManagementScriptLookup.lookupInstaller(properties.performancePluginInstallId)
-    public static final XnatPluginUninstaller PERFORMANCE_PLUGIN_UNINSTALLER = XnatPluginManagementScriptLookup.lookupUninstaller(properties.performancePluginUninstallId)
+    public static final XnatComponentInstaller PERFORMANCE_PLUGIN_INSTALLER = XnatPluginManagementScriptLookup.lookupInstaller(properties.performancePluginInstallId)
+    public static final XnatComponentUninstaller PERFORMANCE_PLUGIN_UNINSTALLER = XnatPluginManagementScriptLookup.lookupUninstaller(properties.performancePluginUninstallId)
+    public static final List<XnatDeployment> PERFORMANCE_DEPLOYMENTS = readDeployments()
     public static final boolean PERFORMANCE_SET_BASELINES = properties.performanceSetBaselineSetting
     public static final boolean PERFORMANCE_NEW_TESTS_ONLY = properties.performanceNewTestsOnlySetting
     public static final boolean PERFORMANCE_EXPORT_ONLY = properties.performanceExportOnlySetting
@@ -184,6 +187,17 @@ class Settings {
         }
 
         "${emailId}+${RandomHelper.randomLetters(12)}${emailProvider}"
+    }
+    
+    static List<XnatDeployment> readDeployments() {
+        final String requestedDeployments = properties.performanceDeployments
+        if (requestedDeployments == null) {
+            [new CustomXnatDeployment()]
+        } else {
+            requestedDeployments.split(',').collect { deployment ->
+                XnatDeployment.deploymentFromString(deployment)
+            }
+        }
     }
 
     static List<SwarmConstraint> swarmConstraints() {
