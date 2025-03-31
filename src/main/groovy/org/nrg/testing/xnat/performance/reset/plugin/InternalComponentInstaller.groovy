@@ -19,7 +19,7 @@ class InternalComponentInstaller implements XnatComponentInstaller {
     @Override
     List<String> commandsForWarByUrl(String warUrl) {
         [
-                'rm -rf /home/xnat/tomcat/webapps/ROOT*',
+                'sudo rm -rf /home/xnat/tomcat/webapps/ROOT*',
                 "curl -L ${warUrl} > /home/xnat/tomcat/webapps/ROOT.war"
         ]
     }
