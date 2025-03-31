@@ -57,7 +57,7 @@ class XnatPerformanceTests extends BaseXnatRestTest {
                 final BitbucketDownloadsDerivation xnatDownloads = new BitbucketDownloadsDerivation(PluginRegistry.XNAT_DEV, 'xnat-web')
                 final String downloadUrl = xnatDownloads.apply(xnatDeployment.xnatVersionString == '1.7.6' ? '1.7.6-tc8' : xnatDeployment.xnatVersionString)
                 Settings.PERFORMANCE_PLUGIN_INSTALLER.installWarWithUrl(downloadUrl)
-                restDriver = constructRestDriver(XnatConfig.buildDefaultConfig().xnatVersion(xnatDeployment.xnatVersion))
+                constructRestDriver(XnatConfig.buildDefaultConfig().xnatVersion(xnatDeployment.xnatVersion))
             }
 
             knownTempPlugins.each { plugin ->
