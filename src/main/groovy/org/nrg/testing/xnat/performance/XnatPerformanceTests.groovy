@@ -1,7 +1,6 @@
 package org.nrg.testing.xnat.performance
 
 import groovy.util.logging.Log4j
-import org.nrg.testing.annotations.PerformanceTest
 import org.nrg.testing.annotations.PerformanceTestPlugin
 import org.nrg.testing.xnat.BaseXnatRestTest
 import org.nrg.testing.xnat.conf.Settings
@@ -15,6 +14,7 @@ import org.nrg.xnat.pogo.plugins.BitbucketDownloadsDerivation
 import org.testng.annotations.AfterSuite
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.DataProvider
+import org.testng.annotations.Test
 
 import java.lang.reflect.Method
 import java.util.function.Consumer
@@ -22,7 +22,7 @@ import java.util.function.Consumer
 import static org.testng.AssertJUnit.fail
 
 @Log4j
-@PerformanceTest
+@Test(groups = 'performance', dataProvider = DEPLOYMENTS_PROVIDER)
 class XnatPerformanceTests extends BaseXnatRestTest {
 
     protected static final List<CheckablePerformanceWorkflow> executedTests = []
