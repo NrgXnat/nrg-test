@@ -10,6 +10,7 @@ class PerformanceStateHelper {
     private XnatRestDriver restDriver
 
     PerformanceStateHelper(String xnatDeploymentRepresentation, XnatRestDriver restDriver) {
+        this.xnatDeploymentRepresentation = xnatDeploymentRepresentation
         this.restDriver = restDriver
     }
 
