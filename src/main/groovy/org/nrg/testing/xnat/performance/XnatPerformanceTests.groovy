@@ -51,7 +51,7 @@ class XnatPerformanceTests extends BaseXnatRestTest {
                 Settings.PERFORMANCE_PLUGIN_UNINSTALLER.uninstallAllPlugins()
                 
                 xnatDeployment.plugins.each { plugin ->
-                    Settings.PERFORMANCE_PLUGIN_INSTALLER.installPluginWithUrl(plugin.id, plugin.downloadUrl)
+                    Settings.PERFORMANCE_PLUGIN_INSTALLER.installPluginWithUrl("${plugin.id}-${plugin.version}.jar", plugin.downloadUrl)
                 }
                 
                 final BitbucketDownloadsDerivation xnatDownloads = new BitbucketDownloadsDerivation(PluginRegistry.XNAT_DEV, 'xnat-web')
