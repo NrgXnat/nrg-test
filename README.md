@@ -103,6 +103,10 @@ Because this reset process is necessarily destructive on the state of the XNAT i
 The most commonly used reset class (and plugin install/uninstall classes) act over SSH to modify the XNAT instance, so they require the corresponding `xnat.ssh` properties to be specified properly.
 The outputs of the performance tests are put and persisted in `src/test/resources/data/performance`.
 
+By default, the performance tests will run against the currently installed versions of XNAT and any plugins installed on the test instance. However, by specifying `xnat.performance.deployments`, you can instruct the performance tests to evaluate multiple different
+versions of code. This parameter should be set to a comma-separated list of "deployments" where a deployment is a version of XNAT and an optional sequence of plugins. Currently, the only supported plugin is `containers`. The version of XNAT (and each plugin) should
+be delimited with `+`. The tests will run each test once per deployment, installing the specified version of XNAT and corresponding plugins automatically. An example value for this parameter is: `xnat.performance.deployments=1.8.6,1.8.7+containers`.
+
 ## JIRA Configuration ##
 All fields (except any marked Optional) are required if you wish to use JIRA integration. They may be set as command line arguments or in config/jira.properties.
 
