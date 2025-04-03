@@ -23,6 +23,7 @@ class TrueBarGraph extends BarGraph {
                     'area legend',
                     'legend pos = outer north east',
                     "legend entries = {${datasets*.label.join(',')}}",
+                    'legend cell align = left',
                     'bar width = 0.3cm',
                     "y = ${0.2 + 0.4 * datasets.size()}cm"
             ])
