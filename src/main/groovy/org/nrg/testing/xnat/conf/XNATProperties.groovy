@@ -66,6 +66,7 @@ class XNATProperties extends BaseProperties {
     public static final String CS_SUPPORTED_BACKENDS = 'cs.backends'
     public static final String ALLOW_PERFORMANCE_TESTS = 'xnat.performance.allow'
     public static final String PERFORMANCE_RESET_SCRIPT_ID = 'xnat.performance.resetId'
+    public static final String PERFORMANCE_DEPLOYMENTS = 'xnat.performance.deployments'
     public static final String PERFORMANCE_INSTALL_PLUGIN_SCRIPT = 'xnat.performance.plugin.install'
     public static final String PERFORMANCE_UNINSTALL_PLUGIN_SCRIPT = 'xnat.performance.plugin.uninstall'
     public static final String PERFORMANCE_SET_BASELINE = 'xnat.performance.setBaseline'
@@ -332,6 +333,10 @@ class XNATProperties extends BaseProperties {
 
     String getPerformanceResetScriptId() {
         getStringProperty(PERFORMANCE_RESET_SCRIPT_ID, null)
+    }
+    
+    String getPerformanceDeployments() {
+        getStringProperty(PERFORMANCE_DEPLOYMENTS, null)
     }
 
     String getPerformancePluginInstallId() {

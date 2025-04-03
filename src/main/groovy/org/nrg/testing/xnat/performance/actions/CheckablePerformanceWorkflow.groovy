@@ -77,7 +77,7 @@ trait CheckablePerformanceWorkflow<
         userProvider?.setup(stateHelper)
         final V checkableEntry = produceCheckableEntry(stateHelper)
         checkableEntry.setTimestamp(System.currentTimeMillis())
-        checkableEntry.setXnatVersion(Settings.XNAT_VERSION_AS_STRING)
+        checkableEntry.setXnatVersion(stateHelper.xnatDeploymentRepresentation)
         (validator ?: getDefaultValidator()).validate(identifier, checkableEntry)
     }
 
