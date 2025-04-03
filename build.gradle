@@ -1,6 +1,6 @@
 def groupName = 'org.nrg'
 def artifactName = 'nrg_test'
-def buildVersion = '2.6-PERFSERIAL-SNAPSHOT'
+def buildVersion = '2.6-SNAPSHOT'
 
 group groupName
 version buildVersion
@@ -18,7 +18,7 @@ def vBom = '3.3-SNAPSHOT'
 def vTestUtils = '2.7-SNAPSHOT'
 def vMultiprocessor = '4.0'
 def vJiraZephyr = '2.0'
-def vGrxnat = '1.21-PERFSERIAL-SNAPSHOT'
+def vGrxnat = '1.21-SNAPSHOT'
 
 description = 'Framework for testing of NRG applications.'
 
