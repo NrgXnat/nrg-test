@@ -2,7 +2,8 @@ package org.nrg.testing.xnat.rest
 
 import org.nrg.testing.util.ResourceLoader
 import org.nrg.testing.xnat.XnatObjectUtils
-import org.nrg.xnat.versions.*
+import org.nrg.xnat.versions.Xnat_1_7_2
+import org.nrg.xnat.versions.XnatVersion
 import org.nrg.xnat.enums.DicomEditVersion
 import org.nrg.xnat.pogo.AnonScript
 
