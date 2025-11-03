@@ -12,6 +12,7 @@ import org.nrg.testing.listeners.adapters.jira.JIRATestListener
 import org.nrg.testing.listeners.interceptors.filters.ExpectedFailureTestFilter
 import org.nrg.testing.listeners.interceptors.filters.PerformanceTestFilter
 import org.nrg.testing.listeners.interceptors.filters.PluginDependencyTestFilter
+import org.nrg.testing.listeners.interceptors.filters.RestConfigurationTestFilter
 import org.nrg.testing.listeners.interceptors.sorters.DefaultMethodSorter
 import org.nrg.testing.listeners.interceptors.filters.BasicTestFilter
 import org.nrg.testing.listeners.interceptors.filters.ProhibitedTestFilter
@@ -29,7 +30,7 @@ import java.nio.file.Path
 import java.nio.file.Paths
 
 @Log4j
-@Listeners([NRGTestListener, JIRATestListener, GitLogListener, DefaultMethodSorter, ProhibitedTestFilter, BasicTestFilter, PerformanceTestFilter, ExpectedFailureTestFilter, PluginDependencyTestFilter])
+@Listeners([NRGTestListener, JIRATestListener, GitLogListener, DefaultMethodSorter, ProhibitedTestFilter, BasicTestFilter, PerformanceTestFilter, ExpectedFailureTestFilter, PluginDependencyTestFilter, RestConfigurationTestFilter])
 class BaseTestCase {
     
     protected MutableInt stepCounter
