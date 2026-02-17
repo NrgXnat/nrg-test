@@ -126,7 +126,7 @@ class RestConfigurationTestFilter extends TestFilterInterceptor {
         cacheResult(cacheKey, response.body().asPrettyString())
     }
 
-    boolean cacheResult(String key, String result) {
+    String cacheResult(String key, String result) {
         if (key) {
             cache[key] = result
         }
