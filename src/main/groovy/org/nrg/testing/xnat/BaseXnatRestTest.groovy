@@ -48,19 +48,19 @@ class BaseXnatRestTest extends BaseXnatTest {
         ))
     }
 
-    @AfterSuite(alwaysRun = true)
+   // @AfterSuite(alwaysRun = true)
     protected void removeLongTermProjects() {
         suiteTestProjects.each { project ->
             restDriver.deleteProjectSilently(mainAdminUser, project)
         }
     }
 
-    @AfterSuite(alwaysRun = true)
+    // @AfterSuite(alwaysRun = true)
     protected void deleteDownloadedTempData() {
         FileUtils.deleteDirectory(Paths.get(Settings.TEMP_SUBDIR).toFile())
     }
 
-    @AfterClass(alwaysRun = true)
+    // @AfterClass(alwaysRun = true)
     protected void removeTempObjects() {
         testProjects.each { project ->
             restDriver.deleteProjectSilently(mainAdminUser, project)
