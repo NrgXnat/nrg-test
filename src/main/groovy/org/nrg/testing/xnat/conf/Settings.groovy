@@ -22,6 +22,7 @@ import org.nrg.xnat.pogo.CustomXnatDeployment
 import org.nrg.xnat.pogo.XnatDeployment
 import org.nrg.xnat.pogo.containers.Backend
 import org.nrg.xnat.pogo.containers.SwarmConstraint
+import org.nrg.xnat.pogo.containers.KubernetesToleration
 import org.nrg.xnat.versions.XnatVersion
 import org.nrg.xnat.pogo.dicom.DicomScpReceiver
 import org.nrg.xnat.rest.Credentials
@@ -110,6 +111,8 @@ class Settings {
     public static final boolean EMAIL_AUTH_VALID = EmailClient.test()
     public static final String SWARM_CONSTRAINTS = properties.swarmConstraints
     private static List<SwarmConstraint> swarmConstraints = null
+    public static final String KUBERNETES_TOLERATIONS = properties.kubernetesTolerations
+    private static List<KubernetesToleration> kubernetesTolerations = null
     public static final List<Backend> CS_SUPPORTED_BACKENDS = properties.supportedContainerBackends
     public static final Backend CS_PREFERRED_BACKEND = properties.preferredBackend
     public static final boolean PERFORMANCE_TESTS_ALLOWED = properties.performanceAllowedSetting
@@ -224,5 +227,31 @@ class Settings {
             )
         }
         swarmConstraints
+    }
+
+    static List<KubernetesToleration> kubernetesTolerations() {
+        if (kubernetesTolerations != null) {
+            return kubernetesTolerations
+        }
+        kubernetesTolerations = []
+        if (StringUtils.isEmpty(properties.kubernetesTolerations)) {
+            return kubernetesTolerations
+        }
+        final List<String> kts = properties.kubernetesTolerations.split(';') as List<String>
+        kubernetesTolerations = kts.findResults { tolerationString ->
+            final List<String> fields = tolerationString.split(',') as List<String>
+            if (fields.size() < 4) {
+                LOGGER.info("Skip the kubernetes toleration as the format is not correct.->" + tolerationString)
+                return null
+            }
+            new KubernetesToleration(
+                    id: kts.indexOf(tolerationString),
+                    key: fields.get(0),
+                    operator: fields.get(1),
+                    value: fields.get(2),
+                    effect: fields.get(3)
+            )
+        }
+        kubernetesTolerations
     }
 }

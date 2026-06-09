@@ -63,6 +63,7 @@ class XNATProperties extends BaseProperties {
     public static final String SMTP_PORT = 'mail.smtp.port'
     public static final String CS_SWARM_TIMEOUT = 'cs.swarm.timeout'
     public static final String CS_SWARM_CONSTRAINTS = 'cs.swarm.constraints'
+    public static final String CS_KUBERNETES_TOLERATIONS = 'cs.kubernetes.tolerations'
     public static final String CS_SUPPORTED_BACKENDS = 'cs.backends'
     public static final String ALLOW_PERFORMANCE_TESTS = 'xnat.performance.allow'
     public static final String PERFORMANCE_RESET_SCRIPT_ID = 'xnat.performance.resetId'
@@ -313,6 +314,10 @@ class XNATProperties extends BaseProperties {
 
     String getSwarmConstraints() {
         getPropertyFromAnywhere(CS_SWARM_CONSTRAINTS)
+    }
+
+    String getKubernetesTolerations() {
+        getPropertyFromAnywhere(CS_KUBERNETES_TOLERATIONS)
     }
 
     List<Backend> getSupportedContainerBackends() {
