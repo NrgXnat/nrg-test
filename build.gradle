@@ -77,7 +77,10 @@ dependencies {
     api('net.imagej:imagej') {
         exclude(group: 'com.miglayout', module: 'miglayout')
     }
-    api('ome:bio-formats_plugins')
+    api('ome:bio-formats_plugins') {
+        exclude(group: 'ch.systems.cisd', module: 'logback-classic')
+        exclude(group: 'ch.systems.cisd', module: 'jhdf5')
+    }
     api('ome:formats-gpl') {
         exclude(group: 'ch.systems.cisd', module: 'logback-classic')
         exclude(group: 'ch.systems.cisd', module: 'jhdf5')
