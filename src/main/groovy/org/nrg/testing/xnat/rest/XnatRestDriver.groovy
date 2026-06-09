@@ -66,7 +66,7 @@ abstract class XnatRestDriver {
             'getXnatUrl'
     ]) XnatConfig xnatConfig
     TestController testController
-    protected static final Map<User, XnatInterface> xnatInterfaceMap = [:]
+    protected static final Map<User, XnatInterface> xnatInterfaceMap = new java.util.concurrent.ConcurrentHashMap<>()
     public static final ObjectMapper XNAT_REST_MAPPER = XnatInterface.XNAT_REST_MAPPER
     protected static final Pattern SERVER_TIME_REGEX = Pattern.compile('.*?monitoring taken at (.*?) on.*')
     protected static final DateTimeFormatter SERVER_TIME_FORMATTER = DateTimeFormatter.ofPattern('M/d/uu h:mm a')
@@ -92,14 +92,11 @@ abstract class XnatRestDriver {
     }
 
     XnatInterface interfaceFor(User user) {
-        final XnatInterface xnatInterface = xnatInterfaceMap[user]
-        if (xnatInterface != null) {
-            xnatInterface
-        } else {
-            final XnatInterface newInterface = XnatInterface.authenticate(xnatConfig.xnatUrl, user,
+        // computeIfAbsent so concurrent test classes asking for the same user share one
+        // authentication instead of racing to create (and leak) separate sessions
+        xnatInterfaceMap.computeIfAbsent(user) { User newUser ->
+            XnatInterface.authenticate(xnatConfig.xnatUrl, newUser,
                     new XnatConnectionConfig(versionClass: xnatConfig.xnatVersion, logOnValidationFailure: Settings.LOGGING_ALLOWED))
-            xnatInterfaceMap.put(user, newInterface)
-            newInterface
         }
     }
 

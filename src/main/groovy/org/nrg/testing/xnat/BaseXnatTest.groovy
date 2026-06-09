@@ -19,6 +19,8 @@ import org.nrg.testing.listeners.adapters.jira.JIRATestListener
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.conf.XNATProperties
 import org.nrg.testing.xnat.conf.XnatConfig
+import org.nrg.testing.xnat.parallel.IsolationManager
+import org.nrg.testing.xnat.parallel.ServerStateGuard
 
 import org.nrg.testing.xnat.plugins.PluginDependencyManager
 import org.nrg.testing.xnat.rest.XnatRestDriver
@@ -60,6 +62,9 @@ abstract class BaseXnatTest extends BaseTestCase {
     void setupXnatTests() {
         EmailQuery.setStartTime()
         validateSettings()
+        if (Settings.ISOLATION_ENFORCED) {
+            ServerStateGuard.install()
+        }
         constructRestDriver()
         if (Settings.INIT_SETTING) {
             setupXnat()
@@ -78,7 +83,12 @@ abstract class BaseXnatTest extends BaseTestCase {
      */
     @BeforeClass(alwaysRun = true)
     void handleClassRequirements() {
-        noteInitialConfigSettings()
+        IsolationManager.enterClass(this.class)
+        if (!Settings.ISOLATION_ENFORCED || IsolationManager.mutatesServerState(this.class)) {
+            // When isolation is enforced, classes not marked @MutatesServerState are barred from
+            // writing site config, so there is nothing to snapshot or restore for them.
+            noteInitialConfigSettings()
+        }
 
         int requiredUsers = 0
 
@@ -141,17 +151,28 @@ abstract class BaseXnatTest extends BaseTestCase {
 
     @BeforeMethod(alwaysRun = true)
     void setupXnatTest(Method m) {
+        IsolationManager.noteCurrentClass(this.class)
         initializeTestRandomVariables()
         checkTestRequirements(m)
     }
 
     @AfterClass(alwaysRun = true)
     void restoreSiteConfig() {
+        if (Settings.ISOLATION_ENFORCED && !IsolationManager.mutatesServerState(this.class)) {
+            return // class was barred from writing site config, so there is nothing to restore
+        }
         if (siteConfigRestoration == null) {
             log.warn('Object to restore siteConfig is null. Skipping...')
         } else {
             mainAdminInterface().postToSiteConfig(siteConfigRestoration)
         }
+    }
+
+    // alwaysRun + dependsOnMethods: must release only after restoreSiteConfig has posted, but must
+    // still release if restoreSiteConfig itself failed, or the suite-wide lock would never be freed.
+    @AfterClass(alwaysRun = true, dependsOnMethods = 'restoreSiteConfig')
+    void releaseIsolationLock() {
+        IsolationManager.exitClass()
     }
 
     @DataProvider

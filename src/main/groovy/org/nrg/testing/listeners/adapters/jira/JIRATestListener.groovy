@@ -11,16 +11,17 @@ import org.nrg.testing.listeners.adapters.BaseTestListener
 import org.testng.ITestNGMethod
 import org.testng.ITestResult
 
+import java.util.concurrent.ConcurrentHashMap
+
 class JIRATestListener extends BaseTestListener {
 
     private static final Logger LOGGER = Logger.getLogger(JIRATestListener)
-    private String currentTestNumber
-    private JIRATest currentTest
-    private static boolean stepAttachmentsAllowed = true
+    private static volatile boolean stepAttachmentsAllowed = true
     private static Cycle cycle
     private static JiraZephyrController jiraZephyrController
-    private static final Map<ITestNGMethod, JIRATest> jiraTests = [:]
-    private static final List<String> previousTestsComplete = []
+    // concurrent collections: read/written from multiple worker threads when TestNG runs classes in parallel
+    private static final Map<ITestNGMethod, JIRATest> jiraTests = new ConcurrentHashMap<>()
+    private static final Set<String> previousTestsComplete = ConcurrentHashMap.newKeySet()
 
     @Override
     void onStart(ITestResult result)  {
@@ -30,34 +31,32 @@ class JIRATestListener extends BaseTestListener {
 
     @Override
     void onFailure(ITestResult testResult)  {
-        currentTest.failTest()
-        LOGGER.warn(testLoggingMessage('failed'))
+        getJiraTest(testResult.method).failTest()
+        LOGGER.warn(testLoggingMessage(testResult, 'failed'))
     }
 
     @Override
     void onSuccess(ITestResult testResult) {
-        currentTest.passTest()
-        LOGGER.info(testLoggingMessage('passed'))
+        getJiraTest(testResult.method).passTest()
+        LOGGER.info(testLoggingMessage(testResult, 'passed'))
     }
 
     @Override
     void onSkipped(ITestResult testResult) {
-        currentTest.skipTest()
-        LOGGER.info(testLoggingMessage('skipped'))
+        getJiraTest(testResult.method).skipTest()
+        LOGGER.info(testLoggingMessage(testResult, 'skipped'))
     }
 
     @Override
     void onTestComplete(ITestResult testResult) {
-        currentTest = getJiraTest(testResult.getMethod())
-        currentTestNumber = currentTest.getJiraNumber()
     }
 
-    private String testLoggingMessage(String verb) {
-        final String appendedNumber = (currentTestNumber == null) ? '' : " (${currentTestNumber})"
-        if (!previousTestsComplete.contains(testName)) {
-            previousTestsComplete << testName
-        }
-        "Test ${verb}: ${testName} [${previousTestsComplete.size()}/${jiraTests.size()}]${appendedNumber}."
+    private String testLoggingMessage(ITestResult testResult, String verb) {
+        final String completedTestName = TestNgUtils.getTestName(testResult)
+        final String jiraNumber = getJiraTest(testResult.method)?.jiraNumber
+        final String appendedNumber = (jiraNumber == null) ? '' : " (${jiraNumber})"
+        previousTestsComplete.add(completedTestName)
+        "Test ${verb}: ${completedTestName} [${previousTestsComplete.size()}/${jiraTests.size()}]${appendedNumber}."
     }
 
     /**

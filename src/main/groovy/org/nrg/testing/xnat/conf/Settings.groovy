@@ -61,6 +61,9 @@ class Settings {
     public static final boolean JIRA_SETTING = properties.jiraSetting
     public static final boolean DYNAMIC_ORDERING = properties.dynamicOrderingSetting
     public static final int QUEUE_SLOTS = properties.queueSlots
+    public static final int PARALLEL_CLASSES = properties.parallelClasses
+    public static final boolean PARALLEL_ENABLED = PARALLEL_CLASSES > 1
+    public static final boolean ISOLATION_ENFORCED = properties.enforceIsolationSetting == null ? PARALLEL_ENABLED : Boolean.parseBoolean(properties.enforceIsolationSetting)
     public static final String[] NOTIFICATION_EMAILS = properties.notificationEmails
     public static final boolean NOTIFICATION_SETTING = properties.notificationSetting
     public static final String NOTIFICATION_TITLE = properties.notificationTitle

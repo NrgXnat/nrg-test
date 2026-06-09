@@ -6,9 +6,22 @@ import org.testng.TestListenerAdapter
 
 abstract class BaseTestListener extends TestListenerAdapter {
 
-    Class testClass
-    String testClassName
-    String testName
+    // ThreadLocal so that concurrent test classes (TestNG parallel="classes") each see their own
+    // test's identity; the getters preserve the original property API for subclasses.
+    private final ThreadLocal<Class> currentTestClass = new ThreadLocal<>()
+    private final ThreadLocal<String> currentTestName = new ThreadLocal<>()
+
+    Class getTestClass() {
+        currentTestClass.get()
+    }
+
+    String getTestClassName() {
+        currentTestClass.get()?.simpleName
+    }
+
+    String getTestName() {
+        currentTestName.get()
+    }
 
     @Override
     final void onTestStart(ITestResult result) {
@@ -56,9 +69,8 @@ abstract class BaseTestListener extends TestListenerAdapter {
     abstract void onSkipped(ITestResult testResult)
 
     protected void extractSimpleTestInfo(ITestResult testResult) {
-        testClass = TestNgUtils.getTestClass(testResult)
-        testClassName = testClass.getSimpleName()
-        testName = TestNgUtils.getTestName(testResult)
+        currentTestClass.set(TestNgUtils.getTestClass(testResult))
+        currentTestName.set(TestNgUtils.getTestName(testResult))
     }
 
 }

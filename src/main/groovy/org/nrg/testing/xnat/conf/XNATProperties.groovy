@@ -36,6 +36,8 @@ class XNATProperties extends BaseProperties {
     public static final String ADMIN_SETTING = 'xnat.requireAdmin'
     public static final String DYNAMIC_ORDERING = 'xnat.pipeline.useDynamicOrdering'
     public static final String QUEUE_SLOTS = 'xnat.pipeline.slots'
+    public static final String PARALLEL_CLASSES = 'xnat.parallel.classes'
+    public static final String ENFORCE_ISOLATION = 'xnat.parallel.enforceIsolation'
     public static final String NOTIFICATION_EMAILS = 'xnat.notifiedEmails'
     public static final String NOTIFICATION_SETTING = 'xnat.notifyOnSuccess'
     public static final String NOTIFICATION_TITLE = 'xnat.notificationTitle'
@@ -184,6 +186,14 @@ class XNATProperties extends BaseProperties {
 
     int getQueueSlots() {
         getIntProperty(QUEUE_SLOTS, 0)
+    }
+
+    int getParallelClasses() {
+        getIntProperty(PARALLEL_CLASSES, 0)
+    }
+
+    String getEnforceIsolationSetting() {
+        getPropertyFromAnywhere(ENFORCE_ISOLATION)
     }
 
     String[] getNotificationEmails() {
