@@ -219,6 +219,24 @@ abstract class XnatRestDriver {
         }
     }
 
+    /**
+     * Best-effort drain of a project's asynchronous ingest pipeline, for use in test teardown before
+     * deleting project data. Clears the prearchive first (so the waits below can't hang on a session that
+     * would never auto-archive), then waits for the prearchive and direct-archive queues to empty so no
+     * server-side build is still holding files open when the caller deletes them. On NFS-backed storage
+     * that race otherwise leaves ".nfsXXXX" placeholders ("Device or resource busy") that break the
+     * recursive delete. Never throws: a failure or timeout here must not fail teardown.
+     */
+    void drainIngestPipeline(User authUser, Project project, int maximumWait = 120) {
+        try {
+            clearPrearchiveSessions(authUser, project)
+            waitForPrearchiveEmpty(authUser, project, maximumWait)
+            waitForDirectArchiveEmpty(authUser, project, maximumWait)
+        } catch (Throwable t) {
+            log.warn("drainIngestPipeline did not fully drain project ${project?.id} before teardown; proceeding anyway", t)
+        }
+    }
+
     void uploadToSessionZipImporter(User authUser, File sessionZip, Project project, Subject subject, ImagingSession session) {
         interfaceFor(authUser ?: mainUser).uploadToSessionZipImporter(sessionZip, project, subject, session)
     }
