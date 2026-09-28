@@ -11,6 +11,7 @@ import org.nrg.testing.enums.TestBehavior
 import org.nrg.testing.file.FileLocation
 import org.nrg.testing.util.RandomHelper
 import org.nrg.testing.xnat.kubernetes.KubernetesXnat
+import org.nrg.testing.xnat.performance.ImageTaggedXnatDeployment
 import org.nrg.testing.xnat.performance.control.PerformanceServerControl
 import org.nrg.testing.xnat.performance.control.PerformanceServerControlLookup
 import org.nrg.testing.xnat.performance.reset.PerformanceServerResetScript
@@ -210,7 +211,7 @@ class Settings {
             [new CustomXnatDeployment()]
         } else {
             requestedDeployments.split(',').collect { deployment ->
-                XnatDeployment.deploymentFromString(deployment)
+                ImageTaggedXnatDeployment.parse(deployment)
             }
         }
     }

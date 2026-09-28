@@ -200,7 +200,7 @@ class KubectlTest {
         final KubernetesXnat xnat = new KubernetesXnat(kubectl())
         xnat.container = 'xnat'
         xnat.imageRepository = 'registry.example/xnat'
-        xnat.stageImageForVersion('1.10.1')
+        xnat.stageImage('1.10.1')
         assertTrue(xnat.hasStagedImage())
         new File(stubDir, 'stdout').text = 'pod/xnat-0'
         xnat.start()

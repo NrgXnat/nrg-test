@@ -137,12 +137,12 @@ class KubernetesXnat {
         kubectl.waitForPodReady(pod, startupTimeoutSeconds)
     }
 
-    /** Stages the image for an XNAT version, to be used the next time the workload starts. */
-    void stageImageForVersion(String xnatVersion) {
+    /** Stages an image tag of {@code xnat.k8s.image}, to be used the next time the workload starts. */
+    void stageImage(String tag) {
         if (!imageRepository) {
-            throw new IllegalStateException("Set ${XNATProperties.KUBERNETES_IMAGE} to the image repository whose tags are XNAT versions")
+            throw new IllegalStateException("Set ${XNATProperties.KUBERNETES_IMAGE} to the XNAT image repository")
         }
-        stagedImage = "${imageRepository}:${xnatVersion}"
+        stagedImage = "${imageRepository}:${tag}"
         log.info("Staged ${stagedImage} for the next start of ${workload}")
     }
 

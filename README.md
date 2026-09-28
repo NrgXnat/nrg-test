@@ -114,7 +114,7 @@ With `xnat.performance.platform=kubernetes` the performance tests drive an XNAT 
 
 * The reset empties the archive, prearchive, cache and build directories (read from the site configuration unless `xnat.k8s.dataPaths` is set) while the pod is up, scales the workload to zero, drops and recreates the database in its pod, and scales the workload back up. XNAT then starts on an empty database with the default admin account.
 * Plugins are copied into, and removed from, the plugins directory through the running pod, and load at the next restart.
-* A deployment's XNAT version is used as the image tag in `xnat.k8s.image`, and takes effect at the next restart.
+* A deployment's XNAT version is used as the image tag in `xnat.k8s.image`, and takes effect at the next restart. For a build the version list doesn't know, such as a snapshot, write the deployment as `<image tag>=<deployment>`: `xnat.performance.deployments=1.10.1,1.10.2-mybranch-SNAPSHOT=1.10.1` runs the image tagged `1.10.2-mybranch-SNAPSHOT`, treats it as XNAT 1.10.1, and labels its results with the tag.
 
 Because the reset is destructive, it refuses to run until `xnat.k8s.reset.confirm` equals `<context>/<namespace>` of the target, with `in-cluster` as the context when none is set. Only point it at an XNAT that holds nothing but test data.
 
