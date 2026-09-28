@@ -86,13 +86,9 @@ class Kubectl {
         run(['scale', workload, "--replicas=${replicas}".toString()])
     }
 
-    void setImage(String workload, String container, String image) {
-        run(['set', 'image', workload, "${container}=${image}".toString()])
-    }
-
-    /** The name of the first container in a workload's pod template. */
-    String firstContainerName(String workload) {
-        run(['get', workload, '-o', 'jsonpath={.spec.template.spec.containers[0].name}']).trim()
+    /** Sets one image on several containers or init containers of a workload's pod template, in one change. */
+    void setImages(String workload, List<String> containers, String image) {
+        run(['set', 'image', workload] + containers.collect { name -> "${name}=${image}".toString() })
     }
 
     boolean podExists(String pod) {

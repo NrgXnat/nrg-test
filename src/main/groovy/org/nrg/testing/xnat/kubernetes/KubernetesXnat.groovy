@@ -1,5 +1,6 @@
 package org.nrg.testing.xnat.kubernetes
 
+import groovy.json.JsonSlurper
 import groovy.util.logging.Log4j
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.conf.XNATProperties
@@ -34,10 +35,12 @@ class KubernetesXnat {
     String pluginsSource
     String imageRepository
     long startupTimeoutSeconds = 900
+    boolean verifyVersion = true
     String resetConfirmation
     File artifactCache = new File(System.getProperty('java.io.tmpdir'), 'xnat-kubernetes-artifacts')
 
-    private String stagedImage
+    private String stagedTag
+    private String runningTag
 
     KubernetesXnat(Kubectl kubectl) {
         this.kubectl = kubectl
@@ -63,6 +66,7 @@ class KubernetesXnat {
         xnat.imageRepository = properties.kubernetesImage
         xnat.startupTimeoutSeconds = properties.kubernetesStartupTimeout
         xnat.resetConfirmation = properties.kubernetesResetConfirmation
+        xnat.verifyVersion = properties.kubernetesVerifyVersion
         xnat
     }
 
@@ -120,13 +124,20 @@ class KubernetesXnat {
             """.stripIndent())
     }
 
-    /** Starts the workload on the staged image, if one is staged, and waits for the pod to be Ready. */
+    /**
+     * Starts the workload on the staged image, if one is staged, and waits for the pod to be Ready. The image goes to
+     * every container and init container that runs an image from {@code xnat.k8s.image}, not only the main one: the
+     * XNAT Helm chart's home-init container, for one, copies Tomcat and the XNAT webapp out of its image into the
+     * volume the main container runs from.
+     */
     void start() {
-        if (stagedImage) {
-            final String name = container ?: kubectl.firstContainerName(workload)
-            log.info("Switching ${workload} container ${name} to ${stagedImage}")
-            kubectl.setImage(workload, name, stagedImage)
-            stagedImage = null
+        if (stagedTag) {
+            final String image = "${imageRepository}:${stagedTag}"
+            final List<String> names = xnatContainerNames()
+            log.info("Switching ${workload} containers ${names} to ${image}")
+            kubectl.setImages(workload, names, image)
+            runningTag = stagedTag
+            stagedTag = null
         }
         log.info("Starting ${workload} in ${target}")
         kubectl.scale(workload, 1)
@@ -142,20 +153,54 @@ class KubernetesXnat {
         if (!imageRepository) {
             throw new IllegalStateException("Set ${XNATProperties.KUBERNETES_IMAGE} to the XNAT image repository")
         }
-        stagedImage = "${imageRepository}:${tag}"
-        log.info("Staged ${stagedImage} for the next start of ${workload}")
+        stagedTag = tag
+        log.info("Staged ${imageRepository}:${tag} for the next start of ${workload}")
     }
 
     boolean hasStagedImage() {
-        stagedImage != null
+        stagedTag != null
     }
 
     /** Restarts the workload onto a staged image. Nothing happens when no image is staged. */
     void applyStagedImage() {
-        if (stagedImage) {
+        if (stagedTag) {
             stop()
             start()
         }
+    }
+
+    /**
+     * After a switch of image, checks that XNAT itself reports the version the tag names, so that a run can never
+     * measure one build under another's label. {@code xnat.k8s.verifyVersion=false} turns it off for images whose
+     * version differs from their tag.
+     */
+    void verifyRunningVersion() {
+        if (!verifyVersion || !runningTag) {
+            return
+        }
+        final String version = Settings.adminCredentials().get("${Settings.BASEURL}/xapi/siteConfig/buildInfo")
+                .then().statusCode(200).extract().jsonPath().getString('version')
+        if (version != runningTag) {
+            throw new IllegalStateException("XNAT reports version ${version} after ${workload} was switched to image tag ${runningTag}. " +
+                    "Check that every container supplying XNAT runs the new image, or set ${XNATProperties.KUBERNETES_VERIFY_VERSION}=false " +
+                    "if this image's version differs from its tag.")
+        }
+        log.info("XNAT reports version ${version}, as its image tag says")
+    }
+
+    /** The containers and init containers of the workload's pod template that run an image from {@code xnat.k8s.image}. */
+    List<String> xnatContainerNames() {
+        final Map podSpec = ((new JsonSlurper().parseText(kubectl.run(['get', workload, '-o', 'json'])) as Map).spec as Map).template.spec as Map
+        final List<Map> containers = ((podSpec.initContainers ?: []) + (podSpec.containers ?: [])) as List<Map>
+        final List<String> names = containers.findAll { entry ->
+            final String image = entry.image as String
+            image?.startsWith("${imageRepository}:") || image?.startsWith("${imageRepository}@")
+        }.collect { entry -> entry.name as String }
+        if (!names) {
+            throw new IllegalStateException("No container of ${workload} runs an image from ${imageRepository}; " +
+                    "set ${XNATProperties.KUBERNETES_IMAGE} to the repository its XNAT containers use")
+        }
+        names
     }
 
     void installPlugin(String pluginName, File jar) {

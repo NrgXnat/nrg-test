@@ -30,6 +30,7 @@ class KubernetesServerControl implements PerformanceServerControl {
         xnat.applyStagedImage()
         xnat.waitForReady()
         SSHConnection.waitForTomcat()
+        xnat.verifyRunningVersion()
     }
 
 }

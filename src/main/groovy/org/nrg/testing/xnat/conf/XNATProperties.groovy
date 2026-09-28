@@ -92,6 +92,7 @@ class XNATProperties extends BaseProperties {
     public static final String KUBERNETES_IMAGE = 'xnat.k8s.image'
     public static final String KUBERNETES_STARTUP_TIMEOUT = 'xnat.k8s.startupTimeout'
     public static final String KUBERNETES_RESET_CONFIRM = 'xnat.k8s.reset.confirm'
+    public static final String KUBERNETES_VERIFY_VERSION = 'xnat.k8s.verifyVersion'
     public static final String DQR_PACS_DIMSE_AE_TITLE = 'dqr.pacs.dimse.aeTitle'
     public static final String DQR_PACS_DIMSE_HOST = 'dqr.pacs.dimse.host'
     public static final String DQR_PACS_DIMSE_PORT = 'dqr.pacs.dimse.port'
@@ -446,6 +447,10 @@ class XNATProperties extends BaseProperties {
 
     String getKubernetesResetConfirmation() {
         getStringProperty(KUBERNETES_RESET_CONFIRM, null)
+    }
+
+    boolean getKubernetesVerifyVersion() {
+        getBooleanProperty(KUBERNETES_VERIFY_VERSION, true)
     }
 
     boolean getPerformanceSetBaselineSetting() {

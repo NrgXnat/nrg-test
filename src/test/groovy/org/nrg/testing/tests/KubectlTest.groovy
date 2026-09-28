@@ -30,7 +30,7 @@ class KubectlTest {
             printf '%s\\n' "$*" >> "$d/calls"
             case " $* " in *" -i "*) cat > "$d/stdin";; esac
             [ -f "$d/sleep" ] && sleep "$(cat "$d/sleep")"
-            [ -f "$d/stdout" ] && cat "$d/stdout"
+            case " $* " in *" -o json "*) cat "$d/json";; *) [ -f "$d/stdout" ] && cat "$d/stdout";; esac
             [ -f "$d/stderr" ] && cat "$d/stderr" >&2
             exit "$(cat "$d/status" 2>/dev/null || echo 0)"
             '''.stripIndent()
@@ -195,20 +195,41 @@ class KubectlTest {
         assertTrue(script.contains('CREATE DATABASE \\"xnat\\" OWNER \\"$owner\\"'))
     }
 
+    private static final String CHART_POD_TEMPLATE = '''{"spec": {"template": {"spec": {
+            "initContainers": [{"name": "wait-for-postgres", "image": "busybox:1.36"},
+                               {"name": "home-init", "image": "registry.example/xnat:1.10.2"}],
+            "containers": [{"name": "xnat", "image": "registry.example/xnat:1.10.2"}]}}}}'''
+
     @Test
-    void aStagedImageIsSetBeforeTheWorkloadStarts() {
+    void aStagedImageGoesToEveryXnatContainerBeforeTheWorkloadStarts() {
         final KubernetesXnat xnat = new KubernetesXnat(kubectl())
-        xnat.container = 'xnat'
         xnat.imageRepository = 'registry.example/xnat'
+        new File(stubDir, 'json').text = CHART_POD_TEMPLATE
+        new File(stubDir, 'stdout').text = 'pod/xnat-0'
         xnat.stageImage('1.10.1')
         assertTrue(xnat.hasStagedImage())
-        new File(stubDir, 'stdout').text = 'pod/xnat-0'
         xnat.start()
         assertFalse(xnat.hasStagedImage())
         final List<String> calls = new File(stubDir, 'calls').readLines()
-        final int setImage = calls.findIndexOf { it.contains('set image statefulset/xnat xnat=registry.example/xnat:1.10.1') }
+        final int setImages = calls.findIndexOf { it.contains('set image statefulset/xnat home-init=registry.example/xnat:1.10.1 xnat=registry.example/xnat:1.10.1') }
         final int scaleUp = calls.findIndexOf { it.contains('scale statefulset/xnat --replicas=1') }
-        assertTrue("image set (${setImage}) before scale-up (${scaleUp}): ${calls}", setImage >= 0 && setImage < scaleUp)
+        assertTrue("every XNAT container switched (${setImages}) before scale-up (${scaleUp}): ${calls}", setImages >= 0 && setImages < scaleUp)
+        assertFalse('an init container on another image keeps it', calls.any { it.contains('wait-for-postgres=') })
+    }
+
+    @Test
+    void aWorkloadWithNoContainerFromTheRepositoryIsRefused() {
+        final KubernetesXnat xnat = new KubernetesXnat(kubectl())
+        xnat.imageRepository = 'registry.example/other'
+        new File(stubDir, 'json').text = CHART_POD_TEMPLATE
+        xnat.stageImage('1.10.1')
+        try {
+            xnat.start()
+            fail('a switch that would change no container should be refused')
+        } catch (IllegalStateException e) {
+            assertTrue(e.message.contains('xnat.k8s.image'))
+        }
+        assertFalse(new File(stubDir, 'calls').readLines().any { it.contains('set image') || it.contains('scale') })
     }
 
 }

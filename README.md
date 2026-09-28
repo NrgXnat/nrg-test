@@ -114,7 +114,7 @@ With `xnat.performance.platform=kubernetes` the performance tests drive an XNAT 
 
 * The reset empties the archive, prearchive, cache and build directories (read from the site configuration unless `xnat.k8s.dataPaths` is set) while the pod is up, scales the workload to zero, drops and recreates the database in its pod, and scales the workload back up. XNAT then starts on an empty database with the default admin account.
 * Plugins are copied into, and removed from, the plugins directory through the running pod, and load at the next restart.
-* A deployment's XNAT version is used as the image tag in `xnat.k8s.image`, and takes effect at the next restart. For a build the version list doesn't know, such as a snapshot, write the deployment as `<image tag>=<deployment>`: `xnat.performance.deployments=1.10.1,1.10.2-mybranch-SNAPSHOT=1.10.1` runs the image tagged `1.10.2-mybranch-SNAPSHOT`, treats it as XNAT 1.10.1, and labels its results with the tag.
+* A deployment's XNAT version is used as the image tag in `xnat.k8s.image`, and takes effect at the next restart. The tag goes to every container and init container that runs an image from that repository, since the XNAT Helm chart's `home-init` init container copies the webapp out of its image into the volume the main container runs, and after the restart the tests check that XNAT reports the version the tag names. For a build the version list doesn't know, such as a snapshot, write the deployment as `<image tag>=<deployment>`: `xnat.performance.deployments=1.10.1,1.10.2-mybranch-SNAPSHOT=1.10.1` runs the image tagged `1.10.2-mybranch-SNAPSHOT`, treats it as XNAT 1.10.1, and labels its results with the tag.
 
 Because the reset is destructive, it refuses to run until `xnat.k8s.reset.confirm` equals `<context>/<namespace>` of the target, with `in-cluster` as the context when none is set. Only point it at an XNAT that holds nothing but test data.
 
@@ -134,6 +134,7 @@ Because the reset is destructive, it refuses to run until `xnat.k8s.reset.confir
 * xnat.k8s.image: The image repository whose tags are XNAT versions, for `xnat.performance.deployments`.
 * xnat.k8s.startupTimeout: Seconds to wait for the XNAT pod to stop or become Ready. Defaults to 900.
 * xnat.k8s.reset.confirm: Must equal `<context>/<namespace>` for the reset to run.
+* xnat.k8s.verifyVersion: Check after a switch of image that XNAT reports the version its tag names. Defaults to true; set false for images whose version differs from their tag.
 
 ## JIRA Configuration ##
 All fields (except any marked Optional) are required if you wish to use JIRA integration. They may be set as command line arguments or in config/jira.properties.
