@@ -10,6 +10,9 @@ import org.nrg.testing.email.EmailClient
 import org.nrg.testing.enums.TestBehavior
 import org.nrg.testing.file.FileLocation
 import org.nrg.testing.util.RandomHelper
+import org.nrg.testing.xnat.kubernetes.KubernetesXnat
+import org.nrg.testing.xnat.performance.control.PerformanceServerControl
+import org.nrg.testing.xnat.performance.control.PerformanceServerControlLookup
 import org.nrg.testing.xnat.performance.reset.PerformanceServerResetScript
 import org.nrg.testing.xnat.performance.reset.XnatResetScriptLookup
 import org.nrg.testing.xnat.performance.reset.plugin.XnatComponentInstaller
@@ -120,6 +123,8 @@ class Settings {
     public static final XnatComponentInstaller PERFORMANCE_PLUGIN_INSTALLER = XnatPluginManagementScriptLookup.lookupInstaller(properties.performancePluginInstallId)
     public static final XnatComponentUninstaller PERFORMANCE_PLUGIN_UNINSTALLER = XnatPluginManagementScriptLookup.lookupUninstaller(properties.performancePluginUninstallId)
     public static final List<XnatDeployment> PERFORMANCE_DEPLOYMENTS = readDeployments()
+    public static final PerformanceServerControl PERFORMANCE_SERVER_CONTROL = PerformanceServerControlLookup.lookup(properties.performanceServerControlId)
+    public static final KubernetesXnat KUBERNETES_XNAT = KubernetesXnat.fromProperties(properties)
     public static final boolean PERFORMANCE_SET_BASELINES = properties.performanceSetBaselineSetting
     public static final boolean PERFORMANCE_NEW_TESTS_ONLY = properties.performanceNewTestsOnlySetting
     public static final boolean PERFORMANCE_EXPORT_ONLY = properties.performanceExportOnlySetting
@@ -192,6 +197,13 @@ class Settings {
         "${emailId}+${RandomHelper.randomLetters(12)}${emailProvider}"
     }
     
+    static KubernetesXnat kubernetesXnat() {
+        if (KUBERNETES_XNAT == null) {
+            throw new IllegalStateException("Set ${XNATProperties.KUBERNETES_NAMESPACE} to run against an XNAT on Kubernetes")
+        }
+        KUBERNETES_XNAT
+    }
+
     static List<XnatDeployment> readDeployments() {
         final String requestedDeployments = properties.performanceDeployments
         if (requestedDeployments == null) {

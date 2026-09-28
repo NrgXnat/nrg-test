@@ -6,11 +6,9 @@ import org.nrg.testing.xnat.BaseXnatRestTest
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.conf.XnatConfig
 import org.nrg.testing.xnat.performance.actions.CheckablePerformanceWorkflow
-import org.nrg.testing.xnat.ssh.SSHConnection
+import org.nrg.testing.xnat.performance.control.PerformanceServerControl
 import org.nrg.xnat.pogo.CustomXnatDeployment
-import org.nrg.xnat.pogo.PluginRegistry
 import org.nrg.xnat.pogo.XnatDeployment
-import org.nrg.xnat.pogo.plugins.BitbucketDownloadsDerivation
 import org.testng.annotations.AfterSuite
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.DataProvider
@@ -43,9 +41,9 @@ class XnatPerformanceTests extends BaseXnatRestTest {
             final Set<String> requestedPlugins = ((performanceTestPlugin != null) ? performanceTestPlugin.value() : []) as Set<String>
             knownTempPlugins.addAll(requestedPlugins)
             final XnatDeployment xnatDeployment = methodParams[0] as XnatDeployment
+            final PerformanceServerControl serverControl = Settings.PERFORMANCE_SERVER_CONTROL
             if (!(xnatDeployment instanceof CustomXnatDeployment)) {
-                final SSHConnection sshConnection = new SSHConnection()
-                sshConnection.stopTomcat()
+                serverControl.stopXnat()
 
                 log.info('Attempting to remove all plugins from XNAT...')
                 Settings.PERFORMANCE_PLUGIN_UNINSTALLER.uninstallAllPlugins()
@@ -54,9 +52,7 @@ class XnatPerformanceTests extends BaseXnatRestTest {
                     Settings.PERFORMANCE_PLUGIN_INSTALLER.installPluginWithUrl("${plugin.id}-${plugin.version}.jar", plugin.downloadUrl)
                 }
                 
-                final BitbucketDownloadsDerivation xnatDownloads = new BitbucketDownloadsDerivation(PluginRegistry.XNAT_DEV, 'xnat-web')
-                final String downloadUrl = xnatDownloads.apply(xnatDeployment.xnatVersionString == '1.7.6' ? '1.7.6-tc8' : xnatDeployment.xnatVersionString)
-                Settings.PERFORMANCE_PLUGIN_INSTALLER.installWarWithUrl(downloadUrl)
+                serverControl.deployXnat(xnatDeployment)
                 constructRestDriver(XnatConfig.buildDefaultConfig().xnatVersion(xnatDeployment.xnatVersion))
             }
 
@@ -70,7 +66,7 @@ class XnatPerformanceTests extends BaseXnatRestTest {
             }
 
             hardResetXnat()
-            SSHConnection.waitForTomcat()
+            serverControl.waitForXnat()
             setupXnat()
         }
     }

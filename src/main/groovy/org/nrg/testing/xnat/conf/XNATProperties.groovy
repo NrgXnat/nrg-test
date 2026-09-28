@@ -74,6 +74,24 @@ class XNATProperties extends BaseProperties {
     public static final String PERFORMANCE_EXPORT_ONLY = 'xnat.performance.exportOnly'
     public static final String PERFORMANCE_NEW_TESTS_ONLY = 'xnat.performance.newTestsOnly'
     public static final String PERFORMANCE_COMPILE_PDF = 'xnat.performance.compilePdf'
+    public static final String PERFORMANCE_PLATFORM = 'xnat.performance.platform'
+    public static final String PERFORMANCE_SERVER_CONTROL = 'xnat.performance.serverControl'
+    public static final String KUBERNETES_KUBECTL = 'xnat.k8s.kubectl'
+    public static final String KUBERNETES_CONTEXT = 'xnat.k8s.context'
+    public static final String KUBERNETES_NAMESPACE = 'xnat.k8s.namespace'
+    public static final String KUBERNETES_WORKLOAD = 'xnat.k8s.workload'
+    public static final String KUBERNETES_POD = 'xnat.k8s.pod'
+    public static final String KUBERNETES_CONTAINER = 'xnat.k8s.container'
+    public static final String KUBERNETES_DB_POD = 'xnat.k8s.db.pod'
+    public static final String KUBERNETES_DB_CONTAINER = 'xnat.k8s.db.container'
+    public static final String KUBERNETES_DB_NAME = 'xnat.k8s.db.name'
+    public static final String KUBERNETES_DB_USER = 'xnat.k8s.db.user'
+    public static final String KUBERNETES_DATA_PATHS = 'xnat.k8s.dataPaths'
+    public static final String KUBERNETES_PLUGINS_DIR = 'xnat.k8s.pluginsDir'
+    public static final String KUBERNETES_PLUGINS_SOURCE = 'xnat.k8s.pluginsSource'
+    public static final String KUBERNETES_IMAGE = 'xnat.k8s.image'
+    public static final String KUBERNETES_STARTUP_TIMEOUT = 'xnat.k8s.startupTimeout'
+    public static final String KUBERNETES_RESET_CONFIRM = 'xnat.k8s.reset.confirm'
     public static final String DQR_PACS_DIMSE_AE_TITLE = 'dqr.pacs.dimse.aeTitle'
     public static final String DQR_PACS_DIMSE_HOST = 'dqr.pacs.dimse.host'
     public static final String DQR_PACS_DIMSE_PORT = 'dqr.pacs.dimse.port'
@@ -337,7 +355,7 @@ class XNATProperties extends BaseProperties {
     }
 
     String getPerformanceResetScriptId() {
-        getStringProperty(PERFORMANCE_RESET_SCRIPT_ID, null)
+        getStringProperty(PERFORMANCE_RESET_SCRIPT_ID, kubernetesPlatformDefault())
     }
     
     String getPerformanceDeployments() {
@@ -345,11 +363,89 @@ class XNATProperties extends BaseProperties {
     }
 
     String getPerformancePluginInstallId() {
-        getStringProperty(PERFORMANCE_INSTALL_PLUGIN_SCRIPT, null)
+        getStringProperty(PERFORMANCE_INSTALL_PLUGIN_SCRIPT, kubernetesPlatformDefault())
     }
 
     String getPerformancePluginUninstallId() {
-        getStringProperty(PERFORMANCE_UNINSTALL_PLUGIN_SCRIPT, null)
+        getStringProperty(PERFORMANCE_UNINSTALL_PLUGIN_SCRIPT, kubernetesPlatformDefault())
+    }
+
+    /** {@code ssh} (the default) or {@code kubernetes}; the default for the server control, reset and plugin keys. */
+    String getPerformancePlatform() {
+        getStringProperty(PERFORMANCE_PLATFORM, 'ssh')
+    }
+
+    String getPerformanceServerControlId() {
+        getStringProperty(PERFORMANCE_SERVER_CONTROL, performancePlatform)
+    }
+
+    private String kubernetesPlatformDefault() {
+        performancePlatform == 'kubernetes' ? 'kubernetes' : null
+    }
+
+    String getKubernetesKubectl() {
+        getStringProperty(KUBERNETES_KUBECTL, 'kubectl')
+    }
+
+    String getKubernetesContext() {
+        getStringProperty(KUBERNETES_CONTEXT, null)
+    }
+
+    String getKubernetesNamespace() {
+        getStringProperty(KUBERNETES_NAMESPACE, null)
+    }
+
+    String getKubernetesWorkload() {
+        getStringProperty(KUBERNETES_WORKLOAD, 'statefulset/xnat')
+    }
+
+    String getKubernetesPod() {
+        getStringProperty(KUBERNETES_POD, 'xnat-0')
+    }
+
+    String getKubernetesContainer() {
+        getStringProperty(KUBERNETES_CONTAINER, null)
+    }
+
+    String getKubernetesDatabasePod() {
+        getStringProperty(KUBERNETES_DB_POD, null)
+    }
+
+    String getKubernetesDatabaseContainer() {
+        getStringProperty(KUBERNETES_DB_CONTAINER, null)
+    }
+
+    String getKubernetesDatabaseName() {
+        getStringProperty(KUBERNETES_DB_NAME, 'xnat')
+    }
+
+    String getKubernetesDatabaseUser() {
+        getStringProperty(KUBERNETES_DB_USER, null)
+    }
+
+    List<String> getKubernetesDataPaths() {
+        final String paths = getStringProperty(KUBERNETES_DATA_PATHS, null)
+        paths ? paths.split(',')*.trim().findAll() : null
+    }
+
+    String getKubernetesPluginsDirectory() {
+        getStringProperty(KUBERNETES_PLUGINS_DIR, '/data/xnat/home/plugins')
+    }
+
+    String getKubernetesPluginsSource() {
+        getStringProperty(KUBERNETES_PLUGINS_SOURCE, null)
+    }
+
+    String getKubernetesImage() {
+        getStringProperty(KUBERNETES_IMAGE, null)
+    }
+
+    int getKubernetesStartupTimeout() {
+        getIntProperty(KUBERNETES_STARTUP_TIMEOUT, 900)
+    }
+
+    String getKubernetesResetConfirmation() {
+        getStringProperty(KUBERNETES_RESET_CONFIRM, null)
     }
 
     boolean getPerformanceSetBaselineSetting() {

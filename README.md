@@ -55,6 +55,8 @@ Each specific configuration setting may be done as a command line argument, or f
 * xnat.performance.exportOnly: Setting to only export known performance results instead of running the tests again. Defaults to false.
 * xnat.performance.newTestsOnly: Setting to only run tests that do not already have a run on the specified XNAT version. Defaults to false.
 * xnat.performance.compilePdf: Setting to compile tex files for graphs of performance data. Requires pdflatex to be on the $PATH. Defaults to false.
+* xnat.performance.platform: `ssh` (the default) or `kubernetes`. Sets the default for `xnat.performance.serverControl`, `xnat.performance.resetId` and the plugin install/uninstall keys, so `kubernetes` selects the Kubernetes implementation of each. See "Performance tests on Kubernetes" below.
+* xnat.performance.serverControl: Key for class in `PerformanceServerControlLookup.CONTROLS` that stops XNAT, puts a deployment's version in place and waits for XNAT to come back. Defaults to the platform.
 * xnat.testBehavior.expectedFailures: Defines the behavior for tests or classes annotated with `@ExpectedFailure`. Supported values: run, skip, ignore. Defaults to skip.
 * xnat.testBehavior.missingPlugins: Defines the behavior for tests or classes annotated with plugin dependencies when required plugins are not available. Supported values: skip, ignore. Defaults to ignore.
 * xnat.basic: Can be set to true to only run methods/classes annotated with `@Basic`. Individual test methods can be annotated as basic, or the annotation can be applied at the class level to identify all tests as basic. If false (or not specified), all allowed tests will be run.
@@ -106,6 +108,32 @@ The outputs of the performance tests are put and persisted in `src/test/resource
 By default, the performance tests will run against the currently installed versions of XNAT and any plugins installed on the test instance. However, by specifying `xnat.performance.deployments`, you can instruct the performance tests to evaluate multiple different
 versions of code. This parameter should be set to a comma-separated list of "deployments" where a deployment is a version of XNAT and an optional sequence of plugins. Currently, the only supported plugin is `containers`. The version of XNAT (and each plugin) should
 be delimited with `+`. The tests will run each test once per deployment, installing the specified version of XNAT and corresponding plugins automatically. An example value for this parameter is: `xnat.performance.deployments=1.8.6,1.8.7+containers`.
+
+### Performance tests on Kubernetes ###
+With `xnat.performance.platform=kubernetes` the performance tests drive an XNAT deployed as a Kubernetes workload (by default the XNAT Helm chart's StatefulSet) through `kubectl` instead of SSH. `kubectl` must be on the `$PATH`. Run from a workstation it uses the named context; run in a pod of the cluster with no context set, it uses the pod's service account, which needs `get`, `list`, `watch` and `delete` on pods, `create` on `pods/exec`, and `get`, `patch` and `update` on the workload and its `scale` subresource, in the XNAT's namespace.
+
+* The reset empties the archive, prearchive, cache and build directories (read from the site configuration unless `xnat.k8s.dataPaths` is set) while the pod is up, scales the workload to zero, drops and recreates the database in its pod, and scales the workload back up. XNAT then starts on an empty database with the default admin account.
+* Plugins are copied into, and removed from, the plugins directory through the running pod, and load at the next restart.
+* A deployment's XNAT version is used as the image tag in `xnat.k8s.image`, and takes effect at the next restart.
+
+Because the reset is destructive, it refuses to run until `xnat.k8s.reset.confirm` equals `<context>/<namespace>` of the target, with `in-cluster` as the context when none is set. Only point it at an XNAT that holds nothing but test data.
+
+* xnat.k8s.namespace: The XNAT's namespace. Required.
+* xnat.k8s.context: The kubectl context. Leave unset to use kubectl's default, which in a pod is the pod's service account.
+* xnat.k8s.kubectl: The kubectl executable. Defaults to `kubectl`.
+* xnat.k8s.workload: The XNAT workload. Defaults to `statefulset/xnat`.
+* xnat.k8s.pod: The XNAT pod. Defaults to `xnat-0`.
+* xnat.k8s.container: The XNAT container. Defaults to the pod's default container.
+* xnat.k8s.db.pod: The pod that runs the XNAT's Postgres database. Required for the reset.
+* xnat.k8s.db.container: The database container. Defaults to the pod's default container.
+* xnat.k8s.db.name: The XNAT's database. Defaults to `xnat`. It is recreated with its existing owner.
+* xnat.k8s.db.user: The user `psql` connects as in the database container. Defaults to the container's own user.
+* xnat.k8s.dataPaths: A comma-separated list of the directories the reset empties, instead of the site configuration's archive, prearchive, cache and build paths.
+* xnat.k8s.pluginsDir: The XNAT's plugins directory. Defaults to `/data/xnat/home/plugins`.
+* xnat.k8s.pluginsSource: A directory or http(s) URL prefix holding the plugins tests install by name.
+* xnat.k8s.image: The image repository whose tags are XNAT versions, for `xnat.performance.deployments`.
+* xnat.k8s.startupTimeout: Seconds to wait for the XNAT pod to stop or become Ready. Defaults to 900.
+* xnat.k8s.reset.confirm: Must equal `<context>/<namespace>` for the reset to run.
 
 ## JIRA Configuration ##
 All fields (except any marked Optional) are required if you wish to use JIRA integration. They may be set as command line arguments or in config/jira.properties.
