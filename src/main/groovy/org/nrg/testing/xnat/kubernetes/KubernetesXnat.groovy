@@ -21,6 +21,7 @@ class KubernetesXnat {
 
     private static final List<String> DATA_PATH_PREFERENCES = ['archivePath', 'prearchivePath', 'cachePath', 'buildPath']
     private static final String IDENTIFIER = /[A-Za-z_][A-Za-z0-9_]*/
+    private static final long   DICOM_RECEIVER_WAIT_MILLIS = 120000
 
     final Kubectl kubectl
     String workload = 'statefulset/xnat'
@@ -146,6 +147,36 @@ class KubernetesXnat {
 
     void waitForReady() {
         kubectl.waitForPodReady(pod, startupTimeoutSeconds)
+    }
+
+    /**
+     * Waits up to two minutes for XNAT's DICOM receiver to accept connections. XNAT starts its receivers after its REST
+     * API answers, so a C-STORE sent right after a restart can be refused. A receiver that never opens, such as a
+     * disabled one, only gets a warning, so tests that send no DICOM don't fail on it.
+     */
+    void waitForDicomReceiver(String host, int port) {
+        if (!waitForPort(host, port, DICOM_RECEIVER_WAIT_MILLIS)) {
+            log.warn("XNAT's DICOM receiver at ${host}:${port} did not accept connections within ${DICOM_RECEIVER_WAIT_MILLIS / 1000} s")
+        }
+    }
+
+    /** Whether something accepts connections on host:port within the timeout, trying once a second. */
+    static boolean waitForPort(String host, int port, long timeoutMillis) {
+        final long deadline = System.currentTimeMillis() + timeoutMillis
+        while (true) {
+            final Socket socket = new Socket()
+            try {
+                socket.connect(new InetSocketAddress(host, port), 2000)
+                return true
+            } catch (IOException ignored) {
+                if (System.currentTimeMillis() >= deadline) {
+                    return false
+                }
+            } finally {
+                socket.close()
+            }
+            Thread.sleep(1000)
+        }
     }
 
     /** Stages an image tag of {@code xnat.k8s.image}, to be used the next time the workload starts. */

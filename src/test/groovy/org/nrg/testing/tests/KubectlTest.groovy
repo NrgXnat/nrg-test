@@ -232,4 +232,36 @@ class KubectlTest {
         assertFalse(new File(stubDir, 'calls').readLines().any { it.contains('set image') || it.contains('scale') })
     }
 
+    @Test
+    void waitsForAPortThatOpensLate() {
+        final int port = freePort()
+        ServerSocket listener = null
+        final Thread opener = Thread.start {
+            sleep(1500)
+            listener = new ServerSocket(port, 50, InetAddress.getByName('127.0.0.1'))
+        }
+        try {
+            assertTrue(KubernetesXnat.waitForPort('127.0.0.1', port, 10000))
+        } finally {
+            opener.join()
+            listener?.close()
+        }
+    }
+
+    @Test
+    void givesUpOnAPortThatNeverOpens() {
+        final long started = System.currentTimeMillis()
+        assertFalse(KubernetesXnat.waitForPort('127.0.0.1', freePort(), 1500))
+        assertTrue(System.currentTimeMillis() - started >= 1500)
+    }
+
+    private static int freePort() {
+        final ServerSocket probe = new ServerSocket(0, 50, InetAddress.getByName('127.0.0.1'))
+        try {
+            return probe.localPort
+        } finally {
+            probe.close()
+        }
+    }
+
 }
