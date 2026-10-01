@@ -27,7 +27,6 @@ class KubernetesXnat {
     private static final List<String> EPHEMERAL_VOLUME_TYPES = ['emptyDir', 'ephemeral', 'configMap', 'secret', 'projected', 'downwardAPI']
     private static final List<String> STATEFUL_SET_KINDS = ['statefulset', 'statefulsets', 'sts', 'statefulset.apps', 'statefulsets.apps']
     private static final String IDENTIFIER = /[A-Za-z_][A-Za-z0-9_-]*/
-    private static final long   DICOM_RECEIVER_WAIT_MILLIS = 120000
     private static final long   LOG_SAVE_TIMEOUT_SECONDS = 600
 
     final Kubectl kubectl
@@ -47,6 +46,8 @@ class KubernetesXnat {
     /** Where the XNAT's logs are saved before each stop; null saves nothing. */
     File savedLogs
     long startupTimeoutSeconds = 900
+    /** How long a started XNAT's DICOM receiver gets to accept connections, each time it is waited for. */
+    long dicomReceiverWaitMillis = 300000
     boolean verifyVersion = true
     String resetConfirmation
     File artifactCache = new File(System.getProperty('java.io.tmpdir'), 'xnat-kubernetes-artifacts')
@@ -265,13 +266,20 @@ class KubernetesXnat {
     }
 
     /**
-     * Waits up to two minutes for XNAT's DICOM receiver to accept connections. XNAT starts its receivers after its REST
-     * API answers, so a C-STORE sent right after a restart can be refused. A receiver that never opens, such as a
-     * disabled one, only gets a warning, so tests that send no DICOM don't fail on it.
+     * Waits for XNAT's DICOM receiver to accept connections, restarting XNAT once if it doesn't. XNAT starts its
+     * receivers after its REST API answers, so a C-STORE sent right after a restart can be refused; and a start whose
+     * receiver never opened has been seen to come up normally when restarted. A receiver that is still closed after the
+     * restart, such as a disabled one, only gets a warning, so tests that send no DICOM don't fail on it.
      */
     void waitForDicomReceiver(String host, int port) {
-        if (!waitForPort(host, port, DICOM_RECEIVER_WAIT_MILLIS)) {
-            log.warn("XNAT's DICOM receiver at ${host}:${port} did not accept connections within ${DICOM_RECEIVER_WAIT_MILLIS / 1000} s")
+        if (waitForPort(host, port, dicomReceiverWaitMillis)) {
+            return
+        }
+        log.warn("XNAT's DICOM receiver at ${host}:${port} did not accept connections within ${dicomReceiverWaitMillis / 1000} s; restarting ${workload} once")
+        stop()
+        start()
+        if (!waitForPort(host, port, dicomReceiverWaitMillis)) {
+            log.warn("XNAT's DICOM receiver at ${host}:${port} still did not accept connections within ${dicomReceiverWaitMillis / 1000} s of the restart")
         }
     }
 

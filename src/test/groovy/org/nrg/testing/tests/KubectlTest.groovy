@@ -542,6 +542,30 @@ class KubectlTest {
         assertTrue(System.currentTimeMillis() - started >= 1500)
     }
 
+    @Test
+    void restartsXnatOnceWhenItsDicomReceiverNeverOpens() {
+        final KubernetesXnat xnat = new KubernetesXnat(kubectl())
+        xnat.dicomReceiverWaitMillis = 500
+        answer('pods', 'pod/xnat-0')
+        xnat.waitForDicomReceiver('127.0.0.1', freePort())
+        final List<String> scales = calls().findAll { it.contains(' scale ') }
+        assertEquals(['--context test-context --namespace test-namespace scale statefulset/xnat --replicas=0',
+                      '--context test-context --namespace test-namespace scale statefulset/xnat --replicas=1'], scales)
+    }
+
+    @Test
+    void leavesXnatRunningWhenItsDicomReceiverOpens() {
+        final ServerSocket listener = new ServerSocket(0, 50, InetAddress.getByName('127.0.0.1'))
+        try {
+            final KubernetesXnat xnat = new KubernetesXnat(kubectl())
+            xnat.dicomReceiverWaitMillis = 500
+            xnat.waitForDicomReceiver('127.0.0.1', listener.localPort)
+            assertEquals([], calls())
+        } finally {
+            listener.close()
+        }
+    }
+
     private static int freePort() {
         final ServerSocket probe = new ServerSocket(0, 50, InetAddress.getByName('127.0.0.1'))
         try {
