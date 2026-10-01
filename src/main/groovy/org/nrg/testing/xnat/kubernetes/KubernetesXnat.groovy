@@ -22,6 +22,7 @@ import java.util.zip.ZipFile
 class KubernetesXnat {
 
     private static final List<String> DATA_PATH_PREFERENCES = ['archivePath', 'prearchivePath', 'cachePath', 'buildPath']
+    private static final List<String> EMPTY_AFTER_RESET_PREFERENCES = ['archivePath', 'prearchivePath']
     private static final List<String> EPHEMERAL_VOLUME_TYPES = ['emptyDir', 'ephemeral', 'configMap', 'secret', 'projected', 'downwardAPI']
     private static final List<String> STATEFUL_SET_KINDS = ['statefulset', 'statefulsets', 'sts', 'statefulset.apps', 'statefulsets.apps']
     private static final String IDENTIFIER = /[A-Za-z_][A-Za-z0-9_-]*/
@@ -44,6 +45,10 @@ class KubernetesXnat {
     boolean verifyVersion = true
     String resetConfirmation
     File artifactCache = new File(System.getProperty('java.io.tmpdir'), 'xnat-kubernetes-artifacts')
+    /** Reads the XNAT's site configuration. */
+    Closure<Map<String, Object>> siteConfigReader = {
+        Settings.adminCredentials().get("${Settings.BASEURL}/xapi/siteConfig").then().statusCode(200).extract().jsonPath().getMap('$')
+    }
     /** Reads the ids of the plugins the running XNAT loaded. */
     Closure<Collection<String>> loadedPluginsReader = {
         Settings.adminCredentials().get("${Settings.BASEURL}/xapi/plugins").then().statusCode(200).extract().jsonPath().getMap('$').keySet()
@@ -51,6 +56,7 @@ class KubernetesXnat {
 
     private String stagedImage
     private String runningImage
+    private Map<String, String> knownSiteDataPaths
     private boolean pluginsVolumeChecked
     private String knownEphemeralPluginsVolume
     private boolean warnedOfEphemeralPlugins
@@ -108,9 +114,9 @@ class KubernetesXnat {
 
     /**
      * Returns the XNAT to an empty archive and a fresh database: wipes the data directories while the pod is up, scales
-     * the workload to zero, recreates the database, then starts the workload on the staged image, if any. Everything
-     * that can be checked is checked before the first change, so a mistake in the configuration leaves the XNAT as it
-     * was.
+     * the workload to zero, recreates the database, starts the workload on the staged image, if any, and checks that
+     * the archive and prearchive came back empty. Everything that can be checked is checked before the first change,
+     * so a mistake in the configuration leaves the XNAT as it was.
      */
     void reset() {
         requireResetConfirmation()
@@ -119,11 +125,13 @@ class KubernetesXnat {
         }
         final String psql = psqlCommand()
         final List<String> paths = resolveDataPaths()
+        final List<String> mustBeEmpty = pathsEmptyAfterReset()
         final List<String> containers = stagedImage ? xnatContainerNames() : null
         wipe(paths)
         stop()
         recreateDatabaseWith(psql)
         startSwitching(containers)
+        requireEmpty(mustBeEmpty)
     }
 
     void wipeDataDirectories() {
@@ -136,6 +144,19 @@ class KubernetesXnat {
             "if [ -d '${path}' ]; then find '${path}' -mindepth 1 -maxdepth 1 -exec rm -rf {} +; fi"
         }).join('\n')
         kubectl.exec(pod, container, script, 3600)
+    }
+
+    /**
+     * Fails when a directory holds anything after the restart. The wipe runs while XNAT is up, so a file XNAT wrote
+     * after it, or held open on NFS, which keeps a deleted open file as {@code .nfsXXXX}, can survive it.
+     */
+    private void requireEmpty(List<String> paths) {
+        final String leftovers = kubectl.exec(pod, container, "for d in ${paths.collect { path -> "'${path}'" }.join(' ')}; do " +
+                'if [ -d "$d" ]; then find "$d" -mindepth 1 -maxdepth 1; fi; done | head -n 5').trim()
+        if (leftovers) {
+            throw new IllegalStateException("The reset left files in ${paths}, such as:\n${leftovers}\n" +
+                    'The wipe runs while XNAT is still up, so these survived it. Empty the directories and run the test again.')
+        }
     }
 
     void stop() {
@@ -434,7 +455,7 @@ class KubernetesXnat {
 
     /** The directories the reset empties: {@code xnat.k8s.dataPaths}, or the site configuration's archive, prearchive, cache and build paths. */
     List<String> resolveDataPaths() {
-        final List<String> paths = dataPaths ?: readDataPathsFromSiteConfig()
+        final List<String> paths = dataPaths ?: siteDataPaths(DATA_PATH_PREFERENCES)
         paths.each { path ->
             Kubectl.requireSafePath(path)
             if (path.split('/').findAll().size() < 2) {
@@ -444,16 +465,30 @@ class KubernetesXnat {
         paths
     }
 
-    private static List<String> readDataPathsFromSiteConfig() {
-        final Map<String, Object> siteConfig = Settings.adminCredentials().get("${Settings.BASEURL}/xapi/siteConfig")
-                .then().statusCode(200).extract().jsonPath().getMap('$')
-        DATA_PATH_PREFERENCES.collect { preference ->
-            final String path = siteConfig[preference] as String
-            if (!path) {
-                throw new IllegalStateException("The site configuration has no ${preference}; set ${XNATProperties.KUBERNETES_DATA_PATHS}")
+    /** The directories that must be empty after a reset: {@code xnat.k8s.dataPaths}, or the archive and prearchive. */
+    List<String> pathsEmptyAfterReset() {
+        dataPaths ?: siteDataPaths(EMPTY_AFTER_RESET_PREFERENCES)
+    }
+
+    /**
+     * Data paths from the site configuration, which is read at the first reset and kept, so that a later reset
+     * doesn't depend on the state a failed test left XNAT in.
+     */
+    private List<String> siteDataPaths(List<String> preferences) {
+        if (knownSiteDataPaths == null) {
+            final Map<String, Object> siteConfig = siteConfigReader.call()
+            final Map<String, String> paths = [:]
+            DATA_PATH_PREFERENCES.each { preference ->
+                final String path = siteConfig[preference] as String
+                if (!path) {
+                    throw new IllegalStateException("The site configuration has no ${preference}; set ${XNATProperties.KUBERNETES_DATA_PATHS}")
+                }
+                paths[preference] = path
             }
-            path
+            knownSiteDataPaths = paths
         }
+        final Map<String, String> known = knownSiteDataPaths
+        preferences.collect { preference -> known[preference] }
     }
 
     private Map podTemplateSpec() {

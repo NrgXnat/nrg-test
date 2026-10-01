@@ -283,6 +283,46 @@ class KubectlTest {
         assertEquals(['--context test-context --namespace test-namespace get statefulset/xnat -o json'], calls())
     }
 
+    @Test
+    void aResetWipesStopsRecreatesStartsAndChecksInThatOrder() {
+        final KubernetesXnat xnat = resettableXnat()
+        new File(stubDir, 'json').text = CHART_POD_TEMPLATE
+        xnat.stageImage('registry.example/xnat:1.10.1')
+        xnat.reset()
+        final List<String> calls = calls()
+        final List<Integer> steps = ['-exec rm -rf {} +', '--replicas=0', 'exec xnat-postgres-1', 'set image statefulset/xnat', '--replicas=1',
+                                     '--for=condition=Ready', "for d in '/data/xnat/archive' '/data/xnat/prearchive'"].collect { step ->
+            calls.findIndexOf { it.contains(step) }
+        }
+        assertTrue("every step, in order: ${calls}", steps.every { it >= 0 } && steps == steps.sort(false))
+    }
+
+    @Test
+    void aResetFailsWhenTheArchiveIsNotEmptyAfterTheRestart() {
+        final KubernetesXnat xnat = resettableXnat()
+        new File(stubDir, 'stdout').text = '/data/xnat/archive/.nfs000000000123'
+        try {
+            xnat.reset()
+            fail('a reset that left a file in the archive should fail')
+        } catch (IllegalStateException e) {
+            assertTrue(e.message.contains('/data/xnat/archive/.nfs000000000123'))
+        }
+    }
+
+    @Test
+    void theSiteConfigurationIsReadOnceForTheDataPaths() {
+        final KubernetesXnat xnat = new KubernetesXnat(kubectl())
+        int reads = 0
+        xnat.siteConfigReader = { ->
+            reads++
+            [archivePath: '/data/xnat/archive', prearchivePath: '/data/xnat/prearchive', cachePath: '/data/xnat/cache', buildPath: '/data/xnat/build'] as Map<String, Object>
+        }
+        assertEquals(['/data/xnat/archive', '/data/xnat/prearchive', '/data/xnat/cache', '/data/xnat/build'], xnat.resolveDataPaths())
+        assertEquals(['/data/xnat/archive', '/data/xnat/prearchive'], xnat.pathsEmptyAfterReset())
+        xnat.resolveDataPaths()
+        assertEquals(1, reads)
+    }
+
     /** The XNAT Helm chart's pod template, cut to what the tests read. */
     private static final String CHART_POD_TEMPLATE = '''{"spec": {"template": {"spec": {
             "initContainers": [{"name": "wait-for-postgres", "image": "busybox:1.36"},
