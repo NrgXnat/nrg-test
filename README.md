@@ -110,28 +110,44 @@ versions of code. This parameter should be set to a comma-separated list of "dep
 be delimited with `+`. The tests will run each test once per deployment, installing the specified version of XNAT and corresponding plugins automatically. An example value for this parameter is: `xnat.performance.deployments=1.8.6,1.8.7+containers`.
 
 ### Performance tests on Kubernetes ###
-With `xnat.performance.platform=kubernetes` the performance tests drive an XNAT deployed as a Kubernetes workload (by default the XNAT Helm chart's StatefulSet) through `kubectl` instead of SSH. `kubectl` must be on the `$PATH`. Run from a workstation it uses the named context; run in a pod of the cluster with no context set, it uses the pod's service account, which needs `get`, `list`, `watch` and `delete` on pods, `create` on `pods/exec`, and `get`, `patch` and `update` on the workload and its `scale` subresource, in the XNAT's namespace.
+With `xnat.performance.platform=kubernetes` the performance tests drive an XNAT deployed as a single-replica StatefulSet (by default the XNAT Helm chart's) through `kubectl` instead of SSH. `kubectl` must be on the `$PATH`. Run from a workstation it uses the named context; run in a pod of the cluster with no context set, it uses the pod's service account, which needs, in the XNAT's namespace, `get`, `list` and `watch` on pods, `get` on `pods/log`, `create` on `pods/exec`, `get` and `patch` on the StatefulSet, and `get`, `patch` and `update` on its `scale` subresource.
 
-* The reset empties the archive, prearchive, cache and build directories (read from the site configuration unless `xnat.k8s.dataPaths` is set) while the pod is up, scales the workload to zero, drops and recreates the database in its pod, and scales the workload back up. XNAT then starts on an empty database with the default admin account.
-* Plugins are copied into, and removed from, the plugins directory through the running pod, and load at the next restart.
-* A deployment's XNAT version is used as the image tag in `xnat.k8s.image`, and takes effect at the next restart. The tag goes to every container and init container that runs an image from that repository, since the XNAT Helm chart's `home-init` init container copies the webapp out of its image into the volume the main container runs, and after the restart the tests check that XNAT reports the version the tag names. For a build the version list doesn't know, such as a snapshot, write the deployment as `<image tag>=<deployment>`: `xnat.performance.deployments=1.10.1,1.10.2-mybranch-SNAPSHOT=1.10.1` runs the image tagged `1.10.2-mybranch-SNAPSHOT`, treats it as XNAT 1.10.1, and labels its results with the tag.
+* The reset empties the archive, prearchive, cache and build directories while the pod is up, scales the StatefulSet to zero, drops and recreates the database in its pod, and scales it back up. XNAT then starts on an empty database with the default admin account. The directories are read from the site configuration at the first reset and kept, unless `xnat.k8s.dataPaths` names them. The reset checks everything it can, such as its confirmation, the database name and the containers a switch of image changes, before it changes anything. After the restart it fails if the archive or prearchive (with `xnat.k8s.dataPaths`, any of those directories) still holds anything: XNAT is up during the wipe, so a file it writes afterwards, or holds open on NFS, can survive it.
+* Plugins are copied into, and removed from, the plugins directory through the running pod, and load at the next restart, after which the tests check that `/xapi/plugins` lists every plugin installed. A plugin is refused when the plugins directory is on a volume the pod loses when it restarts, such as the `emptyDir` the XNAT Helm chart mounts there. On such an install plugins come only from the chart's `plugins` values, and they stay installed: removing plugins is skipped.
+* A deployment's XNAT version is used as an image tag of `xnat.k8s.image`, and takes effect at the next restart. The image goes to every container and init container named in `xnat.k8s.containers`, since the XNAT Helm chart's `home-init` init container copies the webapp out of its image into the volume the main container runs, and after the restart the tests check that XNAT reports the version the tag names. For a build the version list doesn't know, such as a snapshot, write the deployment as `<image>=<deployment>`, where the image is a tag of `xnat.k8s.image` or a full reference: `xnat.performance.deployments=1.10.1,1.10.2-mybranch-SNAPSHOT=1.10.1` runs the image tagged `1.10.2-mybranch-SNAPSHOT`, treats it as XNAT 1.10.1, and labels its results with the tag. Each start logs the digest of every container's image, which names the exact build even when a tag is pushed again.
+* Before each stop, the XNAT container's log and a tarball of `xnat.k8s.logsDir` are saved into `xnat.k8s.saveLogsTo`, since the chart keeps XNAT's home on a volume that goes with the pod.
 
 Because the reset is destructive, it refuses to run until `xnat.k8s.reset.confirm` equals `<context>/<namespace>` of the target, with `in-cluster` as the context when none is set. Only point it at an XNAT that holds nothing but test data.
+
+On an XNAT Helm chart install the StatefulSet is `<release>-xnat`, or `<release>` when the release name contains `xnat`, and its pod is `<statefulset>-0`. XNAT answers on the service of the same name, port 80, and receives DICOM on `<name>-dicom-scp`, port 8104. The database is the CloudNativePG pod `<release>-postgres-1`, container `postgres`, database `xnat-web`. For results that compare across a run:
+
+* Install with `imagePullPolicy: Always`, so a tag pushed again is pulled again, and `lifecycle: {}`, which drops the 20-second `preStop` sleep from every stop. Keep `autoscaling` and `devWar` off, and suspend any GitOps reconciliation of the release, which would undo the switches of image and the scaling.
+* Keep XNAT on one kind of node, in the zone of its storage and database, with a `nodeSelector` on `topology.kubernetes.io/zone` and `node.kubernetes.io/instance-type`. Don't pin `kubernetes.io/hostname`: while the StatefulSet is scaled to zero a node autoscaler can remove that node, and the pod then never schedules.
+
+Limits:
+
+* The database must run in a pod of the namespace; an external database can't be recreated. With more than one CloudNativePG instance, set `xnat.k8s.db.pod` to the primary (label `cnpg.io/instanceRole=primary`); a failover during the run fails the reset, since a replica can't drop a database.
+* Queued work goes with the restart only while XNAT uses its embedded message broker, as the chart does by default. With `activemq.broker.enabled`, messages a test leaves on the broker survive the reset.
+* `xnat.k8s.startupTimeout` bounds the waits for the pod to stop and to become Ready, but the chart's probes only check that Tomcat accepts connections, which it does before XNAT has started. XNAT itself must then answer within the 500 seconds the tests wait for it.
+* After the run the StatefulSet stays on the last image the run switched to, with a database that image's XNAT set up, which an older XNAT may not start on. To leave it on the image it started with, which is logged before the first switch, make that image the run's last deployment.
 
 * xnat.k8s.namespace: The XNAT's namespace. Required.
 * xnat.k8s.context: The kubectl context. Leave unset to use kubectl's default, which in a pod is the pod's service account.
 * xnat.k8s.kubectl: The kubectl executable. Defaults to `kubectl`.
-* xnat.k8s.workload: The XNAT workload. Defaults to `statefulset/xnat`.
-* xnat.k8s.pod: The XNAT pod. Defaults to `xnat-0`.
+* xnat.k8s.workload: The XNAT StatefulSet. Defaults to `statefulset/xnat`.
+* xnat.k8s.pod: The XNAT pod. Defaults to the StatefulSet's `<name>-0`.
 * xnat.k8s.container: The XNAT container. Defaults to the pod's default container.
+* xnat.k8s.containers: A comma-separated list of the containers and init containers a switch of image changes. Defaults to the XNAT Helm chart's, `xnat,home-init`.
 * xnat.k8s.db.pod: The pod that runs the XNAT's Postgres database. Required for the reset.
 * xnat.k8s.db.container: The database container. Defaults to the pod's default container.
-* xnat.k8s.db.name: The XNAT's database. Defaults to `xnat`. It is recreated with its existing owner.
+* xnat.k8s.db.name: The XNAT's database. Defaults to `xnat`; the XNAT Helm chart's is `xnat-web`. It is recreated with its existing owner.
 * xnat.k8s.db.user: The user `psql` connects as in the database container. Defaults to the container's own user.
 * xnat.k8s.dataPaths: A comma-separated list of the directories the reset empties, instead of the site configuration's archive, prearchive, cache and build paths.
 * xnat.k8s.pluginsDir: The XNAT's plugins directory. Defaults to `/data/xnat/home/plugins`.
 * xnat.k8s.pluginsSource: A directory or http(s) URL prefix holding the plugins tests install by name.
-* xnat.k8s.image: The image repository whose tags are XNAT versions, for `xnat.performance.deployments`.
+* xnat.k8s.image: The image repository whose tags the deployments name. Not needed when each deployment names a full image reference.
+* xnat.k8s.logsDir: XNAT's logs directory, saved before each stop. Defaults to `/data/xnat/home/logs`.
+* xnat.k8s.saveLogsTo: The local directory the logs are saved into. Defaults to `target/xnat-logs`.
 * xnat.k8s.startupTimeout: Seconds to wait for the XNAT pod to stop or become Ready. Defaults to 900.
 * xnat.k8s.reset.confirm: Must equal `<context>/<namespace>` for the reset to run.
 * xnat.k8s.verifyVersion: Check after a switch of image that XNAT reports the version its tag names. Defaults to true; set false for images whose version differs from their tag.
