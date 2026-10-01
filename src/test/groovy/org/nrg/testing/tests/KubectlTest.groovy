@@ -7,13 +7,20 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 
 import java.nio.file.Files
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 import static org.testng.AssertJUnit.assertEquals
 import static org.testng.AssertJUnit.assertFalse
 import static org.testng.AssertJUnit.assertTrue
 import static org.testng.AssertJUnit.fail
 
-/** Runs {@link Kubectl} and {@link KubernetesXnat} against a stub kubectl that records what it was asked to do. */
+/**
+ * Runs {@link Kubectl} and {@link KubernetesXnat} against a stub kubectl that records what it was asked to do. The stub
+ * prints {@code json} for a call with {@code -o json} and {@code stdout} for any other; {@code json-for-<argument>},
+ * {@code stdout-for-<argument>} and {@code status-for-<argument>}, with any / in the argument written as _, answer only
+ * the calls that have that argument.
+ */
 class KubectlTest {
 
     private File stubDir
@@ -27,12 +34,20 @@ class KubectlTest {
             #!/bin/sh
             d=$(dirname "$0")
             printf '%s\\n' "$@" > "$d/args"
-            printf '%s\\n' "$*" >> "$d/calls"
+            printf '%s' "$*" | tr '\\n' ' ' >> "$d/calls"; echo >> "$d/calls"
             case " $* " in *" -i "*) cat > "$d/stdin";; esac
             [ -f "$d/sleep" ] && sleep "$(cat "$d/sleep")"
-            case " $* " in *" -o json "*) cat "$d/json";; *) [ -f "$d/stdout" ] && cat "$d/stdout";; esac
+            out="$d/stdout"
+            case " $* " in *" -o json "*) out="$d/json";; esac
+            status="$d/status"
+            for a in "$@"; do
+              key=$(printf '%s' "$a" | tr '/' '_')
+              [ -f "$out-for-$key" ] && out="$out-for-$key"
+              [ -f "$d/status-for-$key" ] && status="$d/status-for-$key"
+            done
+            [ -f "$out" ] && cat "$out"
             [ -f "$d/stderr" ] && cat "$d/stderr" >&2
-            exit "$(cat "$d/status" 2>/dev/null || echo 0)"
+            exit "$(cat "$status" 2>/dev/null || echo 0)"
             '''.stripIndent()
         assertTrue(stub.setExecutable(true))
     }
@@ -43,6 +58,31 @@ class KubectlTest {
 
     private List<String> recordedArguments() {
         new File(stubDir, 'args').readLines()
+    }
+
+    /** Every call so far, one line each. */
+    private List<String> calls() {
+        final File calls = new File(stubDir, 'calls')
+        calls.exists() ? calls.readLines() : []
+    }
+
+    /** Makes the stub answer calls with the argument with this output instead. */
+    private void answer(String argument, String output) {
+        new File(stubDir, "stdout-for-${argument.replace('/', '_')}").text = output
+    }
+
+    private void answerJson(String argument, String json) {
+        new File(stubDir, "json-for-${argument.replace('/', '_')}").text = json
+    }
+
+    /** An XNAT whose reset is confirmed and fully configured, which answers that its pod exists. */
+    private KubernetesXnat resettableXnat() {
+        final KubernetesXnat xnat = new KubernetesXnat(kubectl())
+        xnat.resetConfirmation = 'test-context/test-namespace'
+        xnat.databasePod = 'xnat-postgres-1'
+        xnat.dataPaths = ['/data/xnat/archive', '/data/xnat/prearchive']
+        answer('pods', 'pod/xnat-0')
+        xnat
     }
 
     /** The script of the last exec: everything after {@code -- sh -c}, rejoined across the lines it spans. */
@@ -195,10 +235,68 @@ class KubectlTest {
         assertTrue(script.contains('CREATE DATABASE \\"xnat\\" OWNER \\"$owner\\"'))
     }
 
+    @Test
+    void theChartsDatabaseNameIsAnIdentifier() {
+        final KubernetesXnat xnat = new KubernetesXnat(kubectl())
+        xnat.databasePod = 'xnat-postgres-1'
+        xnat.databaseName = 'xnat-web'
+        xnat.databaseUser = 'xnat-web'
+        xnat.recreateDatabase()
+        final String script = recordedScript()
+        assertTrue(script.contains('psql -U xnat-web -v ON_ERROR_STOP=1 -d postgres -c "DROP DATABASE IF EXISTS \\"xnat-web\\" WITH (FORCE)"'))
+        assertTrue(script.contains("then owner='xnat-web'; fi"))
+    }
+
+    @Test
+    void aResetChecksItsConfigurationBeforeChangingAnything() {
+        final KubernetesXnat xnat = resettableXnat()
+        [['xnat"; DROP ROLE admin; --', null], ['xnat', 'postgres; rm -rf /']].each { names ->
+            xnat.databaseName = names[0]
+            xnat.databaseUser = names[1]
+            try {
+                xnat.reset()
+                fail("a reset with database ${names[0]} and user ${names[1]} should be refused")
+            } catch (IllegalArgumentException ignored) {}
+        }
+        xnat.databaseName = 'xnat'
+        xnat.databaseUser = null
+        xnat.dataPaths = ['/data']
+        try {
+            xnat.reset()
+            fail('a reset that would wipe a shallow directory should be refused')
+        } catch (IllegalArgumentException ignored) {}
+        assertEquals('no kubectl call before the configuration is checked', [], calls())
+    }
+
+    @Test
+    void aResetWhoseImageSwitchWouldChangeNoContainerOnlyReadsTheWorkload() {
+        final KubernetesXnat xnat = resettableXnat()
+        xnat.containerNames = ['web']
+        new File(stubDir, 'json').text = CHART_POD_TEMPLATE
+        xnat.stageImage('registry.example/xnat:1.10.1')
+        try {
+            xnat.reset()
+            fail('a reset whose switch of image would change no container should be refused')
+        } catch (IllegalStateException e) {
+            assertTrue(e.message.contains('xnat.k8s.containers'))
+        }
+        assertEquals(['--context test-context --namespace test-namespace get statefulset/xnat -o json'], calls())
+    }
+
+    /** The XNAT Helm chart's pod template, cut to what the tests read. */
     private static final String CHART_POD_TEMPLATE = '''{"spec": {"template": {"spec": {
             "initContainers": [{"name": "wait-for-postgres", "image": "busybox:1.36"},
                                {"name": "home-init", "image": "registry.example/xnat:1.10.2"}],
-            "containers": [{"name": "xnat", "image": "registry.example/xnat:1.10.2"}]}}}}'''
+            "containers": [{"name": "xnat", "image": "registry.example/xnat:1.10.2",
+                            "volumeMounts": [{"name": "xnat-home", "mountPath": "/data/xnat/home"},
+                                             {"name": "home-plugins", "mountPath": "/data/xnat/home/plugins"},
+                                             {"name": "xnatdata", "mountPath": "/data/xnat"}]}],
+            "volumes": [{"name": "xnat-home", "emptyDir": {}},
+                        {"name": "home-plugins", "emptyDir": {}},
+                        {"name": "xnatdata", "persistentVolumeClaim": {"claimName": "xnat-data"}}]}}}}'''
+
+    private static final String PERSISTENT_PLUGINS_POD_TEMPLATE = CHART_POD_TEMPLATE.replace(
+            '{"name": "home-plugins", "emptyDir": {}}', '{"name": "home-plugins", "persistentVolumeClaim": {"claimName": "xnat-plugins"}}')
 
     @Test
     void aStagedImageGoesToEveryXnatContainerBeforeTheWorkloadStarts() {
@@ -210,26 +308,140 @@ class KubectlTest {
         assertTrue(xnat.hasStagedImage())
         xnat.start()
         assertFalse(xnat.hasStagedImage())
-        final List<String> calls = new File(stubDir, 'calls').readLines()
+        final List<String> calls = calls()
         final int setImages = calls.findIndexOf { it.contains('set image statefulset/xnat home-init=registry.example/xnat:1.10.1 xnat=registry.example/xnat:1.10.1') }
         final int scaleUp = calls.findIndexOf { it.contains('scale statefulset/xnat --replicas=1') }
         assertTrue("every XNAT container switched (${setImages}) before scale-up (${scaleUp}): ${calls}", setImages >= 0 && setImages < scaleUp)
-        assertFalse('an init container on another image keeps it', calls.any { it.contains('wait-for-postgres=') })
+        assertFalse('an init container not named keeps its image', calls.any { it.contains('wait-for-postgres=') })
     }
 
     @Test
-    void aWorkloadWithNoContainerFromTheRepositoryIsRefused() {
+    void containersAreSwitchedByNameWhateverRepositoryTheyRunFrom() {
         final KubernetesXnat xnat = new KubernetesXnat(kubectl())
-        xnat.imageRepository = 'registry.example/other'
-        new File(stubDir, 'json').text = CHART_POD_TEMPLATE
+        xnat.imageRepository = 'registry.example/xnat'
+        new File(stubDir, 'json').text = CHART_POD_TEMPLATE.replace('registry.example/xnat:1.10.2', 'registry.example/xnat-web:1.9.3.7')
+        new File(stubDir, 'stdout').text = 'pod/xnat-0'
         xnat.stageImage('1.10.1')
+        xnat.start()
+        assertTrue(calls().any { it.contains('set image statefulset/xnat home-init=registry.example/xnat:1.10.1 xnat=registry.example/xnat:1.10.1') })
+    }
+
+    @Test
+    void aFullImageReferenceIsUsedAsGiven() {
+        final KubernetesXnat xnat = new KubernetesXnat(kubectl())
+        new File(stubDir, 'json').text = CHART_POD_TEMPLATE
+        new File(stubDir, 'stdout').text = 'pod/xnat-0'
+        xnat.stageImage('registry.example/xnat-web:1.9.3.7')
+        xnat.start()
+        assertTrue(calls().any { it.contains('set image statefulset/xnat home-init=registry.example/xnat-web:1.9.3.7 xnat=registry.example/xnat-web:1.9.3.7') })
+    }
+
+    @Test
+    void aBareTagNeedsTheImageRepository() {
         try {
-            xnat.start()
-            fail('a switch that would change no container should be refused')
+            new KubernetesXnat(kubectl()).stageImage('1.10.1')
+            fail('a tag with no repository to take it from should be refused')
         } catch (IllegalStateException e) {
             assertTrue(e.message.contains('xnat.k8s.image'))
         }
-        assertFalse(new File(stubDir, 'calls').readLines().any { it.contains('set image') || it.contains('scale') })
+    }
+
+    @Test
+    void theTagOfAnImageReference() {
+        assertEquals('1.10.1', KubernetesXnat.tagOf('ghcr.io/nrgxnat/xnat:1.10.1'))
+        assertEquals('1.10.1', KubernetesXnat.tagOf('registry.example:5000/xnat:1.10.1'))
+        assertEquals('latest', KubernetesXnat.tagOf('registry.example:5000/xnat'))
+        assertEquals(null, KubernetesXnat.tagOf('ghcr.io/nrgxnat/xnat@sha256:0123456789abcdef'))
+    }
+
+    @Test
+    void aWorkloadWithNoContainerOfTheConfiguredNamesIsRefused() {
+        final KubernetesXnat xnat = new KubernetesXnat(kubectl())
+        new File(stubDir, 'json').text = CHART_POD_TEMPLATE
+        xnat.stageImage('registry.example/xnat:1.10.1')
+        [['web'], ['home-init']].each { names ->
+            xnat.containerNames = names
+            try {
+                xnat.start()
+                fail("a switch of containers ${names}, none of them the main container, should be refused")
+            } catch (IllegalStateException e) {
+                assertTrue(e.message.contains('xnat.k8s.containers'))
+            }
+        }
+        assertFalse(calls().any { it.contains('set image') || it.contains('scale') })
+    }
+
+    @Test
+    void thePodOfAStatefulSetFollowsFromItsName() {
+        assertEquals('xnat-0', KubernetesXnat.podOf('statefulset/xnat'))
+        assertEquals('perf-xnat-0', KubernetesXnat.podOf('sts/perf-xnat'))
+        try {
+            KubernetesXnat.podOf('deployment/xnat')
+            fail('the pod of a Deployment has no fixed name')
+        } catch (IllegalArgumentException ignored) {}
+    }
+
+    @Test
+    void pluginsAreNotInstalledWhereARestartLosesThem() {
+        final KubernetesXnat xnat = new KubernetesXnat(kubectl())
+        new File(stubDir, 'json').text = CHART_POD_TEMPLATE
+        try {
+            xnat.installPlugin('foo-1.0.jar', pluginJar('foo'))
+            fail('a plugin should not be installed into an emptyDir')
+        } catch (IllegalStateException e) {
+            assertTrue(e.message.contains('the emptyDir volume home-plugins'))
+        }
+        assertFalse(new File(stubDir, 'stdin').exists())
+    }
+
+    @Test
+    void pluginsAreNotRemovedFromWhereARestartLosesThem() {
+        final KubernetesXnat xnat = new KubernetesXnat(kubectl())
+        new File(stubDir, 'json').text = CHART_POD_TEMPLATE
+        xnat.uninstallAllPlugins()
+        xnat.uninstallPlugin('foo-1.0.jar')
+        assertEquals(['--context test-context --namespace test-namespace get statefulset/xnat -o json'], calls())
+    }
+
+    @Test
+    void anInstalledPluginMustBeLoadedAfterTheRestart() {
+        final KubernetesXnat xnat = new KubernetesXnat(kubectl())
+        new File(stubDir, 'json').text = PERSISTENT_PLUGINS_POD_TEMPLATE
+        final File jar = pluginJar('foo')
+        xnat.installPlugin('foo-1.0.jar', jar)
+        assertEquals(jar.bytes, new File(stubDir, 'stdin').bytes)
+        xnat.loadedPluginsReader = { -> ['bar'] }
+        try {
+            xnat.verifyInstalledPlugins()
+            fail('a plugin XNAT did not load should fail the check')
+        } catch (IllegalStateException e) {
+            assertTrue(e.message.contains('foo from foo-1.0.jar'))
+        }
+        xnat.loadedPluginsReader = { -> ['bar', 'foo'] }
+        xnat.verifyInstalledPlugins()
+        xnat.uninstallAllPlugins()
+        assertTrue(calls().last().contains("rm -f '/data/xnat/home/plugins'/*.jar"))
+        xnat.loadedPluginsReader = { -> throw new AssertionError('nothing is left to check') }
+        xnat.verifyInstalledPlugins()
+    }
+
+    @Test
+    void theIdsOfThePluginsInAJar() {
+        assertEquals(['foo'] as Set, KubernetesXnat.pluginIdsIn(pluginJar('foo')))
+        assertEquals([] as Set, KubernetesXnat.pluginIdsIn(pluginJar(null)))
+    }
+
+    /** A jar holding one XNAT plugin with the id, or none when the id is null. */
+    private File pluginJar(String id) {
+        final File jar = File.createTempFile('plugin', '.jar', stubDir)
+        jar.withOutputStream { stream ->
+            final ZipOutputStream zip = new ZipOutputStream(stream)
+            zip.putNextEntry(new ZipEntry(id ? "META-INF/xnat/${id}-plugin.properties" : 'META-INF/MANIFEST.MF'))
+            zip.write((id ? "id=${id}\nname=Test plugin\n" : 'Manifest-Version: 1.0\n').getBytes('UTF-8'))
+            zip.closeEntry()
+            zip.finish()
+        }
+        jar
     }
 
     @Test

@@ -82,6 +82,7 @@ class XNATProperties extends BaseProperties {
     public static final String KUBERNETES_WORKLOAD = 'xnat.k8s.workload'
     public static final String KUBERNETES_POD = 'xnat.k8s.pod'
     public static final String KUBERNETES_CONTAINER = 'xnat.k8s.container'
+    public static final String KUBERNETES_CONTAINERS = 'xnat.k8s.containers'
     public static final String KUBERNETES_DB_POD = 'xnat.k8s.db.pod'
     public static final String KUBERNETES_DB_CONTAINER = 'xnat.k8s.db.container'
     public static final String KUBERNETES_DB_NAME = 'xnat.k8s.db.name'
@@ -400,12 +401,17 @@ class XNATProperties extends BaseProperties {
         getStringProperty(KUBERNETES_WORKLOAD, 'statefulset/xnat')
     }
 
+    /** The XNAT pod, or null to use the StatefulSet's {@code <name>-0}. */
     String getKubernetesPod() {
-        getStringProperty(KUBERNETES_POD, 'xnat-0')
+        getStringProperty(KUBERNETES_POD, null)
     }
 
     String getKubernetesContainer() {
         getStringProperty(KUBERNETES_CONTAINER, null)
+    }
+
+    List<String> getKubernetesContainers() {
+        getStringProperty(KUBERNETES_CONTAINERS, 'xnat,home-init').split(',')*.trim().findAll()
     }
 
     String getKubernetesDatabasePod() {

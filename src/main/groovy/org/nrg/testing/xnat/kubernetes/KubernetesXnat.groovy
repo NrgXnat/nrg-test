@@ -7,11 +7,13 @@ import org.nrg.testing.xnat.conf.XNATProperties
 
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
 
 /**
- * An XNAT deployed on Kubernetes as a workload (by default the XNAT Helm chart's StatefulSet) with its database in a
- * pod of the same namespace. Holds what the performance tests need to reset it, change its plugins and run another
- * image, all through kubectl.
+ * An XNAT deployed on Kubernetes as a single-replica StatefulSet (by default the XNAT Helm chart's) with its database
+ * in a pod of the same namespace. Holds what the performance tests need to reset it, change its plugins and run
+ * another image, all through kubectl.
  *
  * Resetting wipes the XNAT's data directories and recreates its database, so it refuses to run until
  * {@code xnat.k8s.reset.confirm} names this exact target, {@code <context>/<namespace>}.
@@ -20,13 +22,16 @@ import java.nio.file.StandardCopyOption
 class KubernetesXnat {
 
     private static final List<String> DATA_PATH_PREFERENCES = ['archivePath', 'prearchivePath', 'cachePath', 'buildPath']
-    private static final String IDENTIFIER = /[A-Za-z_][A-Za-z0-9_]*/
+    private static final List<String> EPHEMERAL_VOLUME_TYPES = ['emptyDir', 'ephemeral', 'configMap', 'secret', 'projected', 'downwardAPI']
+    private static final List<String> STATEFUL_SET_KINDS = ['statefulset', 'statefulsets', 'sts', 'statefulset.apps', 'statefulsets.apps']
+    private static final String IDENTIFIER = /[A-Za-z_][A-Za-z0-9_-]*/
     private static final long   DICOM_RECEIVER_WAIT_MILLIS = 120000
 
     final Kubectl kubectl
     String workload = 'statefulset/xnat'
     String pod = 'xnat-0'
     String container
+    List<String> containerNames = ['xnat', 'home-init']
     String databasePod
     String databaseContainer
     String databaseName = 'xnat'
@@ -39,9 +44,17 @@ class KubernetesXnat {
     boolean verifyVersion = true
     String resetConfirmation
     File artifactCache = new File(System.getProperty('java.io.tmpdir'), 'xnat-kubernetes-artifacts')
+    /** Reads the ids of the plugins the running XNAT loaded. */
+    Closure<Collection<String>> loadedPluginsReader = {
+        Settings.adminCredentials().get("${Settings.BASEURL}/xapi/plugins").then().statusCode(200).extract().jsonPath().getMap('$').keySet()
+    }
 
-    private String stagedTag
-    private String runningTag
+    private String stagedImage
+    private String runningImage
+    private boolean pluginsVolumeChecked
+    private String knownEphemeralPluginsVolume
+    private boolean warnedOfEphemeralPlugins
+    private final Map<String, Set<String>> installedPluginIds = [:]
 
     KubernetesXnat(Kubectl kubectl) {
         this.kubectl = kubectl
@@ -55,8 +68,9 @@ class KubernetesXnat {
         }
         final KubernetesXnat xnat = new KubernetesXnat(new Kubectl(properties.kubernetesKubectl, properties.kubernetesContext, namespace))
         xnat.workload = properties.kubernetesWorkload
-        xnat.pod = properties.kubernetesPod
+        xnat.pod = properties.kubernetesPod ?: podOf(xnat.workload)
         xnat.container = properties.kubernetesContainer
+        xnat.containerNames = properties.kubernetesContainers
         xnat.databasePod = properties.kubernetesDatabasePod
         xnat.databaseContainer = properties.kubernetesDatabaseContainer
         xnat.databaseName = properties.kubernetesDatabaseName
@@ -69,6 +83,16 @@ class KubernetesXnat {
         xnat.resetConfirmation = properties.kubernetesResetConfirmation
         xnat.verifyVersion = properties.kubernetesVerifyVersion
         xnat
+    }
+
+    /** The pod of a single-replica StatefulSet: {@code statefulset/xnat} runs {@code xnat-0}. */
+    static String podOf(String workload) {
+        final List<String> parts = workload.split('/') as List<String>
+        if (parts.size() != 2 || !(parts[0].toLowerCase() in STATEFUL_SET_KINDS)) {
+            throw new IllegalArgumentException("${XNATProperties.KUBERNETES_WORKLOAD} must be a StatefulSet, such as statefulset/xnat, not ${workload}; " +
+                    "set ${XNATProperties.KUBERNETES_POD} if its pod is not <name>-0")
+        }
+        "${parts[1]}-0"
     }
 
     String getTarget() {
@@ -84,21 +108,29 @@ class KubernetesXnat {
 
     /**
      * Returns the XNAT to an empty archive and a fresh database: wipes the data directories while the pod is up, scales
-     * the workload to zero, recreates the database, then starts the workload on the staged image, if any.
+     * the workload to zero, recreates the database, then starts the workload on the staged image, if any. Everything
+     * that can be checked is checked before the first change, so a mistake in the configuration leaves the XNAT as it
+     * was.
      */
     void reset() {
         requireResetConfirmation()
         if (!databasePod) {
             throw new IllegalStateException("Set ${XNATProperties.KUBERNETES_DB_POD} to the pod that runs the XNAT's database")
         }
-        wipeDataDirectories()
+        final String psql = psqlCommand()
+        final List<String> paths = resolveDataPaths()
+        final List<String> containers = stagedImage ? xnatContainerNames() : null
+        wipe(paths)
         stop()
-        recreateDatabase()
-        start()
+        recreateDatabaseWith(psql)
+        startSwitching(containers)
     }
 
     void wipeDataDirectories() {
-        final List<String> paths = resolveDataPaths()
+        wipe(resolveDataPaths())
+    }
+
+    private void wipe(List<String> paths) {
         log.info("Wiping ${paths} in ${target} pod ${pod}")
         final String script = (['set -e'] + paths.collect { path ->
             "if [ -d '${path}' ]; then find '${path}' -mindepth 1 -maxdepth 1 -exec rm -rf {} +; fi"
@@ -113,8 +145,10 @@ class KubernetesXnat {
     }
 
     void recreateDatabase() {
-        requireIdentifier(databaseName, XNATProperties.KUBERNETES_DB_NAME)
-        final String psql = databaseUser ? "psql -U ${requireIdentifier(databaseUser, XNATProperties.KUBERNETES_DB_USER)}" : 'psql'
+        recreateDatabaseWith(psqlCommand())
+    }
+
+    private void recreateDatabaseWith(String psql) {
         log.info("Recreating database ${databaseName} in ${target} pod ${databasePod}")
         kubectl.exec(databasePod, databaseContainer, """\
             set -e
@@ -125,20 +159,29 @@ class KubernetesXnat {
             """.stripIndent())
     }
 
+    /** The psql command for the database container, once the database and user names are known to be safe to use. */
+    private String psqlCommand() {
+        requireIdentifier(databaseName, XNATProperties.KUBERNETES_DB_NAME)
+        databaseUser ? "psql -U ${requireIdentifier(databaseUser, XNATProperties.KUBERNETES_DB_USER)}" : 'psql'
+    }
+
     /**
      * Starts the workload on the staged image, if one is staged, and waits for the pod to be Ready. The image goes to
-     * every container and init container that runs an image from {@code xnat.k8s.image}, not only the main one: the
-     * XNAT Helm chart's home-init container, for one, copies Tomcat and the XNAT webapp out of its image into the
-     * volume the main container runs from.
+     * every container and init container named in {@code xnat.k8s.containers}, not only the main one: the XNAT Helm
+     * chart's home-init init container, for one, copies Tomcat and the XNAT webapp out of its image into the volumes
+     * the main container runs from.
      */
     void start() {
-        if (stagedTag) {
-            final String image = "${imageRepository}:${stagedTag}"
-            final List<String> names = xnatContainerNames()
-            log.info("Switching ${workload} containers ${names} to ${image}")
-            kubectl.setImages(workload, names, image)
-            runningTag = stagedTag
-            stagedTag = null
+        startSwitching(stagedImage ? xnatContainerNames() : null)
+    }
+
+    /** Starts the workload, first switching these containers to the staged image, if one is staged. */
+    private void startSwitching(List<String> containers) {
+        if (stagedImage) {
+            log.info("Switching ${workload} containers ${containers} to ${stagedImage}")
+            kubectl.setImages(workload, containers, stagedImage)
+            runningImage = stagedImage
+            stagedImage = null
         }
         log.info("Starting ${workload} in ${target}")
         kubectl.scale(workload, 1)
@@ -179,57 +222,84 @@ class KubernetesXnat {
         }
     }
 
-    /** Stages an image tag of {@code xnat.k8s.image}, to be used the next time the workload starts. */
-    void stageImage(String tag) {
-        if (!imageRepository) {
-            throw new IllegalStateException("Set ${XNATProperties.KUBERNETES_IMAGE} to the XNAT image repository")
+    /**
+     * Stages an image for the next start of the workload: a full reference, such as
+     * {@code ghcr.io/nrgxnat/xnat:1.10.1}, or a tag of {@code xnat.k8s.image}.
+     */
+    void stageImage(String image) {
+        if (image ==~ /.*[\/:@].*/) {
+            stagedImage = image
+        } else if (imageRepository) {
+            stagedImage = "${imageRepository}:${image}"
+        } else {
+            throw new IllegalStateException("Set ${XNATProperties.KUBERNETES_IMAGE} to the image repository whose tag ${image} is, or give the deployment a full image reference")
         }
-        stagedTag = tag
-        log.info("Staged ${imageRepository}:${tag} for the next start of ${workload}")
+        log.info("Staged ${stagedImage} for the next start of ${workload}")
     }
 
     boolean hasStagedImage() {
-        stagedTag != null
+        stagedImage != null
     }
 
     /** Restarts the workload onto a staged image. Nothing happens when no image is staged. */
     void applyStagedImage() {
-        if (stagedTag) {
+        if (stagedImage) {
+            final List<String> containers = xnatContainerNames()
             stop()
-            start()
+            startSwitching(containers)
         }
     }
 
+    /** The tag of an image reference: null when a digest pins it, {@code latest} when it names neither. */
+    static String tagOf(String image) {
+        if (image.contains('@')) {
+            return null
+        }
+        final int colon = image.lastIndexOf(':')
+        colon > image.lastIndexOf('/') ? image.substring(colon + 1) : 'latest'
+    }
+
     /**
-     * After a switch of image, checks that XNAT itself reports the version the tag names, so that a run can never
-     * measure one build under another's label. {@code xnat.k8s.verifyVersion=false} turns it off for images whose
-     * version differs from their tag.
+     * After a switch of image, checks that XNAT itself reports the version the image's tag names, so that a run can
+     * never measure one build under another's label. {@code xnat.k8s.verifyVersion=false} turns it off for images whose
+     * version differs from their tag; an image pinned by digest has no tag to check.
      */
     void verifyRunningVersion() {
-        if (!verifyVersion || !runningTag) {
+        if (!verifyVersion || !runningImage) {
+            return
+        }
+        final String tag = tagOf(runningImage)
+        if (tag == null) {
+            log.info("Not checking XNAT's version: ${runningImage} has no tag")
             return
         }
         final String version = Settings.adminCredentials().get("${Settings.BASEURL}/xapi/siteConfig/buildInfo")
                 .then().statusCode(200).extract().jsonPath().getString('version')
-        if (version != runningTag) {
-            throw new IllegalStateException("XNAT reports version ${version} after ${workload} was switched to image tag ${runningTag}. " +
+        if (version != tag) {
+            throw new IllegalStateException("XNAT reports version ${version} after ${workload} was switched to ${runningImage}. " +
                     "Check that every container supplying XNAT runs the new image, or set ${XNATProperties.KUBERNETES_VERIFY_VERSION}=false " +
                     "if this image's version differs from its tag.")
         }
         log.info("XNAT reports version ${version}, as its image tag says")
     }
 
-    /** The containers and init containers of the workload's pod template that run an image from {@code xnat.k8s.image}. */
+    /**
+     * The containers and init containers of the workload's pod template named in {@code xnat.k8s.containers}, which a
+     * switch of image changes. At least one must be a main container.
+     */
     List<String> xnatContainerNames() {
-        final Map podSpec = ((new JsonSlurper().parseText(kubectl.run(['get', workload, '-o', 'json'])) as Map).spec as Map).template.spec as Map
-        final List<Map> containers = ((podSpec.initContainers ?: []) + (podSpec.containers ?: [])) as List<Map>
-        final List<String> names = containers.findAll { entry ->
-            final String image = entry.image as String
-            image?.startsWith("${imageRepository}:") || image?.startsWith("${imageRepository}@")
-        }.collect { entry -> entry.name as String }
-        if (!names) {
-            throw new IllegalStateException("No container of ${workload} runs an image from ${imageRepository}; " +
-                    "set ${XNATProperties.KUBERNETES_IMAGE} to the repository its XNAT containers use")
+        final Map podSpec = podTemplateSpec()
+        final List<Map> mainContainers = (podSpec.containers ?: []) as List<Map>
+        final List<Map> initContainers = (podSpec.initContainers ?: []) as List<Map>
+        final List<Map> named = (initContainers + mainContainers).findAll { entry -> entry.name in containerNames }
+        if (!mainContainers.any { entry -> entry in named }) {
+            throw new IllegalStateException("None of the containers of ${workload}, ${mainContainers*.name}, is named in ${containerNames}; " +
+                    "set ${XNATProperties.KUBERNETES_CONTAINERS} to the containers and init containers that run the XNAT image")
+        }
+        final List<String> names = named*.name as List<String>
+        final List<String> absent = containerNames - names
+        if (absent) {
+            log.warn("${workload} has no container or init container ${absent}; switching only ${names}")
         }
         names
     }
@@ -237,7 +307,15 @@ class KubernetesXnat {
     void installPlugin(String pluginName, File jar) {
         requireFileName(pluginName)
         Kubectl.requireSafePath(pluginsDirectory)
+        final String ephemeralVolume = ephemeralPluginsVolume()
+        if (ephemeralVolume) {
+            throw new IllegalStateException("Refusing to install ${pluginName}: ${pluginsDirectory} is on ${ephemeralVolume}, which the pod loses when the reset " +
+                    "restarts it, so XNAT would start without the plugin. Give ${workload} a persistent plugins directory, or install the plugin " +
+                    "through the XNAT Helm chart's plugins values and leave it out of the run's deployments and tests.")
+        }
+        final Set<String> ids = pluginIdsIn(jar)
         kubectl.upload(jar, pod, container, "${pluginsDirectory}/${pluginName}")
+        installedPluginIds[pluginName] = ids
     }
 
     /** Installs a plugin from {@code xnat.k8s.pluginsSource}, a local directory or an http(s) URL prefix. */
@@ -257,14 +335,104 @@ class KubernetesXnat {
     void uninstallPlugin(String pluginName) {
         requireFileName(pluginName)
         Kubectl.requireSafePath(pluginsDirectory)
-        kubectl.exec(pod, container, "rm -f '${pluginsDirectory}/${pluginName}'")
+        installedPluginIds.remove(pluginName)
+        if (!pluginsDirectoryIsEphemeral()) {
+            kubectl.exec(pod, container, "rm -f '${pluginsDirectory}/${pluginName}'")
+        }
     }
 
     void uninstallAllPlugins() {
         Kubectl.requireSafePath(pluginsDirectory)
-        kubectl.exec(pod, container, "rm -f '${pluginsDirectory}'/*.jar")
+        installedPluginIds.clear()
+        if (!pluginsDirectoryIsEphemeral()) {
+            kubectl.exec(pod, container, "rm -f '${pluginsDirectory}'/*.jar")
+        }
     }
 
+    /**
+     * After a restart, checks that XNAT loaded every plugin installed since the plugins were last cleared, so that a
+     * test can never measure an XNAT without a plugin it asked for. A jar that declares no plugin id can't be checked.
+     */
+    void verifyInstalledPlugins() {
+        if (!installedPluginIds) {
+            return
+        }
+        final Collection<String> loaded = loadedPluginsReader.call()
+        installedPluginIds.findAll { name, ids -> !ids }.each { name, ids ->
+            log.warn("${name} declares no XNAT plugin id, so there is nothing to check it by")
+        }
+        final Map<String, Set<String>> missing = installedPluginIds.collectEntries { name, ids -> [(name): ids - loaded] }.findAll { name, ids -> ids }
+        if (missing) {
+            throw new IllegalStateException("XNAT did not load ${missing.collect { name, ids -> "${ids.join(', ')} from ${name}" }.join('; ')}. " +
+                    "The plugins it loaded are ${loaded.sort()}.")
+        }
+        log.info("XNAT loaded every plugin installed for this test: ${installedPluginIds.keySet().sort()}")
+    }
+
+    /** The ids of the XNAT plugins a jar holds, from its {@code META-INF/xnat/**}{@code /*-plugin.properties} files. */
+    static Set<String> pluginIdsIn(File jar) {
+        final ZipFile zip = new ZipFile(jar)
+        try {
+            final List<ZipEntry> descriptors = Collections.list(zip.entries()).findAll { ZipEntry entry ->
+                entry.name.startsWith('META-INF/xnat/') && entry.name.endsWith('-plugin.properties')
+            }
+            descriptors.collect { ZipEntry entry ->
+                final Properties properties = new Properties()
+                zip.getInputStream(entry).withStream { stream -> properties.load(stream) }
+                properties.getProperty('id')
+            }.findAll() as Set<String>
+        } finally {
+            zip.close()
+        }
+    }
+
+    /**
+     * What the plugins directory is on, when the pod loses it at a restart, such as the emptyDir the XNAT Helm chart
+     * mounts there; null when it is on a persistent volume. Read from the workload's pod template once.
+     */
+    String ephemeralPluginsVolume() {
+        if (!pluginsVolumeChecked) {
+            knownEphemeralPluginsVolume = findEphemeralPluginsVolume(podTemplateSpec())
+            pluginsVolumeChecked = true
+        }
+        knownEphemeralPluginsVolume
+    }
+
+    private String findEphemeralPluginsVolume(Map podSpec) {
+        final List<Map> containers = (podSpec.containers ?: []) as List<Map>
+        final Map main = container ? containers.find { entry -> entry.name == container } :
+                (containers.find { entry -> entry.name in containerNames } ?: containers[0])
+        if (main == null) {
+            throw new IllegalStateException("${workload} has no container ${container}")
+        }
+        final Map mount = ((main.volumeMounts ?: []) as List<Map>).findAll { entry ->
+            final String mountPath = (entry.mountPath as String).replaceAll('/+$', '')
+            pluginsDirectory == mountPath || pluginsDirectory.startsWith("${mountPath}/")
+        }.max { entry -> (entry.mountPath as String).length() }
+        if (mount == null) {
+            return "the ${main.name} container's own filesystem"
+        }
+        // A mount with no volume in the pod template is a StatefulSet's volume claim template: persistent.
+        final Map volume = ((podSpec.volumes ?: []) as List<Map>).find { entry -> entry.name == mount.name }
+        final String type = volume == null ? null : EPHEMERAL_VOLUME_TYPES.find { candidate -> volume.containsKey(candidate) }
+        type ? "the ${type} volume ${mount.name}" : null
+    }
+
+    /**
+     * Whether the plugins directory is emptied at every restart, so that removing a plugin from it does nothing the
+     * restart wouldn't; whatever the workload puts there as it starts, such as the XNAT Helm chart's plugins, stays.
+     */
+    private boolean pluginsDirectoryIsEphemeral() {
+        final String ephemeralVolume = ephemeralPluginsVolume()
+        if (ephemeralVolume && !warnedOfEphemeralPlugins) {
+            warnedOfEphemeralPlugins = true
+            log.warn("Not removing plugins from ${pluginsDirectory}: it is on ${ephemeralVolume}, which every restart empties. " +
+                    "Plugins ${workload} installs there as it starts, such as the XNAT Helm chart's, stay installed.")
+        }
+        ephemeralVolume != null
+    }
+
+    /** The directories the reset empties: {@code xnat.k8s.dataPaths}, or the site configuration's archive, prearchive, cache and build paths. */
     List<String> resolveDataPaths() {
         final List<String> paths = dataPaths ?: readDataPathsFromSiteConfig()
         paths.each { path ->
@@ -288,6 +456,10 @@ class KubernetesXnat {
         }
     }
 
+    private Map podTemplateSpec() {
+        ((parseJson(kubectl.run(['get', workload, '-o', 'json'])).spec as Map).template as Map).spec as Map
+    }
+
     private File download(String name, String url) {
         final File target = new File(artifactCache, name)
         if (!target.exists()) {
@@ -298,6 +470,10 @@ class KubernetesXnat {
             Files.move(partial.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
         }
         target
+    }
+
+    private static Map parseJson(String json) {
+        new JsonSlurper().parseText(json) as Map
     }
 
     private static String requireIdentifier(String value, String property) {

@@ -31,6 +31,7 @@ class KubernetesServerControl implements PerformanceServerControl {
         xnat.waitForReady()
         SSHConnection.waitForTomcat()
         xnat.verifyRunningVersion()
+        xnat.verifyInstalledPlugins()
         if (Settings.HAS_DICOM_RECEIVER_INFO) {
             xnat.waitForDicomReceiver(Settings.DICOM_HOST, Settings.DICOM_PORT)
         }
