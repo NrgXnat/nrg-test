@@ -48,6 +48,8 @@ class KubernetesXnat {
     long startupTimeoutSeconds = 900
     /** How long a started XNAT's DICOM receiver gets to accept connections, each time it is waited for. It is usually open within seconds of the REST API. */
     long dicomReceiverWaitMillis = 30000
+    /** How long a thread dump gets to reach the container's log before the log is saved. */
+    long threadDumpSettleMillis = 3000
     boolean verifyVersion = true
     String resetConfirmation
     File artifactCache = new File(System.getProperty('java.io.tmpdir'), 'xnat-kubernetes-artifacts')
@@ -276,10 +278,26 @@ class KubernetesXnat {
             return
         }
         log.warn("XNAT's DICOM receiver at ${host}:${port} did not accept connections within ${dicomReceiverWaitMillis / 1000} s; restarting ${workload} once")
+        dumpThreads()
         stop()
         start()
         if (!waitForPort(host, port, dicomReceiverWaitMillis)) {
             log.warn("XNAT's DICOM receiver at ${host}:${port} still did not accept connections within ${dicomReceiverWaitMillis / 1000} s of the restart")
+        }
+    }
+
+    /**
+     * Has XNAT's JVM print a thread dump to its standard output, which the stop then saves with the container's log, so
+     * a start that went wrong can be looked at afterwards. The JVM is found by its executable, since it need not be the
+     * container's first process. A dump that fails only gets a warning.
+     */
+    void dumpThreads() {
+        try {
+            kubectl.exec(pod, container, 'for p in /proc/[0-9]*; do case "$(readlink "$p/exe" 2>/dev/null)" in */java) kill -3 "${p#/proc/}";; esac; done')
+            log.info("Asked ${pod}'s JVM for a thread dump")
+            Thread.sleep(threadDumpSettleMillis)
+        } catch (Exception e) {
+            log.warn("Could not get a thread dump from ${pod}: ${e.message}")
         }
     }
 

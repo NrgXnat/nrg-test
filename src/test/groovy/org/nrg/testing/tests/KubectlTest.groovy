@@ -547,10 +547,26 @@ class KubectlTest {
         final KubernetesXnat xnat = new KubernetesXnat(kubectl())
         xnat.dicomReceiverWaitMillis = 500
         answer('pods', 'pod/xnat-0')
+        xnat.threadDumpSettleMillis = 0
         xnat.waitForDicomReceiver('127.0.0.1', freePort())
-        final List<String> scales = calls().findAll { it.contains(' scale ') }
+        final List<String> calls = calls()
+        final List<String> scales = calls.findAll { it.contains(' scale ') }
         assertEquals(['--context test-context --namespace test-namespace scale statefulset/xnat --replicas=0',
                       '--context test-context --namespace test-namespace scale statefulset/xnat --replicas=1'], scales)
+        final int dump = calls.findIndexOf { it.contains('exec xnat-0') && it.contains('kill -3') }
+        final int scaleDown = calls.findIndexOf { it.contains('--replicas=0') }
+        assertTrue("thread dump (${dump}) before the scale-down (${scaleDown}): ${calls}", dump >= 0 && dump < scaleDown)
+    }
+
+    @Test
+    void aThreadDumpThatFailsDoesNotStopTheRestart() {
+        final KubernetesXnat xnat = new KubernetesXnat(kubectl())
+        xnat.dicomReceiverWaitMillis = 500
+        xnat.threadDumpSettleMillis = 0
+        answer('pods', 'pod/xnat-0')
+        failCallsWith('exec')
+        xnat.waitForDicomReceiver('127.0.0.1', freePort())
+        assertTrue(calls().any { it.contains('--replicas=1') })
     }
 
     @Test
