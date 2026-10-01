@@ -46,8 +46,8 @@ class KubernetesXnat {
     /** Where the XNAT's logs are saved before each stop; null saves nothing. */
     File savedLogs
     long startupTimeoutSeconds = 900
-    /** How long a started XNAT's DICOM receiver gets to accept connections, each time it is waited for. */
-    long dicomReceiverWaitMillis = 300000
+    /** How long a started XNAT's DICOM receiver gets to accept connections, each time it is waited for. It is usually open within seconds of the REST API. */
+    long dicomReceiverWaitMillis = 30000
     boolean verifyVersion = true
     String resetConfirmation
     File artifactCache = new File(System.getProperty('java.io.tmpdir'), 'xnat-kubernetes-artifacts')

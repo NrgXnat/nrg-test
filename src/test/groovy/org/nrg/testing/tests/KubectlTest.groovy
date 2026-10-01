@@ -559,6 +559,7 @@ class KubectlTest {
         try {
             final KubernetesXnat xnat = new KubernetesXnat(kubectl())
             xnat.dicomReceiverWaitMillis = 500
+            xnat.startupTimeoutSeconds = 1   // a wrongful restart fails at once instead of waiting out the startup
             xnat.waitForDicomReceiver('127.0.0.1', listener.localPort)
             assertEquals([], calls())
         } finally {
