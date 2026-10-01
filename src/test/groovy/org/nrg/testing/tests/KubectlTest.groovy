@@ -75,6 +75,10 @@ class KubectlTest {
         new File(stubDir, "json-for-${argument.replace('/', '_')}").text = json
     }
 
+    private void failCallsWith(String argument) {
+        new File(stubDir, "status-for-${argument.replace('/', '_')}").text = '1'
+    }
+
     /** An XNAT whose reset is confirmed and fully configured, which answers that its pod exists. */
     private KubernetesXnat resettableXnat() {
         final KubernetesXnat xnat = new KubernetesXnat(kubectl())
@@ -321,6 +325,37 @@ class KubectlTest {
         assertEquals(['/data/xnat/archive', '/data/xnat/prearchive'], xnat.pathsEmptyAfterReset())
         xnat.resolveDataPaths()
         assertEquals(1, reads)
+    }
+
+    @Test
+    void logsAreSavedBeforeTheWorkloadStops() {
+        final KubernetesXnat xnat = new KubernetesXnat(kubectl())
+        xnat.container = 'xnat'
+        xnat.savedLogs = new File(stubDir, 'saved')
+        answer('pods', 'pod/xnat-0')
+        answer('logs', 'a log line')
+        new File(stubDir, 'stdout').text = 'a tarball'
+        xnat.stop()
+        final File log = xnat.savedLogs.listFiles().find { it.name.endsWith('-xnat-0.log') }
+        final File tarball = xnat.savedLogs.listFiles().find { it.name.endsWith('-xnat-0-logs.tar.gz') }
+        assertEquals('a log line', log?.text)
+        assertEquals('a tarball', tarball?.text)
+        final List<String> calls = calls()
+        final int logs = calls.findIndexOf { it.contains('logs xnat-0 -c xnat') }
+        final int tar = calls.findIndexOf { it.contains("tar -czf - -C '/data/xnat/home/logs' .") }
+        final int scaleDown = calls.findIndexOf { it.contains('--replicas=0') }
+        assertTrue("logs saved (${logs}, ${tar}) before the scale-down (${scaleDown}): ${calls}", logs >= 0 && tar >= 0 && logs < scaleDown && tar < scaleDown)
+    }
+
+    @Test
+    void aLogThatCannotBeSavedDoesNotKeepTheWorkloadUp() {
+        final KubernetesXnat xnat = new KubernetesXnat(kubectl())
+        xnat.savedLogs = new File(stubDir, 'saved')
+        failCallsWith('logs')
+        failCallsWith('exec')
+        xnat.stop()
+        assertEquals([], xnat.savedLogs.listFiles().toList())
+        assertTrue(calls().any { it.contains('--replicas=0') })
     }
 
     /** The XNAT Helm chart's pod template, cut to what the tests read. */

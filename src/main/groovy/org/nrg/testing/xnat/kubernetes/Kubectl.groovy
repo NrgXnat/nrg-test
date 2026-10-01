@@ -69,9 +69,40 @@ class Kubectl {
         stdOut.toString('UTF-8')
     }
 
+    /**
+     * Runs kubectl with the given arguments and writes its standard output to a file, for output that isn't text or
+     * that is too large to hold, failing on a non-zero exit or a timeout.
+     */
+    void runToFile(List<String> arguments, File output, long timeoutSeconds = DEFAULT_TIMEOUT_SECONDS) {
+        final List<String> command = command(arguments)
+        log.info("Running: ${command.join(' ')} > ${output}")
+        final Process process = new ProcessBuilder(command).redirectOutput(output).start()
+        process.outputStream.close()
+        final ByteArrayOutputStream stdErr = new ByteArrayOutputStream()
+        final Thread errReader = process.consumeProcessErrorStream(stdErr)
+        if (!process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
+            process.destroyForcibly()
+            throw new KubectlException(arguments, -1, "timed out after ${timeoutSeconds} s")
+        }
+        errReader.join(10000)
+        if (process.exitValue() != 0) {
+            throw new KubectlException(arguments, process.exitValue(), stdErr.toString('UTF-8').trim())
+        }
+    }
+
     /** Runs a shell script in a container of a pod. A null container means the pod's default container. */
     String exec(String pod, String container, String script, long timeoutSeconds = DEFAULT_TIMEOUT_SECONDS) {
         run(execArguments(pod, container, false) + ['--', 'sh', '-c', script], timeoutSeconds)
+    }
+
+    /** As {@link #exec}, writing the script's standard output to a file. */
+    void execToFile(String pod, String container, String script, File output, long timeoutSeconds = DEFAULT_TIMEOUT_SECONDS) {
+        runToFile(execArguments(pod, container, false) + ['--', 'sh', '-c', script], output, timeoutSeconds)
+    }
+
+    /** Writes a container's log to a file. A null container means the pod's default container. */
+    void logsToFile(String pod, String container, File output, long timeoutSeconds = DEFAULT_TIMEOUT_SECONDS) {
+        runToFile(['logs', pod] + (container ? ['-c', container] : []), output, timeoutSeconds)
     }
 
     /** Writes a local file to a path in a container, through a temporary name so a reader never sees it partly written. */

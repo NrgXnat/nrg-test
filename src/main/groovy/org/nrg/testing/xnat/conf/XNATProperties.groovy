@@ -91,6 +91,8 @@ class XNATProperties extends BaseProperties {
     public static final String KUBERNETES_PLUGINS_DIR = 'xnat.k8s.pluginsDir'
     public static final String KUBERNETES_PLUGINS_SOURCE = 'xnat.k8s.pluginsSource'
     public static final String KUBERNETES_IMAGE = 'xnat.k8s.image'
+    public static final String KUBERNETES_LOGS_DIR = 'xnat.k8s.logsDir'
+    public static final String KUBERNETES_SAVE_LOGS_TO = 'xnat.k8s.saveLogsTo'
     public static final String KUBERNETES_STARTUP_TIMEOUT = 'xnat.k8s.startupTimeout'
     public static final String KUBERNETES_RESET_CONFIRM = 'xnat.k8s.reset.confirm'
     public static final String KUBERNETES_VERIFY_VERSION = 'xnat.k8s.verifyVersion'
@@ -445,6 +447,14 @@ class XNATProperties extends BaseProperties {
 
     String getKubernetesImage() {
         getStringProperty(KUBERNETES_IMAGE, null)
+    }
+
+    String getKubernetesLogsDirectory() {
+        getStringProperty(KUBERNETES_LOGS_DIR, '/data/xnat/home/logs')
+    }
+
+    String getKubernetesSaveLogsTo() {
+        getStringProperty(KUBERNETES_SAVE_LOGS_TO, 'target/xnat-logs')
     }
 
     int getKubernetesStartupTimeout() {

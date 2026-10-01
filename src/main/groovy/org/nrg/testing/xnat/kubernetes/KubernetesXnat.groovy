@@ -7,6 +7,7 @@ import org.nrg.testing.xnat.conf.XNATProperties
 
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.text.SimpleDateFormat
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
@@ -27,6 +28,7 @@ class KubernetesXnat {
     private static final List<String> STATEFUL_SET_KINDS = ['statefulset', 'statefulsets', 'sts', 'statefulset.apps', 'statefulsets.apps']
     private static final String IDENTIFIER = /[A-Za-z_][A-Za-z0-9_-]*/
     private static final long   DICOM_RECEIVER_WAIT_MILLIS = 120000
+    private static final long   LOG_SAVE_TIMEOUT_SECONDS = 600
 
     final Kubectl kubectl
     String workload = 'statefulset/xnat'
@@ -41,6 +43,9 @@ class KubernetesXnat {
     String pluginsDirectory = '/data/xnat/home/plugins'
     String pluginsSource
     String imageRepository
+    String logsDirectory = '/data/xnat/home/logs'
+    /** Where the XNAT's logs are saved before each stop; null saves nothing. */
+    File savedLogs
     long startupTimeoutSeconds = 900
     boolean verifyVersion = true
     String resetConfirmation
@@ -60,6 +65,7 @@ class KubernetesXnat {
     private boolean pluginsVolumeChecked
     private String knownEphemeralPluginsVolume
     private boolean warnedOfEphemeralPlugins
+    private boolean describedFirstSwitch
     private final Map<String, Set<String>> installedPluginIds = [:]
 
     KubernetesXnat(Kubectl kubectl) {
@@ -85,6 +91,8 @@ class KubernetesXnat {
         xnat.pluginsDirectory = properties.kubernetesPluginsDirectory
         xnat.pluginsSource = properties.kubernetesPluginsSource
         xnat.imageRepository = properties.kubernetesImage
+        xnat.logsDirectory = properties.kubernetesLogsDirectory
+        xnat.savedLogs = new File(properties.kubernetesSaveLogsTo)
         xnat.startupTimeoutSeconds = properties.kubernetesStartupTimeout
         xnat.resetConfirmation = properties.kubernetesResetConfirmation
         xnat.verifyVersion = properties.kubernetesVerifyVersion
@@ -160,9 +168,40 @@ class KubernetesXnat {
     }
 
     void stop() {
+        saveLogs()
         log.info("Stopping ${workload} in ${target}")
         kubectl.scale(workload, 0)
         kubectl.waitForPodDeletion(pod, startupTimeoutSeconds)
+    }
+
+    /**
+     * Saves the container's log and a tarball of XNAT's logs directory into {@link #savedLogs}, since the XNAT Helm
+     * chart keeps XNAT's home, logs included, on a volume that goes with the pod. A log that can't be saved only gets
+     * a warning.
+     */
+    void saveLogs() {
+        if (savedLogs == null) {
+            return
+        }
+        savedLogs.mkdirs()
+        final String prefix = "${timestamp()}-${pod}"
+        saveLog(new File(savedLogs, "${prefix}.log")) { File file ->
+            kubectl.logsToFile(pod, container, file, LOG_SAVE_TIMEOUT_SECONDS)
+        }
+        saveLog(new File(savedLogs, "${prefix}-logs.tar.gz")) { File file ->
+            Kubectl.requireSafePath(logsDirectory)
+            kubectl.execToFile(pod, container, "tar -czf - -C '${logsDirectory}' .", file, LOG_SAVE_TIMEOUT_SECONDS)
+        }
+    }
+
+    private static void saveLog(File file, Closure save) {
+        try {
+            save(file)
+            log.info("Saved ${file}")
+        } catch (Exception e) {
+            file.delete()
+            log.warn("Could not save ${file.name}: ${e.message}")
+        }
     }
 
     void recreateDatabase() {
@@ -207,10 +246,22 @@ class KubernetesXnat {
         log.info("Starting ${workload} in ${target}")
         kubectl.scale(workload, 1)
         waitForReady()
+        logRunningImages()
     }
 
     void waitForReady() {
         kubectl.waitForPodReady(pod, startupTimeoutSeconds)
+    }
+
+    /** Logs the image each container of the pod runs by its digest, which names the exact build even when a tag moves. */
+    void logRunningImages() {
+        try {
+            final Map status = (parseJson(kubectl.run(['get', 'pod', pod, '-o', 'json'])).status ?: [:]) as Map
+            final List<Map> statuses = ((status.initContainerStatuses ?: []) + (status.containerStatuses ?: [])) as List<Map>
+            log.info("${pod} runs ${statuses.collect { entry -> "${entry.name}=${entry.imageID ?: entry.image}" }.join(', ') ?: 'no containers yet'}")
+        } catch (Exception e) {
+            log.warn("Could not read the images ${pod} runs: ${e.message}")
+        }
     }
 
     /**
@@ -306,7 +357,8 @@ class KubernetesXnat {
 
     /**
      * The containers and init containers of the workload's pod template named in {@code xnat.k8s.containers}, which a
-     * switch of image changes. At least one must be a main container.
+     * switch of image changes. At least one must be a main container. The first time, logs what they run, since the
+     * workload stays on the run's last image afterwards.
      */
     List<String> xnatContainerNames() {
         final Map podSpec = podTemplateSpec()
@@ -321,6 +373,12 @@ class KubernetesXnat {
         final List<String> absent = containerNames - names
         if (absent) {
             log.warn("${workload} has no container or init container ${absent}; switching only ${names}")
+        }
+        if (!describedFirstSwitch) {
+            describedFirstSwitch = true
+            log.warn("Before this run's first switch of image, ${workload} runs ${named.collect { entry -> "${entry.name}=${entry.image}" }.join(', ')}. " +
+                    "It stays on the last image the run switches to, with a database that image's XNAT set up, which an older XNAT may not " +
+                    'start on. To leave it on the image it runs now, make that image the last deployment of the run.')
         }
         names
     }
@@ -509,6 +567,12 @@ class KubernetesXnat {
 
     private static Map parseJson(String json) {
         new JsonSlurper().parseText(json) as Map
+    }
+
+    private static String timestamp() {
+        final SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd'T'HHmmss'Z'")
+        format.timeZone = TimeZone.getTimeZone('UTC')
+        format.format(new Date())
     }
 
     private static String requireIdentifier(String value, String property) {
