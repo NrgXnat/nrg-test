@@ -27,7 +27,7 @@ class KubernetesXnat {
     private static final List<String> EPHEMERAL_VOLUME_TYPES = ['emptyDir', 'ephemeral', 'configMap', 'secret', 'projected', 'downwardAPI']
     private static final List<String> STATEFUL_SET_KINDS = ['statefulset', 'statefulsets', 'sts', 'statefulset.apps', 'statefulsets.apps']
     private static final String IDENTIFIER = /[A-Za-z_][A-Za-z0-9_-]*/
-    private static final long   LOG_SAVE_TIMEOUT_SECONDS = 600
+    private static final long LOG_SAVE_TIMEOUT_SECONDS = 600
 
     final Kubectl kubectl
     String workload = 'statefulset/xnat'
