@@ -2,7 +2,6 @@ package org.nrg.testing.xnat.performance.control
 
 import org.nrg.testing.xnat.conf.Settings
 import org.nrg.testing.xnat.kubernetes.KubernetesXnat
-import org.nrg.testing.xnat.performance.ImageTaggedXnatDeployment
 import org.nrg.testing.xnat.rest.XnatRestDriver
 import org.nrg.testing.xnat.ssh.SSHConnection
 import org.nrg.xnat.pogo.XnatDeployment
@@ -21,7 +20,7 @@ class KubernetesServerControl implements PerformanceServerControl {
 
     @Override
     void deployXnat(XnatDeployment deployment) {
-        Settings.kubernetesXnat().stageImage(ImageTaggedXnatDeployment.imageTagFor(deployment))
+        Settings.kubernetesXnat().stageImage(deployment.imageTag)
     }
 
     @Override

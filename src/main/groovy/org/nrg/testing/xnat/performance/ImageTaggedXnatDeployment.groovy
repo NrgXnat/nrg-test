@@ -10,6 +10,7 @@ import org.nrg.xnat.pogo.XnatDeployment
  */
 class ImageTaggedXnatDeployment extends XnatDeployment {
 
+    /** The image this deployment runs, in place of the one its XNAT version names. */
     String imageTag
 
     /** Reads one entry of {@code xnat.performance.deployments}, with or without an image tag. */
@@ -30,11 +31,6 @@ class ImageTaggedXnatDeployment extends XnatDeployment {
         tagged.xnatVersionString = deployment.xnatVersionString
         tagged.plugins = deployment.plugins
         tagged
-    }
-
-    /** The image tag a deployment runs: its own tag if it has one, else its XNAT version. */
-    static String imageTagFor(XnatDeployment deployment) {
-        deployment instanceof ImageTaggedXnatDeployment ? deployment.imageTag : deployment.xnatVersionString
     }
 
 }

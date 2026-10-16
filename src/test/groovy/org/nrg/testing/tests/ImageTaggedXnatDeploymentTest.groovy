@@ -17,7 +17,7 @@ class ImageTaggedXnatDeploymentTest {
         final XnatDeployment deployment = ImageTaggedXnatDeployment.parse('1.10.1')
         assertFalse(deployment instanceof ImageTaggedXnatDeployment)
         assertEquals('1.10.1', deployment.id)
-        assertEquals('1.10.1', ImageTaggedXnatDeployment.imageTagFor(deployment))
+        assertEquals('1.10.1', deployment.imageTag)
     }
 
     @Test
@@ -25,7 +25,7 @@ class ImageTaggedXnatDeploymentTest {
         final XnatDeployment deployment = ImageTaggedXnatDeployment.parse('1.10.2-develop-2026.09.24-SNAPSHOT=1.10.1')
         assertTrue(deployment instanceof ImageTaggedXnatDeployment)
         assertEquals('1.10.2-develop-2026.09.24-SNAPSHOT', deployment.id)
-        assertEquals('1.10.2-develop-2026.09.24-SNAPSHOT', ImageTaggedXnatDeployment.imageTagFor(deployment))
+        assertEquals('1.10.2-develop-2026.09.24-SNAPSHOT', deployment.imageTag)
         assertEquals('1.10.1', deployment.xnatVersionString)
         assertEquals(Xnat_1_10_1, deployment.xnatVersion)
     }
