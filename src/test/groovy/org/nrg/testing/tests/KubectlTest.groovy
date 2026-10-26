@@ -1,8 +1,10 @@
 package org.nrg.testing.tests
 
+import org.apache.commons.lang3.SystemUtils
 import org.nrg.testing.xnat.kubernetes.Kubectl
 import org.nrg.testing.xnat.kubernetes.KubectlException
 import org.nrg.testing.xnat.kubernetes.KubernetesXnat
+import org.testng.SkipException
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 
@@ -28,6 +30,9 @@ class KubectlTest {
 
     @BeforeMethod
     void createStub() {
+        if (SystemUtils.IS_OS_WINDOWS) {
+            throw new SkipException('The kubectl stub is a POSIX shell script')
+        }
         stubDir = Files.createTempDirectory('kubectl-stub').toFile()
         stub = new File(stubDir, 'kubectl')
         stub.text = '''\
