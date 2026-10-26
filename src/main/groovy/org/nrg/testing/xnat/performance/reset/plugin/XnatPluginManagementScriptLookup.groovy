@@ -5,11 +5,13 @@ class XnatPluginManagementScriptLookup {
     private static final String DEFAULT = 'internal'
 
     private static final Map<String, XnatComponentInstaller> INSTALL_SCRIPTS = [
-            (DEFAULT): new InternalComponentInstaller()
+            (DEFAULT): new InternalComponentInstaller(),
+            'kubernetes': new KubernetesComponentInstaller()
     ]
 
     private static final Map<String, XnatComponentUninstaller> UNINSTALL_SCRIPTS = [
-            (DEFAULT): new InternalComponentUninstaller()
+            (DEFAULT): new InternalComponentUninstaller(),
+            'kubernetes': new KubernetesComponentUninstaller()
     ]
 
     static XnatComponentInstaller lookupInstaller(String managerKey) {

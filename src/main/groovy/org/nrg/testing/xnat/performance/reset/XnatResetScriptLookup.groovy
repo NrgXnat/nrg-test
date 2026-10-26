@@ -5,6 +5,7 @@ class XnatResetScriptLookup {
     private static final Map<String, PerformanceServerResetScript> RESET_SCRIPTS = [
             'internal_local': new InternalXnatReset(false),
             'internal_ssh': new InternalXnatReset(true),
+            'kubernetes': new KubernetesXnatReset(),
             'nothing': new DoNothingXnatReset()
     ]
 
