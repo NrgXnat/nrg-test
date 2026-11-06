@@ -67,6 +67,7 @@ Each specific configuration setting may be done as a command line argument, or f
 * xnat.setupMrscan: If set to true, the `xnat:mrScanData` data type will be set-up on the XNAT server in startup. Defaults to false.
 * xnat.requireAdmin: Can be set to false to indicate that admin accounts are not available for the tests. Defaults to true.
 * xnat.allowLogging: Boolean passed to REST-assured log verbose errors when a validation error is encountered. Can be disabled if tests would be run (not recommended) on a sensitive system where capturing logs would be problematic. Defaults to true.
+* xnat.strictSessions: Can be set to true to make a request fail when XNAT rejects its session (a 401, a redirect to the login page, or the login page in place of the content), instead of grxnat silently logging in again and repeating it. Meant for finding lost sessions, e.g. behind a load balancer without session affinity. Applies to requests made through `XnatRestDriver`'s interfaces (`mainQueryBase()`, `queryBaseFor(user)` and so on), not to `mainCredentials()`, which sends basic auth with every request. Defaults to false.
 * xnat.notifiedEmails: Comma-separated list of emails to which results will be sent on test completion. Required if summary email feature is being used.
 * xnat.notificationTitle: Email subject/title for the test suite in the summary email. Required if summary email feature is being used.
 * xnat.notifyOnSuccess: If the summary email is being used, this boolean controls if the email will still be sent when all tests pass. Defaults to false.
