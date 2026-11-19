@@ -31,15 +31,41 @@ class PluginDependencyManagerTest {
     void theMinimumIsInclusiveAndTheMaximumIsExclusive() {
         assertEquals(PluginDependencyCheckState.SATISFIED, check('4.9.0', '4.9.0', null))
         assertEquals(PluginDependencyCheckState.SATISFIED, check('4.9.0', '4.9', null))
+        assertEquals(PluginDependencyCheckState.SATISFIED, check('4.9', '4.9.0', null))
         assertEquals(PluginDependencyCheckState.SATISFIED, check('4.9.5', null, '4.10.0'))
         assertEquals(PluginDependencyCheckState.VERSION_MISMATCH, check('4.10.0', null, '4.10.0'))
         assertEquals(PluginDependencyCheckState.VERSION_MISMATCH, check('4.11.0', null, '4.9.0'))
     }
 
     @Test
-    void aVersionThatIsNotNumericIsStillComparedAsText() {
+    void aSuffixOnTheRequiredVersionIsIgnored() {
+        // As text, "4.10.3" sorts before both of these.
+        assertEquals(PluginDependencyCheckState.SATISFIED, check('4.10.3', '4.9.0-SNAPSHOT', null))
+        assertEquals(PluginDependencyCheckState.VERSION_MISMATCH, check('4.10.3', null, '4.9.0-rc1'))
+    }
+
+    @Test
+    void aSuffixOnTheInstalledVersionThatIsNotADashIsIgnored() {
+        assertEquals(PluginDependencyCheckState.SATISFIED, check('4.10.3.dirty', '4.9.0', null))
+        assertEquals(PluginDependencyCheckState.SATISFIED, check('4.10.3+abc', '4.9.0', null))
+        assertEquals(PluginDependencyCheckState.VERSION_MISMATCH, check('4.8.3.dirty', '4.9.0', null))
+    }
+
+    @Test
+    void aPartTooLargeForAnIntIsStillCompared() {
+        assertEquals(PluginDependencyCheckState.SATISFIED, check('3046127958-xpl', '4.9.0', null))
+        assertEquals(PluginDependencyCheckState.SATISFIED, check('4.9.0.20261116152258', '4.9.0', null))
+        assertEquals(PluginDependencyCheckState.VERSION_MISMATCH, check('4.9.0.20261116152258', null, '4.9.0.20261116152258'))
+        assertEquals(PluginDependencyCheckState.VERSION_MISMATCH, check('4.9.0', '4.9.0.20261116152258', null))
+    }
+
+    @Test
+    void aVersionThatDoesNotStartWithNumbersIsStillComparedAsText() {
         assertEquals(PluginDependencyCheckState.SATISFIED, check('b2', 'b1', null))
         assertEquals(PluginDependencyCheckState.VERSION_MISMATCH, check('b1', 'b2', null))
+        // A commit hash that starts with digits, and a part that runs into letters, are not numbers.
+        assertEquals(PluginDependencyCheckState.VERSION_MISMATCH, check('10ecbbdb27', '4.9.0', null))
+        assertEquals(PluginDependencyCheckState.VERSION_MISMATCH, check('4.10.3rc1', '4.9.0', null))
     }
 
     @Test

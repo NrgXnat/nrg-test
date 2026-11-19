@@ -2,14 +2,17 @@ package org.nrg.testing.xnat.plugins
 
 import org.nrg.testing.annotations.TestRequires
 import org.nrg.xnat.pogo.XnatPlugin
-import org.nrg.xnat.versions.Version
 import org.nrg.xnat.versions.plugins.GeneralPluginRequirement
 import org.nrg.xnat.versions.plugins.PluginDependencyCheck
 import org.nrg.xnat.versions.plugins.PluginDependencyCheckState
 
+import java.util.regex.Matcher
+
 class PluginDependencyManager {
 
-    private static final String NUMERIC_VERSION = /[0-9]+(\.[0-9]+)*/
+    // The dot-separated numbers a version starts with, as long as they end at a suffix such as '-xpl', '.dirty'
+    // or '+build' and not in the middle of a part such as '3rc1'.
+    private static final String LEADING_NUMBERS = /^[0-9]+(\.[0-9]+)*(?![0-9A-Za-z]|\.[0-9])/
 
     static List<GeneralPluginRequirement> parsePluginRequirements(TestRequires requiresAnnotation) {
         final List<GeneralPluginRequirement> requirements = []
@@ -55,16 +58,31 @@ class PluginDependencyManager {
     }
 
     /**
-     * Compares two version strings part by part as numbers, so that 4.10.0 is later than 4.9.0. Comparing
-     * them as text puts 4.10.0 before 4.9.0, which drops every test that requires 4.9.0 on a server that
-     * runs 4.10.0. A version that isn't dot-separated numbers can't be compared that way, so those fall
-     * back to the text comparison.
+     * Compares two versions by the dot-separated numbers they start with, part by part as numbers, so that
+     * 4.10.0 is later than 4.9.0. Comparing them as text puts 4.10.0 before 4.9.0, which drops every test
+     * that requires 4.9.0 on a server that runs 4.10.0. A suffix such as '-rc1' or '.dirty' is ignored and a
+     * missing part counts as 0, so 4.9 equals 4.9.0. A version that doesn't start with numbers can't be
+     * compared that way, so those fall back to the text comparison.
      */
     private static int compareVersions(String left, String right) {
-        if (left ==~ NUMERIC_VERSION && right ==~ NUMERIC_VERSION) {
-            return new Version(left) <=> new Version(right)
+        final List<BigInteger> leftParts = leadingNumbers(left)
+        final List<BigInteger> rightParts = leadingNumbers(right)
+        if (leftParts == null || rightParts == null) {
+            return left <=> right
         }
-        left <=> right
+        for (int i = 0; i < Math.max(leftParts.size(), rightParts.size()); i++) {
+            final int comparison = (i < leftParts.size() ? leftParts[i] : BigInteger.ZERO) <=> (i < rightParts.size() ? rightParts[i] : BigInteger.ZERO)
+            if (comparison != 0) {
+                return comparison
+            }
+        }
+        0
+    }
+
+    // BigInteger, because a part can be a build timestamp that doesn't fit in an int.
+    private static List<BigInteger> leadingNumbers(String version) {
+        final Matcher matcher = version =~ LEADING_NUMBERS
+        matcher.find() ? matcher.group().split(/\./).collect { new BigInteger(it) } : null
     }
 
     private static String formatReason(String id, String installedVersion, String operator, String requiredVersion) {
