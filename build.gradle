@@ -9,7 +9,13 @@ apply plugin: 'groovy'
 apply plugin: 'java'
 apply plugin: 'java-library'
 apply plugin: 'maven-publish'
-apply plugin: 'net.linguica.maven-settings'
+// Supplies Artifactory credentials from ~/.m2/settings.xml for local publishing. Skipped
+// on CI, where setup-java writes a settings.xml this plugin fails to decrypt, which
+// breaks configuration of every task, not just publishing. CI injects the credentials as
+// gradle properties instead; see the publishing block below.
+if (!System.getenv('CI')) {
+    apply plugin: 'net.linguica.maven-settings'
+}
 apply plugin: 'idea'
 apply plugin: 'eclipse'
 apply plugin: 'io.spring.dependency-management'
@@ -105,6 +111,9 @@ jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+def artifactoryUser = propertyWithDefault('artifactoryUser', System.getenv('ARTIFACTORY_USER'))
+def artifactoryToken = propertyWithDefault('artifactoryToken', System.getenv('ARTIFACTORY_TOKEN'))
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
@@ -139,6 +148,16 @@ publishing {
             url "https://nrgxnat.jfrog.io/nrgxnat/libs-${project.version.endsWith("-SNAPSHOT") ? "snapshot" : "release"}-local"
             // The value for name must match <id> in ~/.m2/settings.xml
             name = "XNAT_Artifactory"
+            // CI can't get credentials from ~/.m2/settings.xml (the maven-settings plugin
+            // is skipped there, see above), so it injects
+            // ORG_GRADLE_PROJECT_artifactoryUser/Token instead. Declared only when those
+            // are present, so local settings.xml auth is left to the plugin.
+            if (artifactoryUser && artifactoryToken) {
+                credentials {
+                    username = artifactoryUser
+                    password = artifactoryToken
+                }
+            }
         }
     }
 }

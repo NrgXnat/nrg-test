@@ -1,0 +1,61 @@
+name: Build and Publish
+
+# Thin caller around the shared reusable workflow in NrgXnat/xnat-ci-workflows.
+# All build/publish orchestration lives there; this file only defines our
+# triggers and nrg_test's project-specific inputs.
+
+on:
+  push:
+    branches:
+      - main
+  # Build and test every PR against main so a break is caught before it lands.
+  # Nothing is published from a PR: the publish gate below requires a push.
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      publish_jfrog:
+        description: 'Publish to JFrog Artifactory (nrgxnat)'
+        type: boolean
+        default: false
+
+# packages: write is required even though publish-ghcr is false below: the called
+# workflow's GHCR job declares that permission, and a called workflow may not request
+# more than its caller grants. GitHub validates this when the run starts, before any
+# `if:` is evaluated, so omitting it fails the run outright rather than skipping a job.
+permissions:
+  contents: read
+  packages: write
+
+# Supersede a PR's in-flight run when it's pushed to again. Push runs are never
+# cancelled: they publish to JFrog and must be allowed to finish.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build-publish:
+    uses: NrgXnat/xnat-ci-workflows/.github/workflows/gradle-build-publish.yml@v1
+    with:
+      # Gradle 7.4 can't run on the reusable workflow's default JDK 21, and the
+      # project compiles to 1.8 bytecode.
+      java-version: '8'
+
+      # ──── Artifact ────
+      artifact-glob: 'build/libs/*.jar'
+      artifact-name: 'nrg-test-jar'
+
+      # ──── JFrog ────
+      # On any push to main: publish. On dispatch: only when publish_jfrog is
+      # ticked. Never on a PR. The `== true` matters: on a pull_request event
+      # there is no inputs context, and a bare `inputs.publish_jfrog` would
+      # evaluate to null rather than to a boolean this typed input accepts.
+      publish-jfrog: ${{ github.event_name == 'push' || inputs.publish_jfrog == true }}
+
+      # nrg_test is a library; no container image.
+      publish-ghcr: false
+
+    # secrets: inherit passes the org-level XNAT_ARTIFACTORY_USER/TOKEN through
+    # to the reusable workflow.
+    secrets: inherit
