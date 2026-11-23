@@ -44,6 +44,7 @@ class XNATProperties extends BaseProperties {
     public static final String GITLOGS_SETTING = 'xnat.gitLogs'
     public static final String BASIC_MODE = 'xnat.basic'
     public static final String LOGGING_SETTING = 'xnat.allowLogging'
+    public static final String STRICT_SESSIONS = 'xnat.strictSessions'
     public static final String DATABASE_URL = 'xnat.db.url'
     public static final String DATABASE_USER = 'xnat.db.user'
     public static final String DATABASE_PASS = 'xnat.db.password'
@@ -239,6 +240,10 @@ class XNATProperties extends BaseProperties {
 
     boolean getLoggingAllowedSetting() {
         getBooleanProperty(LOGGING_SETTING, true)
+    }
+
+    boolean getStrictSessionsSetting() {
+        getBooleanProperty(STRICT_SESSIONS, false)
     }
 
     String getDatabaseUrl() {

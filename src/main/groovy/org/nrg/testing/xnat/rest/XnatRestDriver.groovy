@@ -96,8 +96,12 @@ abstract class XnatRestDriver {
         if (xnatInterface != null) {
             xnatInterface
         } else {
-            final XnatInterface newInterface = XnatInterface.authenticate(xnatConfig.xnatUrl, user,
-                    new XnatConnectionConfig(versionClass: xnatConfig.xnatVersion, logOnValidationFailure: Settings.LOGGING_ALLOWED))
+            final XnatConnectionConfig connectionConfig = new XnatConnectionConfig(versionClass: xnatConfig.xnatVersion, logOnValidationFailure: Settings.LOGGING_ALLOWED)
+            if (Settings.STRICT_SESSIONS) {
+                // Set only when it's on, so that this still runs against a grxnat without strict sessions.
+                connectionConfig.strictSessions = true
+            }
+            final XnatInterface newInterface = XnatInterface.authenticate(xnatConfig.xnatUrl, user, connectionConfig)
             xnatInterfaceMap.put(user, newInterface)
             newInterface
         }
